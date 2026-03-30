@@ -5,6 +5,7 @@
  * Copyright (c) 2024, Jamie Mansfield <jmansfield@cadixdev.org>
  * Copyright (c) 2025, Shannon Booth <shannon@serenityos.org>
  * Copyright (c) 2025, Kenneth Myhra <kennethmyhra@serenityos.org>
+ * Copyright (c) 2026, Bottlebird Contributors
  *
  * SPDX-License-Identifier: BSD-2-Clause
  */
@@ -1149,6 +1150,15 @@ GC::Ref<PendingResponse> scheme_fetch(JS::Realm& realm, Infrastructure::FetchPar
     // -> HTTP(S) scheme
     else if (Infrastructure::is_http_or_https_scheme(request->current_url().scheme())) {
         // Return the result of running HTTP fetch given fetchParams.
+        return http_fetch(realm, fetch_params);
+    }
+    // AD-HOC: -> "1sat" or "ordfs"
+    // Rewrite the URL to an HTTPS proxy URL and dispatch to HTTP fetch.
+    else if (URL::is_onesat_or_ordfs_scheme(request->current_url().scheme())) {
+        auto proxy_url = URL::URL::resolve_onesat_or_ordfs_to_proxy(request->current_url());
+        if (!proxy_url.has_value())
+            return PendingResponse::create(vm, request, Infrastructure::Response::network_error(vm, MUST(String::formatted("Failed to resolve {} URL", request->current_url().scheme()))));
+        request->set_url(proxy_url.release_value());
         return http_fetch(realm, fetch_params);
     }
 
