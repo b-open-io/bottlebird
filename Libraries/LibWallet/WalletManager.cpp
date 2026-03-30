@@ -331,7 +331,7 @@ ErrorOr<String> WalletManager::fetch_balance(StringView backend_url)
     auto response_buf = TRY(ByteBuffer::create_uninitialized(buf_capacity));
     size_t body_len = buf_capacity;
 
-    static constexpr auto args = "{\"basket\":\"default\"}"sv;
+    static constexpr auto args = "{\"basket\":\"default\",\"limit\":100}"sv;
 
     rc = bsvwallet_list_outputs(
         handle,
