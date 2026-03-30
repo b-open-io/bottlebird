@@ -22,6 +22,7 @@
 #include <LibWeb/MediaCapabilitiesAPI/MediaCapabilities.h>
 #include <LibWeb/Serial/Serial.h>
 #include <LibWeb/StorageAPI/NavigatorStorage.h>
+#include <LibWeb/Wallet/Wallet.h>
 
 namespace Web::HTML {
 
@@ -67,6 +68,10 @@ public:
     [[nodiscard]] GC::Ref<CredentialManagement::CredentialsContainer> credentials();
     [[nodiscard]] GC::Ref<WebIDL::Promise> get_battery();
     [[nodiscard]] GC::Ref<WebXR::XRSystem> xr();
+
+    [[nodiscard]] GC::Ref<Wallet::Wallet> wallet();
+
+    Optional<FlyString> do_not_track() const;
 
     GC::Ref<ServiceWorker::ServiceWorkerContainer> service_worker();
 
@@ -116,6 +121,7 @@ private:
 
     // https://immersive-web.github.io/webxr/#dom-navigator-xr
     GC::Ptr<WebXR::XRSystem> m_xr;
+    GC::Ptr<Wallet::Wallet> m_wallet;
 };
 
 }

@@ -1292,6 +1292,9 @@ class PerformanceMeasure;
 namespace Web::ViewTransition {
 
 class ViewTransition;
+namespace Web::Wallet {
+
+class Wallet;
 
 }
 

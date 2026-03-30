@@ -1,0 +1,31 @@
+[Exposed=Window, SecureContext]
+interface Wallet {
+    Promise<object> getPublicKey(optional WalletKeyOptions options = {});
+    Promise<object> createAction(WalletActionOptions options);
+    Promise<object> signAction(WalletSignOptions options);
+    Promise<object> listOutputs(optional WalletListOptions options = {});
+    Promise<object> listActions(optional WalletListOptions options = {});
+};
+
+dictionary WalletKeyOptions {
+    DOMString protocolID = "";
+    DOMString keyID = "";
+    boolean forSelf = true;
+};
+
+dictionary WalletActionOptions {
+    DOMString description = "";
+    sequence<object> outputs;
+    sequence<object> inputs;
+};
+
+dictionary WalletSignOptions {
+    DOMString reference = "";
+    sequence<object> spends;
+};
+
+dictionary WalletListOptions {
+    DOMString basket = "default";
+    unsigned long limit = 25;
+    unsigned long offset = 0;
+};

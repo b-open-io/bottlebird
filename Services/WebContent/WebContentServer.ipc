@@ -145,4 +145,5 @@ endpoint WebContentServer
     request_close(u64 page_id) =|
 
     exit_fullscreen(u64 page_id) =|
+    did_complete_wallet_operation(u64 page_id, u64 request_id, String result) =|
 }
