@@ -40,6 +40,7 @@
 
 namespace WebView {
 
+class MCPServer;
 struct ApplicationSettingsObserver;
 struct ApplicationBookmarkStoreObserver;
 
@@ -181,6 +182,7 @@ private:
     ErrorOr<void> launch_request_server();
     ErrorOr<void> launch_image_decoder_server();
     ErrorOr<void> launch_devtools_server();
+    ErrorOr<void> launch_mcp_server();
 
     void initialize_actions();
 
@@ -300,6 +302,7 @@ private:
 #endif
 
     OwnPtr<DevTools::DevToolsServer> m_devtools;
+    OwnPtr<MCPServer> m_mcp_server;
 
     mutable HashMap<u64, u64> m_navigation_listener_ids;
 };

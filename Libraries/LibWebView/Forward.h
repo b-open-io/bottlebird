@@ -17,6 +17,7 @@ class Application;
 class Autocomplete;
 class BookmarkStore;
 class CookieJar;
+class MCPServer;
 class Menu;
 class OutOfProcessWebView;
 class ProcessManager;

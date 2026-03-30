@@ -12,6 +12,8 @@ set(SOURCES
     FileDownloader.cpp
     HeadlessWebView.cpp
     HelperProcess.cpp
+    MCPServer.cpp
+    MCPTools.cpp
     Menu.cpp
     Mutation.cpp
     Plugins/ImageCodecPlugin.cpp
