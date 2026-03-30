@@ -47,9 +47,7 @@ const filePassword = document.querySelector("#file-password");
 const importFileError = document.querySelector("#import-file-error");
 
 // Identity (dashboard card)
-const identityCard = document.querySelector("#identity-card");
-const bapIdDisplay = document.querySelector("#bap-id");
-const identityPubkey = document.querySelector("#identity-pubkey");
+// Identity view elements (dedicated tab)
 
 // Identity (full view)
 const identityBapIdView = document.querySelector("#identity-bap-id");
@@ -155,22 +153,15 @@ function updateStatus(status) {
         statusText.textContent = "Offline";
     }
 
+    // Populate identity view (dedicated tab)
     if (status.bapId || status.identityPubkey) {
-        identityCard.classList.remove("hidden");
-        if (status.bapId) bapIdDisplay.textContent = status.bapId;
-        if (status.identityPubkey) identityPubkey.textContent = status.identityPubkey;
-
-        // Also populate full identity view
-        if (status.bapId) identityBapIdView.textContent = status.bapId;
-        if (status.identityPubkey) identityKeyView.textContent = status.identityPubkey;
-        identityEmpty.classList.add("hidden");
+        if (identityBapIdView) identityBapIdView.textContent = status.bapId || "";
+        if (identityKeyView) identityKeyView.textContent = status.identityPubkey || "";
+        if (identityEmpty) identityEmpty.classList.add("hidden");
     } else {
-        identityCard.classList.add("hidden");
-        bapIdDisplay.textContent = "";
-        identityPubkey.textContent = "";
-        identityBapIdView.textContent = "No BAP ID available";
-        identityKeyView.textContent = "No identity key available";
-        identityEmpty.classList.remove("hidden");
+        if (identityBapIdView) identityBapIdView.textContent = "No BAP ID available";
+        if (identityKeyView) identityKeyView.textContent = "No identity key available";
+        if (identityEmpty) identityEmpty.classList.remove("hidden");
     }
 }
 
