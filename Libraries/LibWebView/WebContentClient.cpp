@@ -788,7 +788,7 @@ Messages::WebContentClient::RequestWorkerAgentResponse WebContentClient::request
     return { IPC::TransportHandle {}, IPC::TransportHandle {}, IPC::TransportHandle {} };
 }
 
-void WebContentClient::did_request_wallet_operation(u64 page_id, u64 request_id, String operation, String params [[maybe_unused]])
+void WebContentClient::did_request_wallet_operation(u64 page_id, u64 request_id, String operation, String params)
 {
     auto const& settings = Application::settings();
 
@@ -809,16 +809,56 @@ void WebContentClient::did_request_wallet_operation(u64 page_id, u64 request_id,
             async_did_complete_wallet_operation(page_id, request_id, error.serialized());
             return;
         }
-        auto pubkey = wallet.get_identity_pubkey();
-        if (pubkey.is_error()) {
-            JsonObject error;
-            error.set("error"sv, MUST(String::from_utf8(pubkey.error().string_literal())));
-            async_did_complete_wallet_operation(page_id, request_id, error.serialized());
-            return;
+
+        // Parse params to determine if this is identity key or derived key request
+        auto maybe_params = JsonValue::from_string(params);
+        bool identity_key = true;
+        String protocol_id;
+        String key_id;
+        u8 security_level = 2;
+        bool for_self = true;
+        String counterparty;
+
+        if (!maybe_params.is_error() && maybe_params.value().is_object()) {
+            auto const& obj = maybe_params.value().as_object();
+            if (obj.has_bool("identityKey"sv) && obj.get_bool("identityKey"sv).value_or(false)) {
+                identity_key = true;
+            } else if (obj.has_string("protocolID"sv) && obj.has_string("keyID"sv)) {
+                identity_key = false;
+                protocol_id = obj.get_string("protocolID"sv).value();
+                key_id = obj.get_string("keyID"sv).value();
+                security_level = static_cast<u8>(obj.get_integer<u8>("securityLevel"sv).value_or(2));
+                for_self = obj.get_bool("forSelf"sv).value_or(true);
+                if (obj.has_string("counterparty"sv))
+                    counterparty = obj.get_string("counterparty"sv).value();
+            }
         }
-        JsonObject result;
-        result.set("publicKey"sv, JsonValue(pubkey.release_value()));
-        async_did_complete_wallet_operation(page_id, request_id, result.serialized());
+
+        if (identity_key) {
+            auto pubkey = wallet.get_identity_pubkey();
+            if (pubkey.is_error()) {
+                JsonObject error;
+                error.set("error"sv, MUST(String::from_utf8(pubkey.error().string_literal())));
+                async_did_complete_wallet_operation(page_id, request_id, error.serialized());
+                return;
+            }
+            JsonObject result;
+            result.set("publicKey"sv, JsonValue(pubkey.release_value()));
+            async_did_complete_wallet_operation(page_id, request_id, result.serialized());
+        } else {
+            auto derived = wallet.get_derived_public_key(
+                protocol_id, key_id, security_level, for_self,
+                counterparty.is_empty() ? StringView {} : counterparty);
+            if (derived.is_error()) {
+                JsonObject error;
+                error.set("error"sv, MUST(String::from_utf8(derived.error().string_literal())));
+                async_did_complete_wallet_operation(page_id, request_id, error.serialized());
+                return;
+            }
+            JsonObject result;
+            result.set("publicKey"sv, JsonValue(derived.release_value()));
+            async_did_complete_wallet_operation(page_id, request_id, result.serialized());
+        }
     } else if (operation == "listOutputs"sv) {
         async_did_complete_wallet_operation(page_id, request_id, "[]"_string);
     } else if (operation == "listActions"sv) {

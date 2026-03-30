@@ -93,30 +93,24 @@ void WalletUI::get_balance()
             return Wallet::WalletManager::the().fetch_balance(backend_url);
         },
         [this](String response) {
-            // Parse the listOutputs response to sum spendable satoshis
             auto response_json = JsonValue::from_string(response);
-            i64 confirmed = 0;
 
             if (!response_json.is_error() && response_json.value().is_object()) {
                 auto const& obj = response_json.value().as_object();
-                if (obj.has_array("outputs"sv)) {
-                    auto const& outputs = obj.get_array("outputs"sv).value();
-                    for (auto const& entry : outputs.values()) {
-                        if (!entry.is_object())
-                            continue;
-                        auto const& output = entry.as_object();
-                        auto spendable = output.get_bool("spendable"sv).value_or(false);
-                        if (spendable)
-                            confirmed += output.get_integer<i64>("satoshis"sv).value_or(0);
-                    }
-                }
+                JsonObject balance;
+                balance.set("confirmed"sv, obj.get_integer<i64>("confirmed"sv).value_or(0));
+                balance.set("unconfirmed"sv, obj.get_integer<i64>("unconfirmed"sv).value_or(0));
+                balance.set("connected"sv, true);
+                async_send_message("walletBalance"sv, move(balance));
+            } else {
+                dbgln("WalletUI: Failed to parse balance JSON: {}", response);
+                JsonObject balance;
+                balance.set("confirmed"sv, 0);
+                balance.set("unconfirmed"sv, 0);
+                balance.set("connected"sv, false);
+                balance.set("note"sv, "Failed to parse balance response"sv);
+                async_send_message("walletBalance"sv, move(balance));
             }
-
-            JsonObject balance;
-            balance.set("confirmed"sv, confirmed);
-            balance.set("unconfirmed"sv, 0);
-            balance.set("connected"sv, true);
-            async_send_message("walletBalance"sv, move(balance));
         },
         [this](Error error) {
             dbgln("WalletUI: Balance fetch error: {}", error);

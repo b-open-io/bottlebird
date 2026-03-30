@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-#include <AK/ByteBuffer.h>
+#include <AK/Hex.h>
 #include <AK/LexicalPath.h>
 #include <AK/StringBuilder.h>
 #include <LibCore/Directory.h>
@@ -177,6 +177,61 @@ ErrorOr<String> WalletManager::get_wif()
     return TRY(String::from_utf8({ wif_buf, wif_len }));
 }
 
+ErrorOr<String> WalletManager::get_derived_public_key(StringView protocol_id, StringView key_id, u8 security_level, bool for_self, StringView counterparty)
+{
+    if (!m_initialized)
+        return Error::from_string_literal("Wallet not initialized");
+
+    // Step 1: Format BRC-43 invoice number from protocol_id, key_id, security_level
+    char invoice_buf[1300] {};
+    size_t invoice_len = sizeof(invoice_buf);
+    int rc = bsvz_brc43_invoice(
+        security_level,
+        protocol_id.characters_without_null_termination(), protocol_id.length(),
+        key_id.characters_without_null_termination(), key_id.length(),
+        invoice_buf, &invoice_len);
+    if (rc != 0)
+        return Error::from_string_literal("Failed to format BRC-43 invoice");
+
+    u8 derived_pubkey[33] {};
+
+    if (for_self) {
+        // For self-derivation: derive child pubkey using own pubkey + own privkey as counterparty
+        rc = bsvz_derive_child_pubkey(
+            m_identity_pubkey, m_root_privkey,
+            invoice_buf, invoice_len,
+            derived_pubkey);
+    } else {
+        // For counterparty derivation: parse counterparty hex pubkey, derive with it
+        if (counterparty.length() != 66)
+            return Error::from_string_literal("Counterparty must be 66-char hex compressed pubkey");
+
+        u8 counterparty_pubkey[33] {};
+        for (size_t i = 0; i < 33; ++i) {
+            auto hi = decode_hex_digit(counterparty[i * 2]);
+            auto lo = decode_hex_digit(counterparty[i * 2 + 1]);
+            if (hi >= 16 || lo >= 16)
+                return Error::from_string_literal("Invalid hex in counterparty pubkey");
+            counterparty_pubkey[i] = static_cast<u8>((hi << 4) | lo);
+        }
+
+        rc = bsvz_derive_child_pubkey(
+            counterparty_pubkey, m_root_privkey,
+            invoice_buf, invoice_len,
+            derived_pubkey);
+    }
+
+    if (rc != 0)
+        return Error::from_string_literal("Failed to derive child public key");
+
+    // Hex-encode the 33-byte compressed pubkey
+    StringBuilder hex;
+    for (size_t i = 0; i < sizeof(derived_pubkey); ++i)
+        TRY(hex.try_appendff("{:02x}", derived_pubkey[i]));
+
+    return hex.to_string_without_validation();
+}
+
 ErrorOr<void> WalletManager::derive_keys_from_seed(unsigned char const* seed, size_t seed_len)
 {
     // Master HD key from seed
@@ -310,45 +365,22 @@ ErrorOr<String> WalletManager::fetch_balance(StringView backend_url)
     if (!m_initialized)
         return Error::from_string_literal("Wallet not initialized");
 
-    // Create a temporary wallet handle for this request.
-    // Must be created and used on the same thread (background thread)
-    // because the Zig allocator state isn't thread-safe.
-    void* handle = nullptr;
-    int rc = bsvwallet_create_remote(
+    long long confirmed = 0;
+    long long unconfirmed = 0;
+
+    int rc = bsvwallet_get_balance_remote(
         m_root_privkey, 0,
         backend_url.characters_without_null_termination(), backend_url.length(),
-        &handle);
+        &confirmed, &unconfirmed);
 
     if (rc != 0) {
-        dbgln("WalletManager: bsvwallet_create_remote failed with rc={}", rc);
-        return Error::from_string_literal("Failed to connect to backend");
+        dbgln("WalletManager: bsvwallet_get_balance_remote failed with rc={}", rc);
+        return Error::from_string_literal("Failed to fetch balance from backend");
     }
 
-    dbgln("WalletManager: Connected to backend {}", backend_url);
+    dbgln("WalletManager: Balance: confirmed={} unconfirmed={}", confirmed, unconfirmed);
 
-    // Call listOutputs through the proper BRC-100 path
-    constexpr size_t buf_capacity = 65536;
-    auto response_buf = TRY(ByteBuffer::create_uninitialized(buf_capacity));
-    size_t body_len = buf_capacity;
-
-    static constexpr auto args = "{\"basket\":\"default\",\"limit\":100}"sv;
-
-    rc = bsvwallet_list_outputs(
-        handle,
-        args.characters_without_null_termination(), args.length(),
-        reinterpret_cast<char*>(response_buf.data()), &body_len);
-
-    // Always destroy the handle on this thread
-    bsvwallet_destroy(handle);
-
-    if (rc != 0) {
-        dbgln("WalletManager: bsvwallet_list_outputs failed with rc={}", rc);
-        return Error::from_string_literal("Failed to list outputs from backend");
-    }
-
-    auto body = StringView { reinterpret_cast<char const*>(response_buf.data()), body_len };
-    dbgln("WalletManager: listOutputs response: {} bytes", body_len);
-    return TRY(String::from_utf8(body));
+    return TRY(String::formatted("{{\"confirmed\":{},\"unconfirmed\":{}}}", confirmed, unconfirmed));
 }
 
 }

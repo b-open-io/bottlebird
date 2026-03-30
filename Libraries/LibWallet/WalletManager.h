@@ -31,6 +31,9 @@ public:
     ErrorOr<String> get_bap_id();
     ErrorOr<String> get_wif();
 
+    // BRC-42/43 key derivation
+    ErrorOr<String> get_derived_public_key(StringView protocol_id, StringView key_id, u8 security_level, bool for_self, StringView counterparty);
+
     // BRC-100 wallet operations via remote backend
     ErrorOr<String> fetch_balance(StringView backend_url);
 
