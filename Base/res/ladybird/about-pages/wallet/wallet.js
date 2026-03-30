@@ -24,9 +24,13 @@ const btnMnemonicBack = document.querySelector("#btn-mnemonic-back");
 const btnMnemonicConfirm = document.querySelector("#btn-mnemonic-confirm");
 const btnImportBack = document.querySelector("#btn-import-back");
 const btnImportConfirm = document.querySelector("#btn-import-confirm");
+const btnAddAccount = document.querySelector("#btn-add-account");
 const mnemonicDisplay = document.querySelector("#mnemonic-display");
 const importMnemonic = document.querySelector("#import-mnemonic");
 const importError = document.querySelector("#import-error");
+
+let walletEnabled = false;
+let previousView = "onboarding";
 
 function formatSatoshis(sats) {
     return `${Number(sats).toLocaleString()} sat`;
@@ -40,6 +44,8 @@ function showView(name) {
 }
 
 function updateStatus(status) {
+    walletEnabled = status.enabled;
+
     if (!status.enabled) {
         showView("onboarding");
         return;
@@ -58,12 +64,6 @@ function updateStatus(status) {
     } else {
         statusIndicator.className = "status-indicator disconnected";
         statusText.textContent = "Not Connected";
-    }
-
-    // If we have a mnemonic display pending, show it
-    if (status.mnemonic) {
-        mnemonicDisplay.textContent = status.mnemonic;
-        showView("mnemonic-show");
     }
 }
 
@@ -87,6 +87,13 @@ function showSendMessage(text, isError) {
     sendMessage.className = `message ${isError ? "error" : "success"}`;
 }
 
+function openImportView(from) {
+    previousView = from;
+    importMnemonic.value = "";
+    importError.className = "hidden";
+    showView("import");
+}
+
 // ── Onboarding: Create ──────────────────────────────────────────────
 
 btnCreateWallet.addEventListener("click", () => {
@@ -104,21 +111,28 @@ btnMnemonicConfirm.addEventListener("click", () => {
     ladybird.sendMessage("getReceiveAddress");
 });
 
-// ── Onboarding: Import ──────────────────────────────────────────────
+// ── Import (available from onboarding AND wallet dashboard) ─────────
 
 btnImportWallet.addEventListener("click", () => {
-    importMnemonic.value = "";
-    importError.className = "hidden";
-    showView("import");
+    openImportView("onboarding");
+});
+
+btnAddAccount.addEventListener("click", (e) => {
+    e.preventDefault();
+    openImportView("wallet");
 });
 
 btnImportBack.addEventListener("click", () => {
-    showView("onboarding");
+    if (previousView === "wallet" && walletEnabled) {
+        showView("wallet");
+    } else {
+        showView("onboarding");
+    }
 });
 
 btnImportConfirm.addEventListener("click", () => {
     const mnemonic = importMnemonic.value.trim().toLowerCase();
-    const words = mnemonic.split(/\s+/);
+    const words = mnemonic.split(/\s+/).filter(w => w.length > 0);
 
     if (words.length !== 12 && words.length !== 24) {
         importError.textContent = `Expected 12 or 24 words, got ${words.length}.`;
@@ -127,7 +141,7 @@ btnImportConfirm.addEventListener("click", () => {
     }
 
     importError.className = "hidden";
-    ladybird.sendMessage("importWallet", mnemonic);
+    ladybird.sendMessage("importWallet", words.join(" "));
 });
 
 // ── Settings controls ───────────────────────────────────────────────
@@ -189,7 +203,6 @@ document.addEventListener("WebUIMessage", event => {
     } else if (name === "receiveAddress") {
         updateReceiveAddress(data);
     } else if (name === "walletCreated") {
-        // Show the mnemonic for the user to write down
         if (data.mnemonic) {
             mnemonicDisplay.textContent = data.mnemonic;
             showView("mnemonic-show");
@@ -199,7 +212,6 @@ document.addEventListener("WebUIMessage", event => {
             importError.textContent = data.error;
             importError.className = "message error";
         } else {
-            // Import succeeded — refresh
             ladybird.sendMessage("loadWalletStatus");
             ladybird.sendMessage("getBalance");
             ladybird.sendMessage("getReceiveAddress");
