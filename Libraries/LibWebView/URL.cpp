@@ -2,7 +2,6 @@
  * Copyright (c) 2023-2025, Tim Flynn <trflynn89@ladybird.org>
  * Copyright (c) 2023, Cameron Youell <cameronyouell@gmail.com>
  * Copyright (c) 2025, Manuel Zahariev <manuel@duck.com>
- * Copyright (c) 2026, Bottlebird Contributors
  *
  * SPDX-License-Identifier: BSD-2-Clause
  */
@@ -46,18 +45,15 @@ Optional<URL::URL> sanitize_url(StringView location, Optional<SearchEngine> cons
     }
 
     // FIXME: Add support for other schemes, e.g. "mailto:". Firefox and Chrome open mailto: locations.
-    static constexpr Array SUPPORTED_SCHEMES { "about"sv, "data"sv, "file"sv, "http"sv, "https"sv, "resource"sv };
     static constexpr Array SUPPORTED_SCHEMES { "about"sv, "data"sv, "file"sv, "http"sv, "https"sv, "resource"sv, "1sat"sv, "ordfs"sv };
     if (!any_of(SUPPORTED_SCHEMES, [&](StringView const& scheme) { return scheme == url->scheme(); }))
         return search_url_or_error();
 
-    if (auto const& host = url->host(); host.has_value() && host->is_domain()) {
-    // AD-HOC: 1sat:// and ordfs:// hosts are ordinal identifiers, not domain names. Skip domain validation.
-    if (URL::is_onesat_or_ordfs_scheme(url->scheme()))
-        return url;
+    // 1sat:// and ordfs:// hosts are ordinal identifiers, not domain names — skip domain validation.
+    if (url->scheme() == "1sat"sv || url->scheme() == "ordfs"sv)
+        return url.release_value();
 
-    auto const& host = url->host();
-    if (host.has_value() && host->is_domain()) {
+    if (auto const& host = url->host(); host.has_value() && host->is_domain()) {
         auto const& domain = host->get<String>();
 
         if (domain.contains('"'))
@@ -165,8 +161,6 @@ Optional<URLParts> break_url_into_parts(StringView url_string)
             return break_file_url_into_parts(url, url_string);
         if (url.scheme().is_one_of("http"sv, "https"sv))
             return break_web_url_into_parts(url, url_string);
-        if (URL::is_onesat_or_ordfs_scheme(url.scheme()))
-            return break_file_url_into_parts(url, url_string);
     } else if (schemeless_url.starts_with(':')) {
         if (url.scheme().is_one_of("about"sv, "data"sv))
             return break_internal_url_into_parts(url, url_string);

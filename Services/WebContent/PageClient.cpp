@@ -994,6 +994,11 @@ Vector<Web::CSS::StyleSheetIdentifier> PageClient::list_style_sheets() const
     return results;
 }
 
+bool PageClient::is_ready_to_paint() const
+{
+    return true;
+}
+
 Web::DisplayListPlayerType PageClient::display_list_player_type() const
 {
     switch (s_use_skia_painter) {

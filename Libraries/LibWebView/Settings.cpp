@@ -53,34 +53,6 @@ static constexpr auto dns_settings_key = "dnsSettings"sv;
 static constexpr auto wallet_backend_url_key = "walletBackendURL"sv;
 static constexpr auto wallet_enabled_key = "walletEnabled"sv;
 
-static ErrorOr<JsonObject> read_settings_file(StringView settings_path)
-{
-    auto settings_file = Core::File::open(settings_path, Core::File::OpenMode::Read);
-    if (settings_file.is_error()) {
-        if (settings_file.error().is_errno() && settings_file.error().code() == ENOENT)
-            return JsonObject {};
-        return settings_file.release_error();
-    }
-
-    auto settings_contents = TRY(settings_file.value()->read_until_eof());
-    auto settings_json = TRY(JsonValue::from_string(settings_contents));
-
-    if (!settings_json.is_object())
-        return Error::from_string_literal("Expected Ladybird settings to be a JSON object");
-    return move(settings_json.as_object());
-}
-
-static ErrorOr<void> write_settings_file(StringView settings_path, JsonValue const& contents)
-{
-    auto settings_directory = LexicalPath { settings_path }.parent();
-    TRY(Core::Directory::create(settings_directory, Core::Directory::CreateDirectories::Yes));
-
-    auto settings_file = TRY(Core::File::open(settings_path, Core::File::OpenMode::Write));
-    TRY(settings_file->write_until_depleted(contents.serialized()));
-
-    return {};
-}
-
 Settings Settings::create(Badge<Application>)
 {
     // FIXME: Move this to a generic "Ladybird config directory" helper.
@@ -160,13 +132,13 @@ Settings Settings::create(Badge<Application>)
     if (auto dns_settings = settings_json.value().get(dns_settings_key); dns_settings.has_value())
         settings.m_dns_settings = parse_dns_settings(*dns_settings);
 
-    if (auto wallet_backend_url = settings_json.value().get_string(wallet_backend_url_key); wallet_backend_url.has_value()) {
-        if (auto parsed_wallet_backend_url = URL::Parser::basic_parse(*wallet_backend_url); parsed_wallet_backend_url.has_value())
-            settings.m_wallet_backend_url = parsed_wallet_backend_url.release_value();
-    }
-
     if (auto wallet_enabled = settings_json.value().get_bool(wallet_enabled_key); wallet_enabled.has_value())
         settings.m_wallet_enabled = *wallet_enabled;
+
+    if (auto wallet_url = settings_json.value().get(wallet_backend_url_key); wallet_url.has_value() && wallet_url->is_string()) {
+        if (auto parsed = URL::Parser::basic_parse(wallet_url->as_string()); parsed.has_value())
+            settings.m_wallet_backend_url = parsed.release_value();
+    }
 
     return settings;
 }
@@ -177,7 +149,6 @@ Settings::Settings(ByteString settings_path)
     , m_show_bookmarks_bar(default_show_bookmarks_bar)
     , m_default_zoom_level_factor(initial_zoom_level_factor)
     , m_languages({ default_language })
-    , m_wallet_backend_url(URL::Parser::basic_parse("https://ordinals.gorillapool.io"sv).release_value())
 {
 }
 
@@ -272,38 +243,10 @@ JsonValue Settings::serialize_json() const
         });
     settings.set(dns_settings_key, move(dns_settings));
 
-    settings.set(wallet_backend_url_key, m_wallet_backend_url.serialize());
     settings.set(wallet_enabled_key, m_wallet_enabled);
+    settings.set(wallet_backend_url_key, m_wallet_backend_url.serialize());
 
     return settings;
-}
-
-void Settings::restore_defaults()
-{
-    m_new_tab_page_url = URL::about_newtab();
-    m_languages = { default_language };
-    m_search_engine.clear();
-    m_custom_search_engines.clear();
-    m_autocomplete_engine.clear();
-    m_autoplay = SiteSetting {};
-    m_do_not_track = DoNotTrack::No;
-    m_dns_settings = SystemDNS {};
-    m_wallet_backend_url = URL::Parser::basic_parse("https://ordinals.gorillapool.io"sv).release_value();
-    m_wallet_enabled = false;
-
-    persist_settings();
-
-    for (auto& observer : m_observers) {
-        observer.new_tab_page_url_changed();
-        observer.languages_changed();
-        observer.search_engine_changed();
-        observer.autocomplete_engine_changed();
-        observer.autoplay_settings_changed();
-        observer.do_not_track_changed();
-        observer.dns_settings_changed();
-        observer.wallet_backend_url_changed();
-        observer.wallet_enabled_changed();
-    }
 }
 
 void Settings::set_new_tab_page_url(URL::URL new_tab_page_url)
@@ -558,24 +501,6 @@ void Settings::set_dns_settings(DNSSettings const& dns_settings, bool override_b
         observer.dns_settings_changed();
 }
 
-void Settings::set_wallet_backend_url(URL::URL wallet_backend_url)
-{
-    m_wallet_backend_url = move(wallet_backend_url);
-    persist_settings();
-
-    for (auto& observer : m_observers)
-        observer.wallet_backend_url_changed();
-}
-
-void Settings::set_wallet_enabled(bool wallet_enabled)
-{
-    m_wallet_enabled = wallet_enabled;
-    persist_settings();
-
-    for (auto& observer : m_observers)
-        observer.wallet_enabled_changed();
-}
-
 void Settings::persist_settings()
 {
     auto settings = serialize_json();
@@ -610,6 +535,24 @@ SettingsObserver::~SettingsObserver()
 SiteSetting::SiteSetting()
 {
     site_filters.set("file://"_string);
+}
+
+void Settings::set_wallet_enabled(bool enabled)
+{
+    m_wallet_enabled = enabled;
+    persist_settings();
+
+    for (auto& observer : m_observers)
+        observer.wallet_enabled_changed();
+}
+
+void Settings::set_wallet_backend_url(URL::URL url)
+{
+    m_wallet_backend_url = move(url);
+    persist_settings();
+
+    for (auto& observer : m_observers)
+        observer.wallet_backend_url_changed();
 }
 
 }

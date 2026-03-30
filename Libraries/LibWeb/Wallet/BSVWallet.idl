@@ -1,5 +1,5 @@
 [Exposed=Window, SecureContext]
-interface Wallet {
+interface BSVWallet {
     Promise<object> getPublicKey(optional WalletKeyOptions options = {});
     Promise<object> createAction(WalletActionOptions options);
     Promise<object> signAction(WalletSignOptions options);
@@ -15,13 +15,10 @@ dictionary WalletKeyOptions {
 
 dictionary WalletActionOptions {
     DOMString description = "";
-    sequence<object> outputs;
-    sequence<object> inputs;
 };
 
 dictionary WalletSignOptions {
     DOMString reference = "";
-    sequence<object> spends;
 };
 
 dictionary WalletListOptions {

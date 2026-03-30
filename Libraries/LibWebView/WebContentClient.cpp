@@ -786,6 +786,11 @@ Messages::WebContentClient::RequestWorkerAgentResponse WebContentClient::request
     return { IPC::TransportHandle {}, IPC::TransportHandle {}, IPC::TransportHandle {} };
 }
 
+void WebContentClient::did_request_wallet_operation(u64, u64, String, String)
+{
+    // TODO: Forward wallet operation to the browser's WalletManager
+}
+
 Optional<ViewImplementation&> WebContentClient::view_for_page_id(u64 page_id, SourceLocation location)
 {
     // Don't bother logging anything for the spare WebContent process. It will only receive a load notification for about:blank.

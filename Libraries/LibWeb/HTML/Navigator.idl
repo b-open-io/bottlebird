@@ -18,7 +18,7 @@
 #import <ServiceWorker/ServiceWorkerContainer.idl>
 #import <StorageAPI/NavigatorStorage.idl>
 #import <WebXR/XRSystem.idl>
-#import <Wallet/Wallet.idl>
+#import <Wallet/BSVWallet.idl>
 
 // https://html.spec.whatwg.org/multipage/system-state.html#navigator
 [Exposed=Window]
@@ -54,7 +54,7 @@ interface Navigator {
 
     // https://immersive-web.github.io/webxr/#navigator-xr-attribute
     [SecureContext, SameObject] readonly attribute XRSystem xr;
-    [SecureContext, SameObject] readonly attribute Wallet wallet;
+    [SecureContext, SameObject] readonly attribute BSVWallet wallet;
 };
 
 // NOTE: As NavigatorContentUtils, NavigatorCookies, NavigatorPlugins, and NavigatorAutomationInformation

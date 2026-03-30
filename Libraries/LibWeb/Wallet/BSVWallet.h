@@ -20,13 +20,10 @@ struct WalletKeyOptions {
 
 struct WalletActionOptions {
     String description {};
-    Vector<GC::Root<JS::Object>> outputs;
-    Vector<GC::Root<JS::Object>> inputs;
 };
 
 struct WalletSignOptions {
     String reference {};
-    Vector<GC::Root<JS::Object>> spends;
 };
 
 struct WalletListOptions {
@@ -35,14 +32,14 @@ struct WalletListOptions {
     u32 offset { 0 };
 };
 
-class Wallet final : public Bindings::PlatformObject {
-    WEB_PLATFORM_OBJECT(Wallet, Bindings::PlatformObject);
-    GC_DECLARE_ALLOCATOR(Wallet);
+class BSVWallet final : public Bindings::PlatformObject {
+    WEB_PLATFORM_OBJECT(BSVWallet, Bindings::PlatformObject);
+    GC_DECLARE_ALLOCATOR(BSVWallet);
 
 public:
-    [[nodiscard]] static GC::Ref<Wallet> create(JS::Realm&);
+    [[nodiscard]] static GC::Ref<BSVWallet> create(JS::Realm&);
 
-    virtual ~Wallet() override;
+    virtual ~BSVWallet() override;
 
     GC::Ref<WebIDL::Promise> get_public_key(WalletKeyOptions const& options);
     GC::Ref<WebIDL::Promise> create_action(WalletActionOptions const& options);
@@ -51,7 +48,7 @@ public:
     GC::Ref<WebIDL::Promise> list_actions(WalletListOptions const& options);
 
 private:
-    explicit Wallet(JS::Realm&);
+    explicit BSVWallet(JS::Realm&);
     virtual void initialize(JS::Realm&) override;
     virtual void visit_edges(Cell::Visitor&) override;
 };

@@ -5518,6 +5518,7 @@ using namespace Web::TrustedTypes;
 using namespace Web::UIEvents;
 using namespace Web::URLPattern;
 using namespace Web::UserTiming;
+using namespace Web::Wallet;
 using namespace Web::WebAssembly;
 using namespace Web::WebAudio;
 using namespace Web::WebGL;

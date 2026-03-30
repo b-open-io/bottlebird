@@ -90,6 +90,7 @@ public:
     virtual Queue<QueuedInputEvent>& input_event_queue() override { VERIFY_NOT_REACHED(); }
     virtual void report_finished_handling_input_event([[maybe_unused]] u64 page_id, [[maybe_unused]] EventResult event_was_handled) override { }
 
+    virtual bool is_ready_to_paint() const override { return true; }
     virtual DisplayListPlayerType display_list_player_type() const override { return m_host_page->client().display_list_player_type(); }
     virtual bool is_headless() const override { return m_host_page->client().is_headless(); }
 

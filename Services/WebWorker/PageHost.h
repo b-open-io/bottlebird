@@ -39,6 +39,7 @@ public:
     virtual HTTP::Cookie::VersionedCookie page_did_request_cookie(URL::URL const&, HTTP::Cookie::Source) override;
     virtual void request_file(Web::FileRequest) override;
     virtual WorkerAgentResponse request_worker_agent(Web::Bindings::AgentType) override;
+    virtual bool is_ready_to_paint() const override { return false; }
     virtual Web::DisplayListPlayerType display_list_player_type() const override { VERIFY_NOT_REACHED(); }
     virtual bool is_headless() const override { VERIFY_NOT_REACHED(); }
     virtual Queue<Web::QueuedInputEvent>& input_event_queue() override { VERIFY_NOT_REACHED(); }

@@ -1405,4 +1405,9 @@ void ConnectionFromClient::exit_fullscreen(u64 page_id)
     }
 }
 
+void ConnectionFromClient::did_complete_wallet_operation(u64, u64, String)
+{
+    // TODO: Forward wallet operation result to the Wallet Web API promise
+}
+
 }

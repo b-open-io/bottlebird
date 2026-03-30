@@ -822,7 +822,7 @@ Optional<URL> Parser::basic_parse(StringView raw_input, Optional<URL const&> bas
             }
             // AD-HOC: Handle known digit-prefixed schemes (e.g., "1sat://").
             // The URL spec requires schemes to start with an ASCII alpha, but we support "1sat" as a non-standard scheme.
-            else if (is_ascii_digit(code_point) && !state_override.has_value() && processed_input.starts_with("1sat:"sv)) {
+            else if (is_ascii_digit(code_point) && !state_override.has_value() && processed_input.bytes_as_string_view().starts_with("1sat:"sv)) {
                 buffer.append_as_lowercase(code_point);
                 state = State::Scheme;
             }

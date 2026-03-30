@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2018-2024, Andreas Kling <andreas@ladybird.org>
  * Copyright (c) 2022, Dex♪ <dexes.ttp@gmail.com>
- * Copyright (c) 2026, Bottlebird Contributors
  *
  * SPDX-License-Identifier: BSD-2-Clause
  */
@@ -13,6 +12,7 @@
 #include <LibCore/System.h>
 #include <LibGC/Function.h>
 #include <LibHTTP/Cookie/Cookie.h>
+#include <LibURL/URL.h>
 #include <LibHTTP/Cookie/ParsedCookie.h>
 #include <LibRequests/Request.h>
 #include <LibRequests/RequestClient.h>
@@ -212,209 +212,6 @@ void ResourceLoader::handle_file_load_request(LoadRequest& request, FileHandler 
 
     FileRequest file_request(url.file_path(), [this, request, on_file, on_error, url](ErrorOr<i32> file_or_error) mutable {
         --m_pending_loads;
-    log_request_start(request);
-    request.start_timer();
-
-    if (should_block_request(request)) {
-        error_callback->function()("Request was blocked", {}, {}, {}, {}, {});
-        return;
-    }
-
-    // AD-HOC: Rewrite 1sat:// and ordfs:// URLs to HTTPS proxy URLs before dispatch.
-    if (URL::is_onesat_or_ordfs_scheme(request.url().value().scheme())) {
-        auto proxy_url = URL::URL::resolve_onesat_or_ordfs_to_proxy(request.url().value());
-        if (!proxy_url.has_value()) {
-            auto error_message = ByteString::formatted("Failed to resolve {} URL: {}", request.url().value().scheme(), request.url().value());
-            log_failure(request, error_message);
-            if (error_callback)
-                error_callback->function()(error_message, {}, {}, {}, {}, {});
-            return;
-        }
-        dbgln_if(SPAM_DEBUG, "ResourceLoader: Rewriting {} to {}", request.url().value(), proxy_url.value());
-        request.set_url(proxy_url.release_value());
-    }
-
-    auto const& url = request.url().value();
-
-    auto respond_directory_page = [](LoadRequest const& request, URL::URL const& url, GC::Root<SuccessCallback> success_callback, GC::Root<ErrorCallback> error_callback) {
-        // FIXME: Implement timing info for directory requests.
-        Requests::RequestTimingInfo fixme_implement_timing_info {};
-
-        auto maybe_response = load_file_directory_page(url);
-        if (maybe_response.is_error()) {
-            log_failure(request, maybe_response.error());
-            if (error_callback)
-                error_callback->function()(ByteString::formatted("{}", maybe_response.error()), fixme_implement_timing_info, 500u, {}, {}, {});
-            return;
-        }
-
-        log_success(request);
-        HTTP::HeaderMap response_headers;
-        response_headers.set("Content-Type"sv, "text/html"sv);
-        success_callback->function()(maybe_response.release_value().bytes(), fixme_implement_timing_info, response_headers, {}, {});
-    };
-
-    if (url.scheme() == "about") {
-        dbgln_if(SPAM_DEBUG, "Loading about: URL {}", url);
-        log_success(request);
-
-        HTTP::HeaderMap response_headers;
-        response_headers.set("Content-Type", "text/html; charset=UTF-8");
-
-        // FIXME: Implement timing info for about requests.
-        Requests::RequestTimingInfo fixme_implement_timing_info {};
-
-        auto serialized_path = URL::percent_decode(url.serialize_path());
-
-        // About version page
-        if (serialized_path == "version") {
-            success_callback->function()(MUST(load_about_version_page()).bytes(), fixme_implement_timing_info, response_headers, {}, {});
-            return;
-        }
-
-        // Other about static HTML pages
-        auto target_file = ByteString::formatted("{}.html", serialized_path);
-
-        auto about_directory = MUST(Core::Resource::load_from_uri("resource://ladybird/about-pages"_string));
-        if (about_directory->children().contains_slow(target_file.view())) {
-            auto resource = Core::Resource::load_from_uri(ByteString::formatted("resource://ladybird/about-pages/{}", target_file));
-            if (!resource.is_error()) {
-                auto data = resource.value()->data();
-                success_callback->function()(data, fixme_implement_timing_info, response_headers, {}, {});
-                return;
-            }
-        }
-
-        Platform::EventLoopPlugin::the().deferred_invoke(GC::create_function(m_heap, [success_callback, response_headers = move(response_headers), fixme_implement_timing_info = move(fixme_implement_timing_info)] {
-            success_callback->function()(ByteString::empty().to_byte_buffer(), fixme_implement_timing_info, response_headers, {}, {});
-        }));
-        return;
-    }
-
-    if (url.scheme() == "data") {
-        auto data_url_or_error = Fetch::Infrastructure::process_data_url(url);
-        if (data_url_or_error.is_error()) {
-            auto error_message = data_url_or_error.error().string_literal();
-            log_failure(request, error_message);
-            error_callback->function()(error_message, {}, {}, {}, {}, {});
-            return;
-        }
-        auto data_url = data_url_or_error.release_value();
-
-        dbgln_if(SPAM_DEBUG, "ResourceLoader loading a data URL with mime-type: '{}', payload='{}'",
-            data_url.mime_type.serialized(),
-            StringView(data_url.body.bytes()));
-
-        HTTP::HeaderMap response_headers;
-        response_headers.set("Content-Type", data_url.mime_type.serialized().to_byte_string());
-
-        log_success(request);
-
-        Platform::EventLoopPlugin::the().deferred_invoke(GC::create_function(m_heap, [data = move(data_url.body), response_headers = move(response_headers), success_callback] {
-            // FIXME: Implement timing info for data requests.
-            Requests::RequestTimingInfo fixme_implement_timing_info {};
-
-            success_callback->function()(data, fixme_implement_timing_info, response_headers, {}, {});
-        }));
-        return;
-    }
-
-    if (url.scheme() == "resource") {
-        auto resource = Core::Resource::load_from_uri(url.serialize());
-        if (resource.is_error()) {
-            log_failure(request, resource.error());
-            if (error_callback)
-                error_callback->function()(ByteString::formatted("{}", resource.error()), {}, {}, {}, {}, {});
-            return;
-        }
-
-        // When resource URI is a directory use file directory loader to generate response
-        if (resource.value()->is_directory()) {
-            auto url = URL::Parser::basic_parse(resource.value()->file_url());
-            VERIFY(url.has_value());
-            respond_directory_page(request, url.release_value(), success_callback, error_callback);
-            return;
-        }
-
-        auto data = resource.value()->data();
-        auto response_headers = response_headers_for_file(url.file_path(), resource.value()->modified_time());
-
-        // FIXME: Implement timing info for resource requests.
-        Requests::RequestTimingInfo fixme_implement_timing_info {};
-
-        log_success(request);
-        success_callback->function()(data, fixme_implement_timing_info, response_headers, {}, {});
-
-        return;
-    }
-
-    if (url.scheme() == "file") {
-        auto page = request.page();
-        if (!page) {
-            log_failure(request, "INTERNAL ERROR: No Page for file scheme request");
-            return;
-        }
-
-        FileRequest file_request(url.file_path(), [this, success_callback, error_callback, request, respond_directory_page](ErrorOr<i32> file_or_error) {
-            --m_pending_loads;
-            if (on_load_counter_change)
-                on_load_counter_change();
-
-            if (file_or_error.is_error()) {
-                log_failure(request, file_or_error.error());
-                if (error_callback)
-                    error_callback->function()(ByteString::formatted("{}", file_or_error.error()), {}, {}, {}, {}, {});
-                return;
-            }
-
-            auto const fd = file_or_error.value();
-
-            // When local file is a directory use file directory loader to generate response
-            auto maybe_is_valid_directory = Core::Directory::is_valid_directory(fd);
-            if (!maybe_is_valid_directory.is_error() && maybe_is_valid_directory.value()) {
-                respond_directory_page(request, request.url().value(), success_callback, error_callback);
-                return;
-            }
-
-            auto st_or_error = Core::System::fstat(fd);
-            if (st_or_error.is_error()) {
-                log_failure(request, st_or_error.error());
-                if (error_callback)
-                    error_callback->function()(ByteString::formatted("{}", st_or_error.error()), {}, {}, {}, {}, {});
-                return;
-            }
-
-            // Try to read file normally
-            auto maybe_file = Core::File::adopt_fd(fd, Core::File::OpenMode::Read);
-            if (maybe_file.is_error()) {
-                log_failure(request, maybe_file.error());
-                if (error_callback)
-                    error_callback->function()(ByteString::formatted("{}", maybe_file.error()), {}, {}, {}, {}, {});
-                return;
-            }
-
-            auto file = maybe_file.release_value();
-            auto maybe_data = file->read_until_eof();
-            if (maybe_data.is_error()) {
-                log_failure(request, maybe_data.error());
-                if (error_callback)
-                    error_callback->function()(ByteString::formatted("{}", maybe_data.error()), {}, {}, {}, {}, {});
-                return;
-            }
-
-            auto data = maybe_data.release_value();
-            auto response_headers = response_headers_for_file(request.url()->file_path(), st_or_error.value().st_mtime);
-
-            // FIXME: Implement timing info for file requests.
-            Requests::RequestTimingInfo fixme_implement_timing_info {};
-
-            log_success(request);
-            success_callback->function()(data, fixme_implement_timing_info, response_headers, {}, {});
-        });
-
-        page->client().request_file(move(file_request));
-
-        ++m_pending_loads;
         if (on_load_counter_change)
             on_load_counter_change();
 
@@ -566,6 +363,8 @@ void ResourceLoader::handle_resource_load_request(LoadRequest const& request, Re
 
 RefPtr<Requests::Request> ResourceLoader::load(LoadRequest& request, GC::Root<OnHeadersReceived> on_headers_received, GC::Root<OnDataReceived> on_data_received, GC::Root<OnComplete> on_complete)
 {
+    auto const& url = request.url().value();
+
     log_request_start(request);
     request.start_timer();
 
@@ -617,19 +416,6 @@ RefPtr<Requests::Request> ResourceLoader::load(LoadRequest& request, GC::Root<On
 
         return nullptr;
     }
-
-    // AD-HOC: Rewrite 1sat:// and ordfs:// URLs to HTTPS proxy URLs before dispatch.
-    if (URL::is_onesat_or_ordfs_scheme(request.url().value().scheme())) {
-        auto proxy_url = URL::URL::resolve_onesat_or_ordfs_to_proxy(request.url().value());
-        if (!proxy_url.has_value()) {
-            on_complete->function()(false, {}, "Failed to resolve 1sat/ordfs URL"sv);
-            return;
-        }
-        dbgln_if(SPAM_DEBUG, "ResourceLoader: Rewriting {} to {}", request.url().value(), proxy_url.value());
-        request.set_url(proxy_url.release_value());
-    }
-
-    auto const& url = request.url().value();
 
     if (!url.scheme().is_one_of("http"sv, "https"sv)) {
         auto not_implemented_error = ByteString::formatted("Protocol not implemented: {}", url.scheme());

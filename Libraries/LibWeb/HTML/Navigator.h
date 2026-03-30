@@ -22,7 +22,7 @@
 #include <LibWeb/MediaCapabilitiesAPI/MediaCapabilities.h>
 #include <LibWeb/Serial/Serial.h>
 #include <LibWeb/StorageAPI/NavigatorStorage.h>
-#include <LibWeb/Wallet/Wallet.h>
+#include <LibWeb/Wallet/BSVWallet.h>
 
 namespace Web::HTML {
 
@@ -69,7 +69,7 @@ public:
     [[nodiscard]] GC::Ref<WebIDL::Promise> get_battery();
     [[nodiscard]] GC::Ref<WebXR::XRSystem> xr();
 
-    [[nodiscard]] GC::Ref<Wallet::Wallet> wallet();
+    [[nodiscard]] GC::Ref<Wallet::BSVWallet> wallet();
 
     Optional<FlyString> do_not_track() const;
 
@@ -121,7 +121,7 @@ private:
 
     // https://immersive-web.github.io/webxr/#dom-navigator-xr
     GC::Ptr<WebXR::XRSystem> m_xr;
-    GC::Ptr<Wallet::Wallet> m_wallet;
+    GC::Ptr<Wallet::BSVWallet> m_wallet;
 };
 
 }

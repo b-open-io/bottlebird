@@ -22,7 +22,7 @@
 #include <LibWeb/Page/Page.h>
 #include <LibWeb/ServiceWorker/ServiceWorkerContainer.h>
 #include <LibWeb/WebXR/XRSystem.h>
-#include <LibWeb/Wallet/Wallet.h>
+#include <LibWeb/Wallet/BSVWallet.h>
 
 namespace Web::HTML {
 
@@ -158,10 +158,10 @@ GC::Ref<ServiceWorker::ServiceWorkerContainer> Navigator::service_worker()
     return *m_service_worker_container;
 }
 
-GC::Ref<Wallet::Wallet> Navigator::wallet()
+GC::Ref<Wallet::BSVWallet> Navigator::wallet()
 {
     if (!m_wallet)
-        m_wallet = realm().create<Wallet::Wallet>(realm());
+        m_wallet = realm().create<Wallet::BSVWallet>(realm());
     return *m_wallet;
 }
 
