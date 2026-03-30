@@ -87,34 +87,42 @@ function refreshWallet() {
 let currentAddress = null;
 
 async function checkBackendAndFetchBalance() {
-    const url = backendURL.value || "https://ordinals.gorillapool.io";
+    const url = backendURL.value || "https://api.1sat.app";
 
-    if (!currentAddress) {
-        statusIndicator.className = "status-indicator disconnected";
-        statusText.textContent = "No address";
-        return;
-    }
-
-    // Fetch UTXOs — this also serves as the connectivity check
+    // Check backend connectivity and fetch balance via BRC-100 listOutputs
     try {
-        const resp = await fetch(
-            `${url}/api/txos/address/${currentAddress}/unspent`,
-            { signal: AbortSignal.timeout(10000) }
-        );
-        if (!resp.ok) {
-            statusIndicator.className = "status-indicator disconnected";
-            statusText.textContent = `Server Error (${resp.status})`;
-            updateBalance({ confirmed: 0, unconfirmed: 0 });
-            return;
-        }
+        // Use BRC-100 protocol: POST /listOutputs with JSON body
+        const resp = await fetch(`${url}/listOutputs`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ basket: "default", include: "locking scripts" }),
+            signal: AbortSignal.timeout(10000),
+        });
 
-        const data = await resp.json();
-        const confirmed = data.reduce((sum, utxo) => sum + (utxo.satoshis || 0), 0);
-        statusIndicator.className = "status-indicator connected";
-        statusText.textContent = "Connected";
-        updateBalance({ confirmed, unconfirmed: 0 });
+        if (resp.ok) {
+            const result = await resp.json();
+            let confirmed = 0;
+            if (result.outputs && Array.isArray(result.outputs)) {
+                for (const output of result.outputs) {
+                    if (output.spendable) confirmed += output.satoshis || 0;
+                }
+            }
+            statusIndicator.className = "status-indicator connected";
+            statusText.textContent = "Connected";
+            updateBalance({ confirmed, unconfirmed: 0 });
+        } else if (resp.status === 503) {
+            // Wallet locked or not authenticated
+            statusIndicator.className = "status-indicator connected";
+            statusText.textContent = "Connected (auth required)";
+            updateBalance({ confirmed: 0, unconfirmed: 0 });
+        } else {
+            // Server responding but endpoint unknown — still "connected"
+            statusIndicator.className = "status-indicator connected";
+            statusText.textContent = "Connected";
+            updateBalance({ confirmed: 0, unconfirmed: 0 });
+        }
     } catch (e) {
-        console.log("UTXO fetch failed:", e);
+        console.log("Backend check failed:", e);
         statusIndicator.className = "status-indicator disconnected";
         statusText.textContent = "Unreachable";
         updateBalance({ confirmed: 0, unconfirmed: 0 });
