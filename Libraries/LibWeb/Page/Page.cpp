@@ -54,6 +54,7 @@ void Page::visit_edges(JS::Cell::Visitor& visitor)
     visitor.visit(m_window_rect_observer);
     visitor.visit(m_on_pending_dialog_closed);
     visitor.visit(m_pending_clipboard_requests);
+    visitor.visit(m_pending_wallet_operations);
     m_pending_fullscreen_operations.for_each([&](auto const& operation) {
         operation.visit([&](PendingFullscreenEnter const& enter_operation) {
                 visitor.visit(enter_operation.element);
@@ -531,6 +532,21 @@ void Page::retrieved_clipboard_entries(u64 request_id, Vector<Clipboard::SystemC
 {
     if (auto request = m_pending_clipboard_requests.take(request_id); request.has_value())
         (*request)->function()(move(items));
+}
+
+u64 Page::request_wallet_operation(String const& operation, String const& params, WalletOperationCallback callback)
+{
+    auto request_id = m_next_wallet_request_id++;
+    m_pending_wallet_operations.set(request_id, callback);
+
+    client().page_did_request_wallet_operation(operation, request_id, params);
+    return request_id;
+}
+
+void Page::complete_wallet_operation(u64 request_id, String result)
+{
+    if (auto callback = m_pending_wallet_operations.take(request_id); callback.has_value())
+        (*callback)->function()(move(result));
 }
 
 void Page::register_media_element(Badge<HTML::HTMLMediaElement>, UniqueNodeID media_id)

@@ -76,8 +76,24 @@ function showView(name) {
 
 function refreshWallet() {
     ladybird.sendMessage("loadWalletStatus");
-    ladybird.sendMessage("getBalance");
     ladybird.sendMessage("getReceiveAddress");
+}
+
+async function fetchBalanceFromBackend(address) {
+    if (!address) return;
+    const url = backendURL.value || "https://ordinals.gorillapool.io";
+    try {
+        const resp = await fetch(`${url}/api/bsv/address/${address}/balance`);
+        if (resp.ok) {
+            const data = await resp.json();
+            updateBalance({ confirmed: data.confirmed || 0, unconfirmed: data.unconfirmed || 0 });
+        } else {
+            updateBalance({ confirmed: 0, unconfirmed: 0 });
+        }
+    } catch (e) {
+        console.log("Balance fetch failed:", e);
+        updateBalance({ confirmed: 0, unconfirmed: 0 });
+    }
 }
 
 // ── Status updates ──────────────────────────────────────────────────
@@ -112,9 +128,11 @@ function updateReceiveAddress(data) {
     if (data.address) {
         receiveAddress.className = "address-display";
         receiveAddress.textContent = data.address;
+        fetchBalanceFromBackend(data.address);
     } else {
         receiveAddress.className = "address-placeholder";
         receiveAddress.textContent = "Enable wallet to see your address";
+        updateBalance({ confirmed: 0, unconfirmed: 0 });
     }
 }
 

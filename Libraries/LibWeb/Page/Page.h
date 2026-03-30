@@ -185,6 +185,10 @@ public:
     void request_clipboard_entries(ClipboardRequest);
     void retrieved_clipboard_entries(u64 request_id, Vector<Clipboard::SystemClipboardItem>);
 
+    using WalletOperationCallback = GC::Ref<GC::Function<void(String)>>;
+    u64 request_wallet_operation(String const& operation, String const& params, WalletOperationCallback);
+    void complete_wallet_operation(u64 request_id, String result);
+
     enum class PendingNonBlockingDialog {
         None,
         ColorPicker,
@@ -314,6 +318,9 @@ private:
 
     HashMap<u64, ClipboardRequest> m_pending_clipboard_requests;
     u64 m_next_clipboard_request_id { 0 };
+
+    HashMap<u64, WalletOperationCallback> m_pending_wallet_operations;
+    u64 m_next_wallet_request_id { 0 };
 
     Vector<UniqueNodeID> m_media_elements;
     Vector<UniqueNodeID> m_canvas_elements;

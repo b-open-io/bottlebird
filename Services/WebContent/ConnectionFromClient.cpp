@@ -1405,9 +1405,12 @@ void ConnectionFromClient::exit_fullscreen(u64 page_id)
     }
 }
 
-void ConnectionFromClient::did_complete_wallet_operation(u64, u64, String)
+void ConnectionFromClient::did_complete_wallet_operation(u64 page_id, u64 request_id, String result)
 {
-    // TODO: Forward wallet operation result to the Wallet Web API promise
+    if (auto page = this->page(page_id); page.has_value()) {
+        Web::HTML::TemporaryExecutionContext context(page->page().top_level_browsing_context().active_document()->realm(), Web::HTML::TemporaryExecutionContext::CallbacksEnabled::Yes);
+        page->page().complete_wallet_operation(request_id, move(result));
+    }
 }
 
 }
