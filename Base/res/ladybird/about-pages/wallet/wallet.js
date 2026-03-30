@@ -324,23 +324,28 @@ backendURL.addEventListener("change", () => {
     }
 });
 
-bapIdDisplay.addEventListener("click", () => {
-    if (bapIdDisplay.textContent) {
-        navigator.clipboard.writeText(bapIdDisplay.textContent);
-        const original = bapIdDisplay.textContent;
-        bapIdDisplay.textContent = "Copied!";
-        setTimeout(() => { bapIdDisplay.textContent = original; }, 1500);
-    }
-});
+// Click-to-copy for identity view (dedicated tab)
+if (identityBapIdView) {
+    identityBapIdView.addEventListener("click", () => {
+        if (identityBapIdView.textContent && identityBapIdView.textContent !== "No BAP ID available") {
+            navigator.clipboard.writeText(identityBapIdView.textContent);
+            const original = identityBapIdView.textContent;
+            identityBapIdView.textContent = "Copied!";
+            setTimeout(() => { identityBapIdView.textContent = original; }, 1500);
+        }
+    });
+}
 
-identityPubkey.addEventListener("click", () => {
-    if (identityPubkey.textContent) {
-        navigator.clipboard.writeText(identityPubkey.textContent);
-        const original = identityPubkey.textContent;
-        identityPubkey.textContent = "Copied!";
-        setTimeout(() => { identityPubkey.textContent = original; }, 1500);
-    }
-});
+if (identityKeyView) {
+    identityKeyView.addEventListener("click", () => {
+        if (identityKeyView.textContent && identityKeyView.textContent !== "No identity key available") {
+            navigator.clipboard.writeText(identityKeyView.textContent);
+            const original = identityKeyView.textContent;
+            identityKeyView.textContent = "Copied!";
+            setTimeout(() => { identityKeyView.textContent = original; }, 1500);
+        }
+    });
+}
 
 identityBapIdView.addEventListener("click", () => {
     const text = identityBapIdView.textContent;
@@ -414,10 +419,11 @@ document.addEventListener("WebUIMessage", event => {
             refreshWallet();
         }
     } else if (name === "walletIdentity") {
-        if (data.identityPubkey) {
-            identityCard.classList.remove("hidden");
-            identityPubkey.textContent = data.identityPubkey;
+        if (data.identityPubkey && identityKeyView) {
             identityKeyView.textContent = data.identityPubkey;
+        }
+        if (data.bapId && identityBapIdView) {
+            identityBapIdView.textContent = data.bapId;
         }
     } else if (name === "paymentResult") {
         if (data.error) {
