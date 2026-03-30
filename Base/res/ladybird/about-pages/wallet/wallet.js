@@ -46,10 +46,15 @@ const filePasswordGroup = document.querySelector("#file-password-group");
 const filePassword = document.querySelector("#file-password");
 const importFileError = document.querySelector("#import-file-error");
 
-// Identity
+// Identity (dashboard card)
 const identityCard = document.querySelector("#identity-card");
 const bapIdDisplay = document.querySelector("#bap-id");
 const identityPubkey = document.querySelector("#identity-pubkey");
+
+// Identity (full view)
+const identityBapIdView = document.querySelector("#identity-bap-id");
+const identityKeyView = document.querySelector("#identity-key");
+const identityEmpty = document.querySelector("#identity-empty");
 
 // Dashboard add account
 const btnAddAccount = document.querySelector("#btn-add-account");
@@ -79,6 +84,39 @@ function showView(name) {
     if (map[name]) map[name].classList.remove("hidden");
 }
 
+// ── Hash-based sub-view routing ────────────────────────────────────
+
+const SUB_VIEWS = ["dashboard", "ordinals", "tokens", "market", "identity", "send", "receive", "chat", "publish"];
+
+function navigateToView(hash) {
+    const view = hash.replace("#", "") || "dashboard";
+    const resolvedView = SUB_VIEWS.includes(view) ? view : "dashboard";
+
+    // Hide all sub-views
+    for (const v of SUB_VIEWS) {
+        const el = document.querySelector(`#view-${v}`);
+        if (el) el.classList.add("hidden");
+    }
+
+    // Show active sub-view
+    const activeEl = document.querySelector(`#view-${resolvedView}`);
+    if (activeEl) {
+        activeEl.classList.remove("hidden");
+    } else {
+        const dashboard = document.querySelector("#view-dashboard");
+        if (dashboard) dashboard.classList.remove("hidden");
+    }
+
+    // Update nav active state
+    document.querySelectorAll(".nav-tab").forEach(tab => {
+        tab.classList.toggle("active", tab.dataset.view === resolvedView);
+    });
+}
+
+window.addEventListener("hashchange", () => navigateToView(location.hash));
+
+// ── Routing ────────────────────────────────────────────────────────
+
 function refreshWallet() {
     ladybird.sendMessage("loadWalletStatus");
     ladybird.sendMessage("getReceiveAddress");
@@ -104,6 +142,9 @@ function updateStatus(status) {
     }
 
     showView("wallet");
+    // Apply hash-based routing once wallet view is visible
+    navigateToView(location.hash);
+
     walletEnabledToggle.checked = status.enabled;
     if (status.backendURL) backendURL.value = status.backendURL;
 
@@ -118,10 +159,18 @@ function updateStatus(status) {
         identityCard.classList.remove("hidden");
         if (status.bapId) bapIdDisplay.textContent = status.bapId;
         if (status.identityPubkey) identityPubkey.textContent = status.identityPubkey;
+
+        // Also populate full identity view
+        if (status.bapId) identityBapIdView.textContent = status.bapId;
+        if (status.identityPubkey) identityKeyView.textContent = status.identityPubkey;
+        identityEmpty.classList.add("hidden");
     } else {
         identityCard.classList.add("hidden");
         bapIdDisplay.textContent = "";
         identityPubkey.textContent = "";
+        identityBapIdView.textContent = "No BAP ID available";
+        identityKeyView.textContent = "No identity key available";
+        identityEmpty.classList.remove("hidden");
     }
 }
 
@@ -302,6 +351,26 @@ identityPubkey.addEventListener("click", () => {
     }
 });
 
+identityBapIdView.addEventListener("click", () => {
+    const text = identityBapIdView.textContent;
+    if (text && text !== "No BAP ID available") {
+        navigator.clipboard.writeText(text);
+        const original = text;
+        identityBapIdView.textContent = "Copied!";
+        setTimeout(() => { identityBapIdView.textContent = original; }, 1500);
+    }
+});
+
+identityKeyView.addEventListener("click", () => {
+    const text = identityKeyView.textContent;
+    if (text && text !== "No identity key available") {
+        navigator.clipboard.writeText(text);
+        const original = text;
+        identityKeyView.textContent = "Copied!";
+        setTimeout(() => { identityKeyView.textContent = original; }, 1500);
+    }
+});
+
 receiveAddress.addEventListener("click", () => {
     if (receiveAddress.classList.contains("address-display")) {
         navigator.clipboard.writeText(receiveAddress.textContent);
@@ -357,6 +426,7 @@ document.addEventListener("WebUIMessage", event => {
         if (data.identityPubkey) {
             identityCard.classList.remove("hidden");
             identityPubkey.textContent = data.identityPubkey;
+            identityKeyView.textContent = data.identityPubkey;
         }
     } else if (name === "paymentResult") {
         if (data.error) {

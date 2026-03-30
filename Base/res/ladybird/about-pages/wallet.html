@@ -274,6 +274,245 @@
                 color: white;
                 font-weight: 600;
             }
+
+            /* Navigation bar */
+            .wallet-nav {
+                display: flex;
+                gap: 4px;
+                background-color: var(--card-background-color);
+                border: 1px solid var(--border-color);
+                border-radius: 8px;
+                padding: 4px;
+                margin-bottom: 20px;
+                overflow-x: auto;
+            }
+
+            .nav-tab {
+                padding: 8px 14px;
+                border-radius: 6px;
+                font-size: 13px;
+                font-weight: 500;
+                text-decoration: none;
+                color: inherit;
+                opacity: 0.6;
+                cursor: pointer;
+                white-space: nowrap;
+                transition: background 0.15s, opacity 0.15s;
+            }
+
+            .nav-tab:hover {
+                background: var(--shortcut-bg-hover);
+                opacity: 0.85;
+            }
+
+            .nav-tab.active {
+                background: var(--accent);
+                color: white;
+                opacity: 1;
+            }
+
+            /* View sections */
+            .view-section { padding: 0; }
+
+            /* Ordinals grid */
+            .ordinals-grid {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 12px;
+            }
+
+            .ordinal-card {
+                background-color: var(--card-background-color);
+                border: 1px solid var(--border-color);
+                border-radius: 8px;
+                overflow: hidden;
+                cursor: pointer;
+                transition: border-color 0.15s;
+            }
+
+            .ordinal-card:hover { border-color: var(--accent); }
+
+            .ordinal-card .thumb {
+                width: 100%;
+                aspect-ratio: 1;
+                background-color: var(--card-header-background-color);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 28px;
+                opacity: 0.3;
+            }
+
+            .ordinal-card .meta {
+                padding: 8px 10px;
+                font-size: 12px;
+            }
+
+            .ordinal-card .meta .name {
+                font-weight: 500;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .ordinal-card .meta .outpoint {
+                font-family: Menlo, Monaco, Consolas, monospace;
+                font-size: 10px;
+                opacity: 0.5;
+                margin-top: 2px;
+            }
+
+            /* Token list */
+            .token-row {
+                display: flex;
+                align-items: center;
+                gap: 14px;
+                padding: 14px 20px;
+                border-bottom: 1px solid var(--border-color);
+            }
+
+            .token-row:last-child { border-bottom: none; }
+
+            .token-icon {
+                width: 32px;
+                height: 32px;
+                border-radius: 6px;
+                background-color: var(--card-header-background-color);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 14px;
+                font-weight: 600;
+                color: var(--accent);
+                flex-shrink: 0;
+            }
+
+            .token-info { flex: 1; min-width: 0; }
+
+            .token-symbol {
+                font-size: 13px;
+                font-weight: 600;
+            }
+
+            .token-id {
+                font-family: Menlo, Monaco, Consolas, monospace;
+                font-size: 10px;
+                opacity: 0.5;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .token-balance {
+                font-family: Menlo, Monaco, Consolas, monospace;
+                font-size: 14px;
+                font-weight: 500;
+                text-align: right;
+            }
+
+            /* Market grid */
+            .market-grid {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 12px;
+            }
+
+            .listing-card {
+                background-color: var(--card-background-color);
+                border: 1px solid var(--border-color);
+                border-radius: 8px;
+                overflow: hidden;
+                cursor: pointer;
+                transition: border-color 0.15s;
+            }
+
+            .listing-card:hover { border-color: var(--accent); }
+
+            .listing-card .thumb {
+                width: 100%;
+                aspect-ratio: 1;
+                background-color: var(--card-header-background-color);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 28px;
+                opacity: 0.3;
+            }
+
+            .listing-card .meta {
+                padding: 8px 10px;
+            }
+
+            .listing-card .meta .name {
+                font-size: 12px;
+                font-weight: 500;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .listing-card .meta .price {
+                font-family: Menlo, Monaco, Consolas, monospace;
+                font-size: 12px;
+                font-weight: 600;
+                margin-top: 2px;
+            }
+
+            /* Identity profile */
+            .profile-field {
+                margin-bottom: 14px;
+            }
+
+            .profile-field:last-child { margin-bottom: 0; }
+
+            .profile-field label {
+                font-size: 11px;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                opacity: 0.6;
+                margin-bottom: 4px;
+            }
+
+            .profile-field .value {
+                font-size: 14px;
+            }
+
+            .profile-field .value.mono {
+                font-family: Menlo, Monaco, Consolas, monospace;
+                font-size: 12px;
+                word-break: break-all;
+            }
+
+            /* Empty state placeholder */
+            .empty-state {
+                text-align: center;
+                padding: 48px 20px;
+                opacity: 0.6;
+            }
+
+            .empty-state .icon {
+                font-size: 36px;
+                margin-bottom: 12px;
+            }
+
+            .empty-state h3 {
+                font-size: 16px;
+                font-weight: 600;
+                margin-bottom: 6px;
+            }
+
+            .empty-state p {
+                font-size: 14px;
+                opacity: 0.7;
+            }
+
+            /* Receive view address share text */
+            .receive-share-text {
+                font-size: 13px;
+                opacity: 0.6;
+                text-align: center;
+                margin-top: 12px;
+            }
         </style>
     </head>
     <body>
@@ -379,102 +618,235 @@
 
         <!-- Main wallet view (shown when wallet is configured) -->
         <div id="wallet-view" class="hidden">
-            <!-- Quick shortcuts inspired by reference app -->
-            <div class="shortcuts">
-                <a class="shortcut" href="1sat://ordinals">
-                    <div class="shortcut-icon" style="background: #8b5cf6;">O</div>
-                    <span>Ordinals</span>
-                </a>
-                <a class="shortcut" href="1sat://tokens">
-                    <div class="shortcut-icon" style="background: #eab308;">T</div>
-                    <span>Tokens</span>
-                </a>
-                <a class="shortcut" href="1sat://market">
-                    <div class="shortcut-icon" style="background: #22c55e;">M</div>
-                    <span>Market</span>
-                </a>
-                <a id="btn-add-account" class="shortcut" href="javascript:void(0)">
-                    <div class="shortcut-icon" style="background: #6366f1;">+</div>
-                    <span>Add Account</span>
-                </a>
-            </div>
+            <!-- Navigation bar -->
+            <nav class="wallet-nav">
+                <a class="nav-tab active" href="#dashboard" data-view="dashboard">Dashboard</a>
+                <a class="nav-tab" href="#ordinals" data-view="ordinals">Ordinals</a>
+                <a class="nav-tab" href="#tokens" data-view="tokens">Tokens</a>
+                <a class="nav-tab" href="#market" data-view="market">Market</a>
+                <a class="nav-tab" href="#identity" data-view="identity">Identity</a>
+                <a class="nav-tab" href="#send" data-view="send">Send</a>
+                <a class="nav-tab" href="#receive" data-view="receive">Receive</a>
+            </nav>
 
-            <!-- Status + Config -->
-            <div class="card">
-                <div class="card-header">Status</div>
-                <div class="card-body">
-                    <div class="card-group inline-container">
-                        <span>
-                            <span id="status-indicator" class="status-indicator disconnected"></span>
-                            <span id="status-text">Not Connected</span>
-                        </span>
-                        <label class="inline-container" style="margin-bottom: 0;">
-                            <span>Connect</span>
-                            <input id="wallet-enabled-toggle" type="checkbox" switch />
-                        </label>
-                    </div>
-                    <hr />
-                    <div class="card-group">
-                        <label for="backend-url">Backend URL</label>
-                        <p class="description">Ordinals API for wallet operations and content resolution.</p>
-                        <input id="backend-url" type="url" value="https://api.1sat.app" />
-                    </div>
+            <!-- VIEW: Dashboard -->
+            <div id="view-dashboard" class="view-section">
+                <!-- Quick shortcuts -->
+                <div class="shortcuts">
+                    <a class="shortcut" href="#ordinals">
+                        <div class="shortcut-icon" style="background: #8b5cf6;">O</div>
+                        <span>Ordinals</span>
+                    </a>
+                    <a class="shortcut" href="#tokens">
+                        <div class="shortcut-icon" style="background: #eab308;">T</div>
+                        <span>Tokens</span>
+                    </a>
+                    <a class="shortcut" href="#market">
+                        <div class="shortcut-icon" style="background: #22c55e;">M</div>
+                        <span>Market</span>
+                    </a>
+                    <a id="btn-add-account" class="shortcut" href="javascript:void(0)">
+                        <div class="shortcut-icon" style="background: #6366f1;">+</div>
+                        <span>Add Account</span>
+                    </a>
                 </div>
-            </div>
 
-            <!-- Balance -->
-            <div class="card">
-                <div class="card-header">Balance</div>
-                <div class="card-body">
-                    <div id="balance-confirmed" class="balance-display">0 sat</div>
-                    <div id="balance-unconfirmed" class="balance-unconfirmed">0 sat unconfirmed</div>
-                </div>
-            </div>
-
-            <!-- Identity -->
-            <div id="identity-card" class="card hidden">
-                <div class="card-header">Identity</div>
-                <div class="card-body">
-                    <div class="card-group">
-                        <label>BAP ID</label>
-                        <div id="bap-id" class="address-display" style="cursor: pointer;"></div>
-                    </div>
-                    <div class="card-group">
-                        <label>Identity Key</label>
-                        <p class="description">Compressed public key (hex)</p>
-                        <div id="identity-pubkey" class="address-display" style="font-size: 12px; cursor: pointer;"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Receive -->
-            <div class="card">
-                <div class="card-header">Receive</div>
-                <div class="card-body">
-                    <div class="card-group">
-                        <label>Your Address</label>
-                        <div id="receive-address" class="address-placeholder">Enable wallet to see your address</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Send -->
-            <div class="card">
-                <div class="card-header">Send</div>
-                <div class="card-body">
-                    <div class="send-form">
+                <!-- Status + Config -->
+                <div class="card">
+                    <div class="card-header">Status</div>
+                    <div class="card-body">
+                        <div class="card-group inline-container">
+                            <span>
+                                <span id="status-indicator" class="status-indicator disconnected"></span>
+                                <span id="status-text">Not Connected</span>
+                            </span>
+                            <label class="inline-container" style="margin-bottom: 0;">
+                                <span>Connect</span>
+                                <input id="wallet-enabled-toggle" type="checkbox" switch />
+                            </label>
+                        </div>
+                        <hr />
                         <div class="card-group">
-                            <label for="send-recipient">Recipient Address</label>
-                            <input id="send-recipient" type="text" placeholder="Enter BSV address" />
+                            <label for="backend-url">Backend URL</label>
+                            <p class="description">Ordinals API for wallet operations and content resolution.</p>
+                            <input id="backend-url" type="url" value="https://api.1sat.app" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Balance -->
+                <div class="card">
+                    <div class="card-header">Balance</div>
+                    <div class="card-body">
+                        <div id="balance-confirmed" class="balance-display">0 sat</div>
+                        <div id="balance-unconfirmed" class="balance-unconfirmed">0 sat unconfirmed</div>
+                    </div>
+                </div>
+
+                <!-- Identity summary -->
+                <div id="identity-card" class="card hidden">
+                    <div class="card-header">Identity</div>
+                    <div class="card-body">
+                        <div class="card-group">
+                            <label>BAP ID</label>
+                            <div id="bap-id" class="address-display" style="cursor: pointer;"></div>
                         </div>
                         <div class="card-group">
-                            <label for="send-amount">Amount (satoshis)</label>
-                            <input id="send-amount" type="number" min="1" placeholder="0" />
+                            <label>Identity Key</label>
+                            <p class="description">Compressed public key (hex)</p>
+                            <div id="identity-pubkey" class="address-display" style="font-size: 12px; cursor: pointer;"></div>
                         </div>
-                        <div class="button-row">
-                            <button id="send-button" class="primary-button" style="min-width: auto; padding: 10px 24px;">Send</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: Ordinals -->
+            <div id="view-ordinals" class="view-section hidden">
+                <div class="card">
+                    <div class="card-header">Your Ordinals</div>
+                    <div class="card-body">
+                        <div id="ordinals-grid" class="ordinals-grid">
+                            <!-- Populated dynamically when connected -->
                         </div>
-                        <div id="send-message" class="hidden"></div>
+                        <div id="ordinals-empty" class="empty-state">
+                            <div class="icon">&#9670;</div>
+                            <h3>No ordinals yet</h3>
+                            <p>Ordinals appear here after you inscribe or receive one.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: Tokens -->
+            <div id="view-tokens" class="view-section hidden">
+                <div class="card">
+                    <div class="card-header">BSV21 Tokens</div>
+                    <div class="card-body">
+                        <div id="tokens-list">
+                            <!-- Populated dynamically when connected -->
+                        </div>
+                        <div id="tokens-empty" class="empty-state">
+                            <div class="icon">&#9678;</div>
+                            <h3>No tokens yet</h3>
+                            <p>BSV-21 tokens you own will appear here.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: Market -->
+            <div id="view-market" class="view-section hidden">
+                <div class="card">
+                    <div class="card-header">Marketplace</div>
+                    <div class="card-body">
+                        <div id="market-grid" class="market-grid">
+                            <!-- Populated dynamically when connected -->
+                        </div>
+                        <div id="market-empty" class="empty-state">
+                            <div class="icon">&#9733;</div>
+                            <h3>No listings available</h3>
+                            <p>Marketplace listings appear once items are listed for sale.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: Identity -->
+            <div id="view-identity" class="view-section hidden">
+                <div class="card">
+                    <div class="card-header">Identity</div>
+                    <div class="card-body">
+                        <div class="profile-field">
+                            <label>BAP ID</label>
+                            <div id="identity-bap-id" class="value mono" style="cursor: pointer;"></div>
+                        </div>
+                        <div class="profile-field">
+                            <label>Identity Key</label>
+                            <div id="identity-key" class="value mono" style="cursor: pointer;"></div>
+                        </div>
+                        <hr style="margin: 16px 0;" />
+                        <div class="profile-field">
+                            <label for="profile-name">Display Name</label>
+                            <input id="profile-name" type="text" placeholder="Your name" />
+                        </div>
+                        <div class="profile-field">
+                            <label for="profile-description">Description</label>
+                            <input id="profile-description" type="text" placeholder="A short bio" />
+                        </div>
+                        <div class="profile-field">
+                            <label for="profile-avatar">Avatar URL</label>
+                            <input id="profile-avatar" type="url" placeholder="https://example.com/avatar.png" />
+                        </div>
+                        <div id="identity-empty" class="empty-state hidden">
+                            <div class="icon">&#128100;</div>
+                            <h3>No identity available</h3>
+                            <p>Create or import a wallet to set up your identity.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: Send -->
+            <div id="view-send" class="view-section hidden">
+                <div class="card">
+                    <div class="card-header">Send BSV</div>
+                    <div class="card-body">
+                        <div class="send-form">
+                            <div class="card-group">
+                                <label for="send-recipient">Recipient Address</label>
+                                <input id="send-recipient" type="text" placeholder="Enter BSV address" />
+                            </div>
+                            <div class="card-group">
+                                <label for="send-amount">Amount (satoshis)</label>
+                                <input id="send-amount" type="number" min="1" placeholder="0" />
+                            </div>
+                            <div class="button-row">
+                                <button id="send-button" class="primary-button" style="min-width: auto; padding: 10px 24px;">Send</button>
+                            </div>
+                            <div id="send-message" class="hidden"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: Receive -->
+            <div id="view-receive" class="view-section hidden">
+                <div class="card">
+                    <div class="card-header">Receive BSV</div>
+                    <div class="card-body">
+                        <div class="card-group">
+                            <label>Your Address</label>
+                            <div id="receive-address" class="address-placeholder">Enable wallet to see your address</div>
+                        </div>
+                        <p class="receive-share-text">Share this address to receive BSV</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: Chat (placeholder) -->
+            <div id="view-chat" class="view-section hidden">
+                <div class="card">
+                    <div class="card-header">BitChat</div>
+                    <div class="card-body">
+                        <div class="empty-state">
+                            <div class="icon">&#128172;</div>
+                            <h3>BitChat</h3>
+                            <p>Decentralized messaging on the blockchain. Coming soon.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: Publish (placeholder) -->
+            <div id="view-publish" class="view-section hidden">
+                <div class="card">
+                    <div class="card-header">Publish / Inscribe</div>
+                    <div class="card-body">
+                        <div class="empty-state">
+                            <div class="icon">&#9998;</div>
+                            <h3>Inscribe on-chain</h3>
+                            <p>Publish content as ordinals on the BSV blockchain. Coming soon.</p>
+                        </div>
                     </div>
                 </div>
             </div>
