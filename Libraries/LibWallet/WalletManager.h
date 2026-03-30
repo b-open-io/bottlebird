@@ -25,19 +25,22 @@ public:
 
     // Key derivation
     ErrorOr<String> get_receive_address();
-    ErrorOr<String> get_identity_pubkey();
+    ErrorOr<String> get_identity_pubkey(); // hex-encoded compressed pubkey
+    ErrorOr<String> get_bap_id();          // BAP ID: base58(ripemd160(sha256(address)))
     ErrorOr<String> get_wif();
 
 private:
     WalletManager() = default;
 
     ErrorOr<void> derive_keys_from_seed(unsigned char const* seed, size_t seed_len);
+    ErrorOr<void> compute_bap_id();
 
     bool m_initialized { false };
     u8 m_root_privkey[32] {};
     u8 m_identity_pubkey[33] {};
     String m_receive_address;
     String m_identity_hex;
+    String m_bap_id;
 };
 
 }

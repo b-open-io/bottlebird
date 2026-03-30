@@ -57,6 +57,10 @@ void WalletUI::load_wallet_status()
     status.set("connected"sv, false);
 
     if (wallet.is_initialized()) {
+        auto bap_id = wallet.get_bap_id();
+        if (!bap_id.is_error())
+            status.set("bapId"sv, bap_id.release_value());
+
         auto identity = wallet.get_identity_pubkey();
         if (!identity.is_error())
             status.set("identityPubkey"sv, identity.release_value());

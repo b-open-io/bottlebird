@@ -48,6 +48,7 @@ const importFileError = document.querySelector("#import-file-error");
 
 // Identity
 const identityCard = document.querySelector("#identity-card");
+const bapIdDisplay = document.querySelector("#bap-id");
 const identityPubkey = document.querySelector("#identity-pubkey");
 
 // Dashboard add account
@@ -122,11 +123,13 @@ function updateStatus(status) {
         statusText.textContent = "Not Connected";
     }
 
-    if (status.identityPubkey) {
+    if (status.bapId || status.identityPubkey) {
         identityCard.classList.remove("hidden");
-        identityPubkey.textContent = status.identityPubkey;
+        if (status.bapId) bapIdDisplay.textContent = status.bapId;
+        if (status.identityPubkey) identityPubkey.textContent = status.identityPubkey;
     } else {
         identityCard.classList.add("hidden");
+        bapIdDisplay.textContent = "";
         identityPubkey.textContent = "";
     }
 }
@@ -276,6 +279,15 @@ walletEnabledToggle.addEventListener("change", () => {
 backendURL.addEventListener("change", () => {
     if (backendURL.value && backendURL.checkValidity()) {
         ladybird.sendMessage("setWalletBackendURL", backendURL.value);
+    }
+});
+
+bapIdDisplay.addEventListener("click", () => {
+    if (bapIdDisplay.textContent) {
+        navigator.clipboard.writeText(bapIdDisplay.textContent);
+        const original = bapIdDisplay.textContent;
+        bapIdDisplay.textContent = "Copied!";
+        setTimeout(() => { bapIdDisplay.textContent = original; }, 1500);
     }
 });
 

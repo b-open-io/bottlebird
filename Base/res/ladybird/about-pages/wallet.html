@@ -417,7 +417,7 @@
                     <div class="card-group">
                         <label for="backend-url">Backend URL</label>
                         <p class="description">Ordinals API for wallet operations and content resolution.</p>
-                        <input id="backend-url" type="url" value="https://ordinals.gorillapool.io" />
+                        <input id="backend-url" type="url" value="http://127.0.0.1:8080" />
                     </div>
                 </div>
             </div>
@@ -436,8 +436,13 @@
                 <div class="card-header">Identity</div>
                 <div class="card-body">
                     <div class="card-group">
-                        <label>BAP Identity Public Key</label>
-                        <div id="identity-pubkey" class="address-display" style="font-size: 12px;"></div>
+                        <label>BAP ID</label>
+                        <div id="bap-id" class="address-display" style="cursor: pointer;"></div>
+                    </div>
+                    <div class="card-group">
+                        <label>Identity Key</label>
+                        <p class="description">Compressed public key (hex)</p>
+                        <div id="identity-pubkey" class="address-display" style="font-size: 12px; cursor: pointer;"></div>
                     </div>
                 </div>
             </div>

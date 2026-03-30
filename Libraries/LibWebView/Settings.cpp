@@ -149,6 +149,7 @@ Settings::Settings(ByteString settings_path)
     , m_show_bookmarks_bar(default_show_bookmarks_bar)
     , m_default_zoom_level_factor(initial_zoom_level_factor)
     , m_languages({ default_language })
+    , m_wallet_backend_url(URL::Parser::basic_parse("http://127.0.0.1:8080"sv).release_value())
 {
 }
 

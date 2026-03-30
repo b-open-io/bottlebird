@@ -8,8 +8,46 @@
 #include <LibWallet/WalletManager.h>
 
 #include <bsvz.h>
+#include <openssl/evp.h>
 
 namespace Wallet {
+
+// Base58 alphabet (Bitcoin)
+static constexpr StringView base58_alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"sv;
+
+static String base58_encode(ReadonlyBytes data)
+{
+    // Count leading zeros
+    size_t leading_zeros = 0;
+    for (auto byte : data) {
+        if (byte != 0)
+            break;
+        ++leading_zeros;
+    }
+
+    // Convert to base58
+    Vector<u8> digits;
+    for (auto byte : data) {
+        int carry = byte;
+        for (auto& digit : digits) {
+            carry += 256 * digit;
+            digit = carry % 58;
+            carry /= 58;
+        }
+        while (carry > 0) {
+            digits.append(carry % 58);
+            carry /= 58;
+        }
+    }
+
+    StringBuilder result;
+    for (size_t i = 0; i < leading_zeros; ++i)
+        result.append('1');
+    for (int i = static_cast<int>(digits.size()) - 1; i >= 0; --i)
+        result.append(base58_alphabet[digits[i]]);
+
+    return result.to_string_without_validation();
+}
 
 WalletManager& WalletManager::the()
 {
@@ -19,7 +57,6 @@ WalletManager& WalletManager::the()
 
 ErrorOr<String> WalletManager::create_wallet()
 {
-    // Generate a 12-word BIP39 mnemonic
     char mnemonic_buf[256] {};
     size_t mnemonic_len = sizeof(mnemonic_buf);
 
@@ -29,13 +66,11 @@ ErrorOr<String> WalletManager::create_wallet()
 
     auto mnemonic = StringView { mnemonic_buf, mnemonic_len };
 
-    // Derive seed from mnemonic (empty passphrase)
     unsigned char seed[64] {};
     rc = bsvz_mnemonic_to_seed(mnemonic_buf, mnemonic_len, "", 0, seed);
     if (rc != 0)
         return Error::from_string_literal("Failed to derive seed from mnemonic");
 
-    // Derive keys from seed
     TRY(derive_keys_from_seed(seed, sizeof(seed)));
 
     return TRY(String::from_utf8(mnemonic));
@@ -47,12 +82,10 @@ ErrorOr<void> WalletManager::import_from_mnemonic(StringView mnemonic)
     if (words.size() != 12 && words.size() != 24)
         return Error::from_string_literal("Expected 12 or 24 words in mnemonic");
 
-    // Derive seed from mnemonic (empty passphrase)
     unsigned char seed[64] {};
     int rc = bsvz_mnemonic_to_seed(
         mnemonic.characters_without_null_termination(), mnemonic.length(),
-        "", 0,
-        seed);
+        "", 0, seed);
     if (rc != 0)
         return Error::from_string_literal("Failed to derive seed from mnemonic");
 
@@ -68,12 +101,10 @@ ErrorOr<void> WalletManager::import_from_wif(StringView wif)
     if (rc != 0)
         return Error::from_string_literal("Invalid WIF key");
 
-    // Derive public key from private key
     rc = bsvz_privkey_to_pubkey(m_root_privkey, m_identity_pubkey);
     if (rc != 0)
         return Error::from_string_literal("Failed to derive public key");
 
-    // Derive address from public key
     char addr_buf[40] {};
     size_t addr_len = sizeof(addr_buf);
     rc = bsvz_pubkey_to_address(m_identity_pubkey, sizeof(m_identity_pubkey), addr_buf, &addr_len);
@@ -82,12 +113,12 @@ ErrorOr<void> WalletManager::import_from_wif(StringView wif)
 
     m_receive_address = TRY(String::from_utf8({ addr_buf, addr_len }));
 
-    // Hex-encode the identity pubkey
     StringBuilder hex;
     for (size_t i = 0; i < sizeof(m_identity_pubkey); ++i)
         TRY(hex.try_appendff("{:02x}", m_identity_pubkey[i]));
     m_identity_hex = hex.to_string_without_validation();
 
+    TRY(compute_bap_id());
     m_initialized = true;
     return {};
 }
@@ -106,6 +137,13 @@ ErrorOr<String> WalletManager::get_identity_pubkey()
     return m_identity_hex;
 }
 
+ErrorOr<String> WalletManager::get_bap_id()
+{
+    if (!m_initialized)
+        return Error::from_string_literal("Wallet not initialized");
+    return m_bap_id;
+}
+
 ErrorOr<String> WalletManager::get_wif()
 {
     if (!m_initialized)
@@ -122,14 +160,14 @@ ErrorOr<String> WalletManager::get_wif()
 
 ErrorOr<void> WalletManager::derive_keys_from_seed(unsigned char const* seed, size_t seed_len)
 {
-    // Create master HD key from seed
+    // Master HD key from seed
     char xprv_buf[120] {};
     size_t xprv_len = sizeof(xprv_buf);
     int rc = bsvz_hd_from_seed(seed, seed_len, xprv_buf, &xprv_len);
     if (rc != 0)
         return Error::from_string_literal("Failed to create HD key from seed");
 
-    // Derive the identity key at m/0'/0'/0'
+    // Derive identity key at m/0'/0'/0'
     char derived_buf[120] {};
     size_t derived_len = sizeof(derived_buf);
     static constexpr char identity_path[] = "m/0'/0'/0'";
@@ -142,12 +180,12 @@ ErrorOr<void> WalletManager::derive_keys_from_seed(unsigned char const* seed, si
     if (rc != 0)
         return Error::from_string_literal("Failed to extract private key bytes");
 
-    // Derive public key from private key
+    // Derive public key
     rc = bsvz_privkey_to_pubkey(m_root_privkey, m_identity_pubkey);
     if (rc != 0)
         return Error::from_string_literal("Failed to derive public key");
 
-    // Derive address from public key
+    // Derive P2PKH address
     char addr_buf[40] {};
     size_t addr_len = sizeof(addr_buf);
     rc = bsvz_pubkey_to_address(m_identity_pubkey, sizeof(m_identity_pubkey), addr_buf, &addr_len);
@@ -156,13 +194,47 @@ ErrorOr<void> WalletManager::derive_keys_from_seed(unsigned char const* seed, si
 
     m_receive_address = TRY(String::from_utf8({ addr_buf, addr_len }));
 
-    // Hex-encode the identity pubkey
+    // Hex-encode identity pubkey
     StringBuilder hex;
     for (size_t i = 0; i < sizeof(m_identity_pubkey); ++i)
         TRY(hex.try_appendff("{:02x}", m_identity_pubkey[i]));
     m_identity_hex = hex.to_string_without_validation();
 
+    // Compute BAP ID
+    TRY(compute_bap_id());
+
     m_initialized = true;
+    return {};
+}
+
+ErrorOr<void> WalletManager::compute_bap_id()
+{
+    // BAP ID = base58(ripemd160(sha256(address_string)))
+    // This matches bsv-bap's bapIdFromAddress()
+    auto address_bytes = m_receive_address.bytes();
+
+    // SHA256 of the address string (as UTF-8 bytes)
+    u8 sha256_result[32] {};
+    unsigned int sha256_len = sizeof(sha256_result);
+    auto* sha256_md = EVP_sha256();
+    EVP_Digest(address_bytes.data(), address_bytes.size(), sha256_result, &sha256_len, sha256_md, nullptr);
+
+    // Hex-encode the SHA256 result (BAP uses hex string as input to RIPEMD160)
+    StringBuilder sha256_hex;
+    for (size_t i = 0; i < sha256_len; ++i)
+        TRY(sha256_hex.try_appendff("{:02x}", sha256_result[i]));
+    auto sha256_hex_str = sha256_hex.to_string_without_validation();
+    auto hex_bytes = sha256_hex_str.bytes();
+
+    // RIPEMD160 of the hex-encoded SHA256
+    u8 ripemd_result[20] {};
+    unsigned int ripemd_len = sizeof(ripemd_result);
+    auto* ripemd_md = EVP_ripemd160();
+    EVP_Digest(hex_bytes.data(), hex_bytes.size(), ripemd_result, &ripemd_len, ripemd_md, nullptr);
+
+    // Base58-encode the RIPEMD160 result
+    m_bap_id = base58_encode(ReadonlyBytes { ripemd_result, ripemd_len });
+
     return {};
 }
 
