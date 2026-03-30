@@ -288,7 +288,7 @@
             <h1>Bottlebird Wallet</h1>
         </header>
 
-        <!-- Onboarding (shown when wallet not configured) -->
+        <!-- Onboarding: choice screen -->
         <div id="onboarding-view" class="hidden">
             <div class="onboarding">
                 <h2>Get Started with BSV</h2>
@@ -296,6 +296,40 @@
                 <div class="onboarding-actions">
                     <button id="btn-create-wallet" class="primary-button">Create New Wallet</button>
                     <button id="btn-import-wallet" class="secondary-button">Import from Backup</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Onboarding: show new mnemonic -->
+        <div id="mnemonic-show-view" class="hidden">
+            <div class="card">
+                <div class="card-header">Your Recovery Phrase</div>
+                <div class="card-body">
+                    <p class="description">Write down these 12 words in order and keep them safe. This is the only way to recover your wallet.</p>
+                    <div id="mnemonic-display" class="address-display" style="line-height: 2; font-size: 15px; text-align: center;"></div>
+                    <div class="button-row" style="margin-top: 16px;">
+                        <button id="btn-mnemonic-back" class="secondary-button" style="min-width: auto; padding: 10px 24px;">Back</button>
+                        <button id="btn-mnemonic-confirm" class="primary-button" style="min-width: auto; padding: 10px 24px;">I've Saved It</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Onboarding: import mnemonic -->
+        <div id="import-view" class="hidden">
+            <div class="card">
+                <div class="card-header">Import Wallet</div>
+                <div class="card-body">
+                    <div class="card-group">
+                        <label for="import-mnemonic">Recovery Phrase</label>
+                        <p class="description">Enter your 12 or 24 word seed phrase, separated by spaces.</p>
+                        <textarea id="import-mnemonic" rows="4" style="width: 100%; background-color: var(--input-background-color); border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; font-size: 15px; font-family: Menlo, Monaco, Consolas, monospace; resize: vertical;" placeholder="abandon ability able about above absent absorb abstract absurd abuse access accident"></textarea>
+                    </div>
+                    <div id="import-error" class="hidden"></div>
+                    <div class="button-row">
+                        <button id="btn-import-back" class="secondary-button" style="min-width: auto; padding: 10px 24px;">Back</button>
+                        <button id="btn-import-confirm" class="primary-button" style="min-width: auto; padding: 10px 24px;">Import</button>
+                    </div>
                 </div>
             </div>
         </div>

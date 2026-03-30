@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, the Ladybird contributors.
+ * Copyright (c) 2026, the Bottlebird contributors.
  *
  * SPDX-License-Identifier: BSD-2-Clause
  */
@@ -22,6 +22,11 @@ private:
     void send_payment(JsonValue const&);
     void set_wallet_enabled(JsonValue const&);
     void set_wallet_backend_url(JsonValue const&);
+    void create_wallet();
+    void import_wallet(JsonValue const&);
+    void confirm_wallet_creation();
+
+    String m_pending_mnemonic;
 };
 
 }
