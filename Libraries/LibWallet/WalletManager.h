@@ -27,12 +27,11 @@ public:
 
     // Key derivation
     ErrorOr<String> get_receive_address();
-    ErrorOr<String> get_identity_pubkey(); // hex-encoded compressed pubkey
-    ErrorOr<String> get_bap_id();          // BAP ID: base58(ripemd160(sha256(address)))
+    ErrorOr<String> get_identity_pubkey();
+    ErrorOr<String> get_bap_id();
     ErrorOr<String> get_wif();
 
-    // Authenticated HTTP (BRC-100)
-    ErrorOr<String> authenticated_post(StringView url, StringView json_body);
+    // BRC-100 wallet operations via remote backend
     ErrorOr<String> fetch_balance(StringView backend_url);
 
     // Persistence
@@ -43,8 +42,8 @@ private:
     WalletManager() = default;
 
     ErrorOr<void> derive_keys_from_seed(unsigned char const* seed, size_t seed_len);
-    ErrorOr<void> init_auth_client();
-    void destroy_auth_client();
+    ErrorOr<void> init_wallet_handle(StringView backend_url);
+    void destroy_wallet_handle();
     ErrorOr<void> compute_bap_id();
     ByteString wallet_key_path() const;
 
@@ -54,7 +53,7 @@ private:
     String m_receive_address;
     String m_identity_hex;
     String m_bap_id;
-    void* m_auth_handle { nullptr };
+    void* m_wallet_handle { nullptr };
 };
 
 }

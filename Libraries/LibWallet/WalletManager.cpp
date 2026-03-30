@@ -136,9 +136,6 @@ ErrorOr<void> WalletManager::import_from_wif(StringView wif)
     TRY(compute_bap_id());
     m_initialized = true;
 
-    // Initialize BRC-100 auth client with the imported key
-    TRY(init_auth_client());
-
     // Note: save_to_disk() is intentionally not called here.
     // Callers (create_wallet, import_from_mnemonic, WalletUI) are responsible for persistence.
     // load_from_disk() calls import_from_wif internally and must not re-save.
@@ -226,10 +223,6 @@ ErrorOr<void> WalletManager::derive_keys_from_seed(unsigned char const* seed, si
     TRY(compute_bap_id());
 
     m_initialized = true;
-
-    // Initialize BRC-100 auth client with the derived key
-    TRY(init_auth_client());
-
     return {};
 }
 
@@ -312,58 +305,33 @@ ErrorOr<void> WalletManager::load_from_disk()
 
 WalletManager::~WalletManager()
 {
-    destroy_auth_client();
+    destroy_wallet_handle();
 }
 
-ErrorOr<void> WalletManager::init_auth_client()
+ErrorOr<void> WalletManager::init_wallet_handle(StringView backend_url)
 {
-    destroy_auth_client();
+    destroy_wallet_handle();
 
-    bsvauth_t handle = nullptr;
-    int rc = bsvauth_create(m_root_privkey, &handle);
-    if (rc != 0)
-        return Error::from_string_literal("Failed to create BRC-100 auth client");
+    int rc = bsvwallet_create_remote(
+        m_root_privkey, 0, // mainnet
+        backend_url.characters_without_null_termination(), backend_url.length(),
+        &m_wallet_handle);
 
-    m_auth_handle = handle;
+    if (rc != 0) {
+        dbgln("WalletManager: bsvwallet_create_remote failed with rc={}", rc);
+        return Error::from_string_literal("Failed to create remote wallet connection");
+    }
+
+    dbgln("WalletManager: Connected to backend {}", backend_url);
     return {};
 }
 
-void WalletManager::destroy_auth_client()
+void WalletManager::destroy_wallet_handle()
 {
-    if (m_auth_handle) {
-        bsvauth_destroy(static_cast<bsvauth_t>(m_auth_handle));
-        m_auth_handle = nullptr;
+    if (m_wallet_handle) {
+        bsvwallet_destroy(m_wallet_handle);
+        m_wallet_handle = nullptr;
     }
-}
-
-ErrorOr<String> WalletManager::authenticated_post(StringView url, StringView json_body)
-{
-    if (!m_initialized)
-        return Error::from_string_literal("Wallet not initialized");
-
-    if (!m_auth_handle)
-        TRY(init_auth_client());
-
-    // 64 KiB response buffer
-    constexpr size_t buf_capacity = 65536;
-    auto response_buf = TRY(ByteBuffer::create_uninitialized(buf_capacity));
-    size_t body_len = buf_capacity;
-    unsigned short status = 0;
-
-    int rc = bsvauth_post_json(
-        static_cast<bsvauth_t>(m_auth_handle),
-        url.characters_without_null_termination(), url.length(),
-        json_body.characters_without_null_termination(), json_body.length(),
-        &status,
-        reinterpret_cast<char*>(response_buf.data()), &body_len);
-
-    if (rc != 0)
-        return Error::from_string_literal("BRC-100 authenticated POST failed");
-
-    if (status < 200 || status >= 300)
-        return Error::from_string_literal("Backend returned non-success status");
-
-    return TRY(String::from_utf8({ reinterpret_cast<char const*>(response_buf.data()), body_len }));
 }
 
 ErrorOr<String> WalletManager::fetch_balance(StringView backend_url)
@@ -371,10 +339,31 @@ ErrorOr<String> WalletManager::fetch_balance(StringView backend_url)
     if (!m_initialized)
         return Error::from_string_literal("Wallet not initialized");
 
-    auto url = TRY(String::formatted("{}/listOutputs", backend_url));
+    // Ensure wallet handle exists and is connected to the backend
+    if (!m_wallet_handle)
+        TRY(init_wallet_handle(backend_url));
 
-    static constexpr auto request_body = "{\"basket\":\"default\"}"sv;
-    return authenticated_post(url, request_body);
+    // Use the wallet's listOutputs which goes through the proper
+    // RemoteStorageClient → JSON-RPC → BRC-103 authenticated HTTP
+    constexpr size_t buf_capacity = 65536;
+    auto response_buf = TRY(ByteBuffer::create_uninitialized(buf_capacity));
+    size_t body_len = buf_capacity;
+
+    static constexpr auto args = "{\"basket\":\"default\"}"sv;
+
+    int rc = bsvwallet_list_outputs(
+        m_wallet_handle,
+        args.characters_without_null_termination(), args.length(),
+        reinterpret_cast<char*>(response_buf.data()), &body_len);
+
+    if (rc != 0) {
+        dbgln("WalletManager: bsvwallet_list_outputs failed with rc={}", rc);
+        return Error::from_string_literal("Failed to list outputs from backend");
+    }
+
+    auto body = StringView { reinterpret_cast<char const*>(response_buf.data()), body_len };
+    dbgln("WalletManager: listOutputs response: {} bytes", body_len);
+    return TRY(String::from_utf8(body));
 }
 
 }
