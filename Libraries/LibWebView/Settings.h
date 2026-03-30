@@ -42,6 +42,8 @@ public:
     virtual void autoplay_settings_changed() { }
     virtual void do_not_track_changed() { }
     virtual void dns_settings_changed() { }
+    virtual void wallet_backend_url_changed() { }
+    virtual void wallet_enabled_changed() { }
 };
 
 class Settings {
@@ -82,6 +84,12 @@ public:
     DNSSettings const& dns_settings() const { return m_dns_settings; }
     void set_dns_settings(DNSSettings const&, bool override_by_command_line = false);
 
+    URL::URL const& wallet_backend_url() const { return m_wallet_backend_url; }
+    void set_wallet_backend_url(URL::URL);
+
+    bool wallet_enabled() const { return m_wallet_enabled; }
+    void set_wallet_enabled(bool);
+
     static void add_observer(Badge<SettingsObserver>, SettingsObserver&);
     static void remove_observer(Badge<SettingsObserver>, SettingsObserver&);
 
@@ -103,6 +111,9 @@ private:
     DoNotTrack m_do_not_track { DoNotTrack::No };
     DNSSettings m_dns_settings { SystemDNS() };
     bool m_dns_override_by_command_line { false };
+
+    URL::URL m_wallet_backend_url;
+    bool m_wallet_enabled { false };
 
     Vector<SettingsObserver&> m_observers;
 };

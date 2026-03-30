@@ -28,6 +28,7 @@ set(SOURCES
     WebUI.cpp
     WebUI/ProcessesUI.cpp
     WebUI/SettingsUI.cpp
+    WebUI/WalletUI.cpp
 )
 
 if (APPLE)

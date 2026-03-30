@@ -210,6 +210,7 @@ inline URL about_srcdoc() { return URL::about("srcdoc"_string); }
 inline URL about_error() { return URL::about("error"_string); }
 inline URL about_version() { return URL::about("version"_string); }
 inline URL about_newtab() { return URL::about("newtab"_string); }
+inline URL about_wallet() { return URL::about("wallet"_string); }
 
 }
 
