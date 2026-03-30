@@ -14,6 +14,7 @@
 #include <LibWebView/ViewImplementation.h>
 #include <LibWebView/WebContentClient.h>
 #include <LibWebView/WebUI.h>
+#include <LibWallet/WalletManager.h>
 
 namespace WebView {
 
@@ -798,22 +799,33 @@ void WebContentClient::did_request_wallet_operation(u64 page_id, u64 request_id,
         return;
     }
 
+    auto& wallet = Wallet::WalletManager::the();
+
     // Route operations to handlers
     if (operation == "getPublicKey"sv) {
-        // TODO: Return real public key from wallet key store once LibWallet is wired.
-        // For now, return a placeholder indicating the wallet is configured but keys are not yet derived.
-        JsonObject error;
-        error.set("error"sv, "Key derivation not yet implemented"sv);
-        async_did_complete_wallet_operation(page_id, request_id, error.serialized());
+        if (!wallet.is_initialized()) {
+            JsonObject error;
+            error.set("error"sv, "Wallet not initialized"sv);
+            async_did_complete_wallet_operation(page_id, request_id, error.serialized());
+            return;
+        }
+        auto pubkey = wallet.get_identity_pubkey();
+        if (pubkey.is_error()) {
+            JsonObject error;
+            error.set("error"sv, MUST(String::from_utf8(pubkey.error().string_literal())));
+            async_did_complete_wallet_operation(page_id, request_id, error.serialized());
+            return;
+        }
+        JsonObject result;
+        result.set("publicKey"sv, JsonValue(pubkey.release_value()));
+        async_did_complete_wallet_operation(page_id, request_id, result.serialized());
     } else if (operation == "listOutputs"sv) {
-        // Return empty array as placeholder
         async_did_complete_wallet_operation(page_id, request_id, "[]"_string);
     } else if (operation == "listActions"sv) {
-        // Return empty array as placeholder
         async_did_complete_wallet_operation(page_id, request_id, "[]"_string);
     } else if (operation == "createAction"sv || operation == "signAction"sv) {
         JsonObject error;
-        error.set("error"sv, MUST(String::formatted("{} not yet implemented", operation)));
+        error.set("error"sv, "Transaction signing not yet implemented"sv);
         async_did_complete_wallet_operation(page_id, request_id, error.serialized());
     } else {
         JsonObject error;

@@ -87,45 +87,36 @@ function refreshWallet() {
 let currentAddress = null;
 
 async function checkBackendAndFetchBalance() {
-    const url = backendURL.value || "https://api.1sat.app";
+    const url = backendURL.value || "https://ordinals.gorillapool.io";
 
-    // Check if backend is reachable
-    try {
-        const resp = await fetch(`${url}/api/v1/status`, { signal: AbortSignal.timeout(5000) });
-        if (resp.ok || resp.status === 404) {
-            // Server is responding (404 is fine — endpoint may not exist but server is up)
-            statusIndicator.className = "status-indicator connected";
-            statusText.textContent = "Connected";
-        } else {
-            statusIndicator.className = "status-indicator disconnected";
-            statusText.textContent = "Server Error";
-            return;
-        }
-    } catch (e) {
-        // Try a simpler check — just HEAD the root
-        try {
-            const resp2 = await fetch(url, { method: "HEAD", signal: AbortSignal.timeout(5000) });
-            statusIndicator.className = "status-indicator connected";
-            statusText.textContent = "Connected";
-        } catch {
-            statusIndicator.className = "status-indicator disconnected";
-            statusText.textContent = "Unreachable";
-            return;
-        }
+    if (!currentAddress) {
+        statusIndicator.className = "status-indicator disconnected";
+        statusText.textContent = "No address";
+        return;
     }
 
-    // Fetch balance if we have an address
-    if (currentAddress) {
-        try {
-            const resp = await fetch(`${url}/api/bsv/address/${currentAddress}/balance`);
-            if (resp.ok) {
-                const data = await resp.json();
-                updateBalance({ confirmed: data.confirmed || 0, unconfirmed: data.unconfirmed || 0 });
-                return;
-            }
-        } catch (e) {
-            console.log("Balance fetch failed:", e);
+    // Fetch UTXOs — this also serves as the connectivity check
+    try {
+        const resp = await fetch(
+            `${url}/api/txos/address/${currentAddress}/unspent`,
+            { signal: AbortSignal.timeout(10000) }
+        );
+        if (!resp.ok) {
+            statusIndicator.className = "status-indicator disconnected";
+            statusText.textContent = `Server Error (${resp.status})`;
+            updateBalance({ confirmed: 0, unconfirmed: 0 });
+            return;
         }
+
+        const data = await resp.json();
+        const confirmed = data.reduce((sum, utxo) => sum + (utxo.satoshis || 0), 0);
+        statusIndicator.className = "status-indicator connected";
+        statusText.textContent = "Connected";
+        updateBalance({ confirmed, unconfirmed: 0 });
+    } catch (e) {
+        console.log("UTXO fetch failed:", e);
+        statusIndicator.className = "status-indicator disconnected";
+        statusText.textContent = "Unreachable";
         updateBalance({ confirmed: 0, unconfirmed: 0 });
     }
 }

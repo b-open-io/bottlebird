@@ -4,7 +4,12 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
+#include <AK/LexicalPath.h>
 #include <AK/StringBuilder.h>
+#include <LibCore/Directory.h>
+#include <LibCore/File.h>
+#include <LibCore/StandardPaths.h>
+#include <LibCore/System.h>
 #include <LibWallet/WalletManager.h>
 
 #include <bsvz.h>
@@ -52,6 +57,12 @@ static String base58_encode(ReadonlyBytes data)
 WalletManager& WalletManager::the()
 {
     static WalletManager s_instance;
+    static bool s_tried_load = false;
+    if (!s_tried_load) {
+        s_tried_load = true;
+        if (auto result = s_instance.load_from_disk(); result.is_error())
+            dbgln("WalletManager: No saved wallet found ({})", result.error());
+    }
     return s_instance;
 }
 
@@ -72,6 +83,7 @@ ErrorOr<String> WalletManager::create_wallet()
         return Error::from_string_literal("Failed to derive seed from mnemonic");
 
     TRY(derive_keys_from_seed(seed, sizeof(seed)));
+    TRY(save_to_disk());
 
     return TRY(String::from_utf8(mnemonic));
 }
@@ -90,6 +102,7 @@ ErrorOr<void> WalletManager::import_from_mnemonic(StringView mnemonic)
         return Error::from_string_literal("Failed to derive seed from mnemonic");
 
     TRY(derive_keys_from_seed(seed, sizeof(seed)));
+    TRY(save_to_disk());
     return {};
 }
 
@@ -120,6 +133,9 @@ ErrorOr<void> WalletManager::import_from_wif(StringView wif)
 
     TRY(compute_bap_id());
     m_initialized = true;
+    // Note: save_to_disk() is intentionally not called here.
+    // Callers (create_wallet, import_from_mnemonic, WalletUI) are responsible for persistence.
+    // load_from_disk() calls import_from_wif internally and must not re-save.
     return {};
 }
 
@@ -235,6 +251,52 @@ ErrorOr<void> WalletManager::compute_bap_id()
     // Base58-encode the RIPEMD160 result
     m_bap_id = base58_encode(ReadonlyBytes { ripemd_result, ripemd_len });
 
+    return {};
+}
+
+ByteString WalletManager::wallet_key_path() const
+{
+    return ByteString::formatted("{}/Ladybird/wallet.key", Core::StandardPaths::config_directory());
+}
+
+ErrorOr<void> WalletManager::save_to_disk()
+{
+    if (!m_initialized)
+        return Error::from_string_literal("Wallet not initialized");
+
+    auto wif = TRY(get_wif());
+    auto path = wallet_key_path();
+    auto directory = LexicalPath { path }.parent();
+    TRY(Core::Directory::create(directory, Core::Directory::CreateDirectories::Yes));
+
+    auto file = TRY(Core::File::open(path, Core::File::OpenMode::Write));
+    TRY(file->write_until_depleted(wif.bytes()));
+
+    TRY(Core::System::chmod(path, 0600));
+
+    return {};
+}
+
+ErrorOr<void> WalletManager::load_from_disk()
+{
+    auto path = wallet_key_path();
+
+    auto file = Core::File::open(path, Core::File::OpenMode::Read);
+    if (file.is_error()) {
+        if (file.error().is_errno() && file.error().code() == ENOENT)
+            return Error::from_string_literal("No wallet key file found");
+        return file.release_error();
+    }
+
+    auto contents = TRY(file.value()->read_until_eof());
+    auto wif = StringView { contents };
+
+    // Strip any trailing whitespace/newlines
+    wif = wif.trim_whitespace();
+    if (wif.is_empty())
+        return Error::from_string_literal("Wallet key file is empty");
+
+    TRY(import_from_wif(wif));
     return {};
 }
 

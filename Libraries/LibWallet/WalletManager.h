@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <AK/ByteString.h>
 #include <AK/Error.h>
 #include <AK/String.h>
 #include <AK/StringView.h>
@@ -29,11 +30,16 @@ public:
     ErrorOr<String> get_bap_id();          // BAP ID: base58(ripemd160(sha256(address)))
     ErrorOr<String> get_wif();
 
+    // Persistence
+    ErrorOr<void> save_to_disk();
+    ErrorOr<void> load_from_disk();
+
 private:
     WalletManager() = default;
 
     ErrorOr<void> derive_keys_from_seed(unsigned char const* seed, size_t seed_len);
     ErrorOr<void> compute_bap_id();
+    ByteString wallet_key_path() const;
 
     bool m_initialized { false };
     u8 m_root_privkey[32] {};

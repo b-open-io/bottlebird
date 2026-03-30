@@ -218,6 +218,7 @@ void WalletUI::import_backup_file(JsonValue const& data)
             if (wif.has_value()) {
                 auto result = wallet.import_from_wif(wif->bytes_as_string_view());
                 if (!result.is_error()) {
+                    (void)wallet.save_to_disk();
                     WebView::Application::settings().set_wallet_enabled(true);
                     JsonObject response;
                     response.set("success"sv, true);

@@ -8,6 +8,7 @@
 #include <AK/JsonObject.h>
 #include <AK/JsonValue.h>
 #include <LibURL/Parser.h>
+#include <LibWallet/WalletManager.h>
 #include <LibWebView/Application.h>
 #include <LibWebView/MCPTools.h>
 #include <LibWebView/ViewImplementation.h>
@@ -54,8 +55,16 @@ void MCPToolRegistry::register_wallet_tools()
         def.input_schema = make_empty_schema();
 
         register_tool(move(def), [](JsonObject const&) -> ErrorOr<JsonValue> {
+            auto& wallet = Wallet::WalletManager::the();
+            auto const& settings = Application::settings();
+
             JsonObject result;
-            result.set("status"sv, "not_configured"sv);
+            if (!wallet.is_initialized())
+                result.set("status"sv, "not_configured"sv);
+            else if (!settings.wallet_enabled())
+                result.set("status"sv, "disabled"sv);
+            else
+                result.set("status"sv, "active"sv);
             return JsonValue(move(result));
         });
     }
@@ -68,9 +77,26 @@ void MCPToolRegistry::register_wallet_tools()
         def.input_schema = make_empty_schema();
 
         register_tool(move(def), [](JsonObject const&) -> ErrorOr<JsonValue> {
+            auto& wallet = Wallet::WalletManager::the();
             JsonObject result;
-            result.set("identityKey"sv, JsonValue {});
-            result.set("address"sv, JsonValue {});
+
+            if (!wallet.is_initialized()) {
+                result.set("error"sv, "Wallet not initialized"sv);
+                return JsonValue(move(result));
+            }
+
+            auto bap_id = wallet.get_bap_id();
+            if (!bap_id.is_error())
+                result.set("bapId"sv, JsonValue(bap_id.release_value()));
+
+            auto address = wallet.get_receive_address();
+            if (!address.is_error())
+                result.set("address"sv, JsonValue(address.release_value()));
+
+            auto pubkey = wallet.get_identity_pubkey();
+            if (!pubkey.is_error())
+                result.set("identityKey"sv, JsonValue(pubkey.release_value()));
+
             return JsonValue(move(result));
         });
     }
@@ -83,9 +109,19 @@ void MCPToolRegistry::register_wallet_tools()
         def.input_schema = make_empty_schema();
 
         register_tool(move(def), [](JsonObject const&) -> ErrorOr<JsonValue> {
+            auto& wallet = Wallet::WalletManager::the();
             JsonObject result;
+
+            if (!wallet.is_initialized()) {
+                result.set("error"sv, "Wallet not initialized"sv);
+                return JsonValue(move(result));
+            }
+
+            // Balance requires async HTTP fetch which is not available in this synchronous context.
+            // The wallet UI page fetches balance directly via JavaScript fetch().
             result.set("confirmed"sv, JsonValue(static_cast<i64>(0)));
             result.set("unconfirmed"sv, JsonValue(static_cast<i64>(0)));
+            result.set("note"sv, "Balance requires async HTTP; use the wallet UI page for live balance"sv);
             return JsonValue(move(result));
         });
     }
