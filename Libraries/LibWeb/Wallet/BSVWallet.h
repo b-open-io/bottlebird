@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <AK/HashMap.h>
+#include <LibGC/Ref.h>
 #include <LibJS/Forward.h>
 #include <LibWeb/Bindings/PlatformObject.h>
 #include <LibWeb/WebIDL/Promise.h>
@@ -51,6 +53,8 @@ private:
     explicit BSVWallet(JS::Realm&);
     virtual void initialize(JS::Realm&) override;
     virtual void visit_edges(Cell::Visitor&) override;
+
+    GC::Ref<WebIDL::Promise> send_wallet_operation(String const& operation, String const& params);
 };
 
 }

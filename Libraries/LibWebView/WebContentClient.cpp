@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
+#include <AK/JsonObject.h>
 #include <LibHTTP/Cookie/ParsedCookie.h>
 #include <LibIPC/TransportHandle.h>
 #include <LibWebView/Application.h>
@@ -786,9 +787,39 @@ Messages::WebContentClient::RequestWorkerAgentResponse WebContentClient::request
     return { IPC::TransportHandle {}, IPC::TransportHandle {}, IPC::TransportHandle {} };
 }
 
-void WebContentClient::did_request_wallet_operation(u64, u64, String, String)
+void WebContentClient::did_request_wallet_operation(u64 page_id, u64 request_id, String operation, String params)
 {
-    // TODO: Forward wallet operation to the browser's WalletManager
+    auto const& settings = Application::settings();
+
+    if (!settings.wallet_enabled()) {
+        JsonObject error;
+        error.set("error"sv, "Wallet not enabled"sv);
+        async_did_complete_wallet_operation(page_id, request_id, error.serialized());
+        return;
+    }
+
+    // Route operations to handlers
+    if (operation == "getPublicKey"sv) {
+        // TODO: Return real public key from wallet key store once LibWallet is wired.
+        // For now, return a placeholder indicating the wallet is configured but keys are not yet derived.
+        JsonObject error;
+        error.set("error"sv, "Key derivation not yet implemented"sv);
+        async_did_complete_wallet_operation(page_id, request_id, error.serialized());
+    } else if (operation == "listOutputs"sv) {
+        // Return empty array as placeholder
+        async_did_complete_wallet_operation(page_id, request_id, "[]"_string);
+    } else if (operation == "listActions"sv) {
+        // Return empty array as placeholder
+        async_did_complete_wallet_operation(page_id, request_id, "[]"_string);
+    } else if (operation == "createAction"sv || operation == "signAction"sv) {
+        JsonObject error;
+        error.set("error"sv, MUST(String::formatted("{} not yet implemented", operation)));
+        async_did_complete_wallet_operation(page_id, request_id, error.serialized());
+    } else {
+        JsonObject error;
+        error.set("error"sv, MUST(String::formatted("Unknown wallet operation: {}", operation)));
+        async_did_complete_wallet_operation(page_id, request_id, error.serialized());
+    }
 }
 
 Optional<ViewImplementation&> WebContentClient::view_for_page_id(u64 page_id, SourceLocation location)
