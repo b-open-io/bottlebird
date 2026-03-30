@@ -8,13 +8,15 @@
                 :root {
                     --card-background-color: #f9f9f9;
                     --card-header-background-color: #f0f2f5;
-
                     --input-background-color: white;
-
                     --border-color: #dcdde1;
-
                     --status-connected: #2ecc71;
-                    --status-disconnected: #e74c3c;
+                    --status-disconnected: #95a5a6;
+                    --status-error: #e74c3c;
+                    --accent: #3b82f6;
+                    --accent-hover: #2563eb;
+                    --shortcut-bg: #f0f2f5;
+                    --shortcut-bg-hover: #e4e6eb;
                 }
             }
 
@@ -22,21 +24,21 @@
                 :root {
                     --card-background-color: #2c2c2c;
                     --card-header-background-color: #252525;
-
                     --border-color: #3d3d3d;
-
                     --status-connected: #27ae60;
-                    --status-disconnected: #c0392b;
+                    --status-disconnected: #636e72;
+                    --status-error: #c0392b;
+                    --accent: #3b82f6;
+                    --accent-hover: #60a5fa;
+                    --shortcut-bg: #333;
+                    --shortcut-bg-hover: #444;
                 }
             }
 
-            * {
-                box-sizing: border-box;
-            }
+            * { box-sizing: border-box; }
 
             body {
                 max-width: 800px;
-
                 margin: 0 auto;
                 padding: 20px;
             }
@@ -44,13 +46,10 @@
             header {
                 display: flex;
                 align-items: center;
-
                 margin-bottom: 30px;
             }
 
-            header h1 {
-                font-size: 20px;
-            }
+            header h1 { font-size: 20px; }
 
             header img {
                 height: 48px;
@@ -60,34 +59,23 @@
 
             .card {
                 background-color: var(--card-background-color);
-
                 border-radius: 8px;
                 margin-bottom: 20px;
-
                 overflow: hidden;
             }
 
             .card-header {
                 background-color: var(--card-header-background-color);
-
                 border-bottom: 1px solid var(--border-color);
                 padding: 15px 20px;
-
                 font-size: 16px;
                 font-weight: 500;
             }
 
-            .card-body {
-                padding: 20px;
-            }
+            .card-body { padding: 20px; }
 
-            .card-group {
-                margin-bottom: 20px;
-            }
-
-            .card-group:last-child {
-                margin-bottom: 0;
-            }
+            .card-group { margin-bottom: 20px; }
+            .card-group:last-child { margin-bottom: 0; }
 
             .inline-container {
                 display: flex;
@@ -98,7 +86,6 @@
 
             .description {
                 margin-bottom: 10px;
-
                 font-size: 14px;
                 opacity: 0.7;
             }
@@ -106,7 +93,6 @@
             label {
                 display: block;
                 margin-bottom: 8px;
-
                 font-size: 14px;
             }
 
@@ -114,9 +100,11 @@
             input[type="url"],
             input[type="number"] {
                 background-color: var(--input-background-color);
-
                 width: 100%;
                 border: 1px solid var(--border-color);
+                border-radius: 6px;
+                padding: 8px 12px;
+                font-size: 14px;
             }
 
             hr {
@@ -125,9 +113,7 @@
                 border: none;
             }
 
-            .card-body > hr {
-                margin: 0 8px 16px 8px;
-            }
+            .card-body > hr { margin: 0 8px 16px 8px; }
 
             .status-indicator {
                 display: inline-block;
@@ -137,13 +123,8 @@
                 margin-right: 8px;
             }
 
-            .status-indicator.connected {
-                background-color: var(--status-connected);
-            }
-
-            .status-indicator.disconnected {
-                background-color: var(--status-disconnected);
-            }
+            .status-indicator.connected { background-color: var(--status-connected); }
+            .status-indicator.disconnected { background-color: var(--status-disconnected); }
 
             .balance-display {
                 font-size: 28px;
@@ -157,16 +138,15 @@
             }
 
             .address-display {
-                font-family: Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+                font-family: Menlo, Monaco, Consolas, monospace;
                 font-size: 13px;
-
                 background-color: var(--card-header-background-color);
                 border: 1px solid var(--border-color);
                 border-radius: 4px;
                 padding: 12px;
-
                 word-break: break-all;
                 user-select: all;
+                cursor: pointer;
             }
 
             .address-placeholder {
@@ -196,12 +176,103 @@
 
             .message.error {
                 background-color: rgba(231, 76, 60, 0.15);
-                color: var(--status-disconnected);
+                color: var(--status-error);
             }
 
             .message.success {
                 background-color: rgba(46, 204, 113, 0.15);
                 color: var(--status-connected);
+            }
+
+            .hidden { display: none; }
+
+            /* Onboarding */
+            .onboarding {
+                text-align: center;
+                padding: 60px 20px;
+            }
+
+            .onboarding h2 {
+                font-size: 24px;
+                font-weight: 600;
+                margin-bottom: 8px;
+            }
+
+            .onboarding p {
+                font-size: 15px;
+                opacity: 0.7;
+                margin-bottom: 32px;
+            }
+
+            .onboarding-actions {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 12px;
+            }
+
+            .primary-button {
+                background-color: var(--accent);
+                color: white;
+                border: none;
+                border-radius: 8px;
+                padding: 12px 32px;
+                font-size: 15px;
+                font-weight: 500;
+                cursor: pointer;
+                min-width: 240px;
+            }
+
+            .primary-button:hover { background-color: var(--accent-hover); }
+
+            .secondary-button {
+                background-color: var(--shortcut-bg);
+                color: inherit;
+                border: 1px solid var(--border-color);
+                border-radius: 8px;
+                padding: 12px 32px;
+                font-size: 15px;
+                cursor: pointer;
+                min-width: 240px;
+            }
+
+            .secondary-button:hover { background-color: var(--shortcut-bg-hover); }
+
+            /* Shortcuts grid */
+            .shortcuts {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 12px;
+                margin-bottom: 24px;
+            }
+
+            .shortcut {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 8px;
+                padding: 16px 8px;
+                background: var(--shortcut-bg);
+                border-radius: 12px;
+                cursor: pointer;
+                text-decoration: none;
+                color: inherit;
+                font-size: 13px;
+                transition: background 0.15s;
+            }
+
+            .shortcut:hover { background: var(--shortcut-bg-hover); }
+
+            .shortcut-icon {
+                width: 36px;
+                height: 36px;
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 18px;
+                color: white;
+                font-weight: 600;
             }
         </style>
     </head>
@@ -214,67 +285,104 @@
                 />
                 <img src="resource://icons/128x128/app-browser-dark.png" />
             </picture>
-            <h1>Wallet</h1>
+            <h1>Bottlebird Wallet</h1>
         </header>
 
-        <div class="card">
-            <div class="card-header">Status</div>
-            <div class="card-body">
-                <div class="card-group inline-container">
-                    <span>
-                        <span id="status-indicator" class="status-indicator disconnected"></span>
-                        <span id="status-text">Disconnected</span>
-                    </span>
-                    <label class="inline-container" style="margin-bottom: 0;">
-                        <span>Enable Wallet</span>
-                        <input id="wallet-enabled-toggle" type="checkbox" switch />
-                    </label>
-                </div>
-
-                <hr />
-
-                <div class="card-group">
-                    <label for="backend-url">Backend URL</label>
-                    <p class="description">The ordinals API endpoint used for wallet operations.</p>
-                    <input id="backend-url" type="url" placeholder="https://ordinals.gorillapool.io" />
+        <!-- Onboarding (shown when wallet not configured) -->
+        <div id="onboarding-view" class="hidden">
+            <div class="onboarding">
+                <h2>Get Started with BSV</h2>
+                <p>Create a new wallet or import an existing one to begin.</p>
+                <div class="onboarding-actions">
+                    <button id="btn-create-wallet" class="primary-button">Create New Wallet</button>
+                    <button id="btn-import-wallet" class="secondary-button">Import from Backup</button>
                 </div>
             </div>
         </div>
 
-        <div class="card">
-            <div class="card-header">Balance</div>
-            <div class="card-body">
-                <div id="balance-confirmed" class="balance-display">0 sat</div>
-                <div id="balance-unconfirmed" class="balance-unconfirmed">0 sat unconfirmed</div>
+        <!-- Main wallet view (shown when wallet is configured) -->
+        <div id="wallet-view" class="hidden">
+            <!-- Quick shortcuts inspired by reference app -->
+            <div class="shortcuts">
+                <a class="shortcut" href="about:settings">
+                    <div class="shortcut-icon" style="background: #3b82f6;">S</div>
+                    <span>Settings</span>
+                </a>
+                <a class="shortcut" href="1sat://ordinals">
+                    <div class="shortcut-icon" style="background: #8b5cf6;">O</div>
+                    <span>Ordinals</span>
+                </a>
+                <a class="shortcut" href="1sat://tokens">
+                    <div class="shortcut-icon" style="background: #eab308;">T</div>
+                    <span>Tokens</span>
+                </a>
+                <a class="shortcut" href="1sat://market">
+                    <div class="shortcut-icon" style="background: #22c55e;">M</div>
+                    <span>Market</span>
+                </a>
             </div>
-        </div>
 
-        <div class="card">
-            <div class="card-header">Receive</div>
-            <div class="card-body">
-                <div class="card-group">
-                    <label>Your Address</label>
-                    <div id="receive-address" class="address-placeholder">No address available</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="card-header">Send</div>
-            <div class="card-body">
-                <div class="send-form">
+            <!-- Status + Config -->
+            <div class="card">
+                <div class="card-header">Status</div>
+                <div class="card-body">
+                    <div class="card-group inline-container">
+                        <span>
+                            <span id="status-indicator" class="status-indicator disconnected"></span>
+                            <span id="status-text">Not Connected</span>
+                        </span>
+                        <label class="inline-container" style="margin-bottom: 0;">
+                            <span>Enable</span>
+                            <input id="wallet-enabled-toggle" type="checkbox" switch />
+                        </label>
+                    </div>
+                    <hr />
                     <div class="card-group">
-                        <label for="send-recipient">Recipient Address</label>
-                        <input id="send-recipient" type="text" placeholder="Enter BSV address" />
+                        <label for="backend-url">Backend URL</label>
+                        <p class="description">Ordinals API for wallet operations and content resolution.</p>
+                        <input id="backend-url" type="url" value="https://ordinals.gorillapool.io" />
                     </div>
+                </div>
+            </div>
+
+            <!-- Balance -->
+            <div class="card">
+                <div class="card-header">Balance</div>
+                <div class="card-body">
+                    <div id="balance-confirmed" class="balance-display">0 sat</div>
+                    <div id="balance-unconfirmed" class="balance-unconfirmed">0 sat unconfirmed</div>
+                </div>
+            </div>
+
+            <!-- Receive -->
+            <div class="card">
+                <div class="card-header">Receive</div>
+                <div class="card-body">
                     <div class="card-group">
-                        <label for="send-amount">Amount (satoshis)</label>
-                        <input id="send-amount" type="number" min="1" placeholder="0" />
+                        <label>Your Address</label>
+                        <div id="receive-address" class="address-placeholder">Enable wallet to see your address</div>
                     </div>
-                    <div class="button-row">
-                        <button id="send-button" class="primary-button">Send</button>
+                </div>
+            </div>
+
+            <!-- Send -->
+            <div class="card">
+                <div class="card-header">Send</div>
+                <div class="card-body">
+                    <div class="send-form">
+                        <div class="card-group">
+                            <label for="send-recipient">Recipient Address</label>
+                            <input id="send-recipient" type="text" placeholder="Enter BSV address" />
+                        </div>
+                        <div class="card-group">
+                            <label for="send-amount">Amount (satoshis)</label>
+                            <input id="send-amount" type="number" min="1" placeholder="0" />
+                        </div>
+                        <div class="button-row">
+                            <button id="send-button" class="primary-button" style="min-width: auto; padding: 10px 24px;">Send</button>
+                        </div>
+                        <div id="send-message" class="hidden"></div>
                     </div>
-                    <div id="send-message" class="hidden"></div>
                 </div>
             </div>
         </div>
