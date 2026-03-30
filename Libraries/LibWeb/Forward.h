@@ -990,6 +990,12 @@ class PerformanceMeasure;
 
 }
 
+namespace Web::Wallet {
+
+class Wallet;
+
+}
+
 namespace Web::WebAssembly {
 
 class Global;

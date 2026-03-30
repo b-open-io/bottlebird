@@ -842,6 +842,7 @@ set(SOURCES
     URLPattern/URLPattern.cpp
     UserTiming/PerformanceMark.cpp
     UserTiming/PerformanceMeasure.cpp
+    Wallet/Wallet.cpp
     WebAssembly/Global.cpp
     WebAssembly/Instance.cpp
     WebAssembly/Memory.cpp

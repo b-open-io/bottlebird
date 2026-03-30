@@ -130,4 +130,6 @@ endpoint WebContentServer
     set_user_style(u64 page_id, String source) =|
 
     system_time_zone_changed() =|
+
+    did_complete_wallet_operation(u64 page_id, u64 request_id, String result) =|
 }

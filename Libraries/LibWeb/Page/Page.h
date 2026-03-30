@@ -411,6 +411,8 @@ public:
 
     virtual void received_message_from_web_ui([[maybe_unused]] String const& name, [[maybe_unused]] JS::Value data) { }
 
+    virtual void page_did_request_wallet_operation([[maybe_unused]] String const& operation, [[maybe_unused]] u64 request_id, [[maybe_unused]] String const& params) { }
+
     virtual bool is_ready_to_paint() const = 0;
 
     virtual DisplayListPlayerType display_list_player_type() const = 0;

@@ -18,6 +18,7 @@
 #include <LibWeb/Loader/ResourceLoader.h>
 #include <LibWeb/Page/Page.h>
 #include <LibWeb/ServiceWorker/ServiceWorkerContainer.h>
+#include <LibWeb/Wallet/Wallet.h>
 
 namespace Web::HTML {
 
@@ -70,6 +71,7 @@ void Navigator::visit_edges(Cell::Visitor& visitor)
     visitor.visit(m_service_worker_container);
     visitor.visit(m_media_capabilities);
     visitor.visit(m_credentials);
+    visitor.visit(m_wallet);
 }
 
 GC::Ref<MimeTypeArray> Navigator::mime_types()
@@ -131,6 +133,13 @@ GC::Ref<ServiceWorker::ServiceWorkerContainer> Navigator::service_worker()
     if (!m_service_worker_container)
         m_service_worker_container = realm().create<ServiceWorker::ServiceWorkerContainer>(realm());
     return *m_service_worker_container;
+}
+
+GC::Ref<Wallet::Wallet> Navigator::wallet()
+{
+    if (!m_wallet)
+        m_wallet = realm().create<Wallet::Wallet>(realm());
+    return *m_wallet;
 }
 
 GC::Ref<MediaCapabilitiesAPI::MediaCapabilities> Navigator::media_capabilities()

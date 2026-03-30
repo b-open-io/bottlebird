@@ -12,6 +12,7 @@
 #import <MediaCapabilitiesAPI/MediaCapabilities.idl>
 #import <ServiceWorker/ServiceWorkerContainer.idl>
 #import <StorageAPI/NavigatorStorage.idl>
+#import <Wallet/Wallet.idl>
 
 // https://html.spec.whatwg.org/multipage/system-state.html#navigator
 [Exposed=Window]
@@ -38,6 +39,8 @@ interface Navigator {
 
     // https://w3c.github.io/webappsec-credential-management/#framework-credential-management
     [SecureContext, SameObject] readonly attribute CredentialsContainer credentials;
+
+    [SecureContext, SameObject] readonly attribute Wallet wallet;
 };
 
 // NOTE: As NavigatorContentUtils, NavigatorCookies, NavigatorPlugins, and NavigatorAutomationInformation
