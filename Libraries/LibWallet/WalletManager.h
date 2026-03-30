@@ -17,6 +17,7 @@ namespace Wallet {
 class WalletManager {
 public:
     static WalletManager& the();
+    ~WalletManager();
 
     // Wallet lifecycle
     ErrorOr<String> create_wallet();
@@ -30,6 +31,10 @@ public:
     ErrorOr<String> get_bap_id();          // BAP ID: base58(ripemd160(sha256(address)))
     ErrorOr<String> get_wif();
 
+    // Authenticated HTTP (BRC-100)
+    ErrorOr<String> authenticated_post(StringView url, StringView json_body);
+    ErrorOr<String> fetch_balance(StringView backend_url);
+
     // Persistence
     ErrorOr<void> save_to_disk();
     ErrorOr<void> load_from_disk();
@@ -38,6 +43,8 @@ private:
     WalletManager() = default;
 
     ErrorOr<void> derive_keys_from_seed(unsigned char const* seed, size_t seed_len);
+    ErrorOr<void> init_auth_client();
+    void destroy_auth_client();
     ErrorOr<void> compute_bap_id();
     ByteString wallet_key_path() const;
 
@@ -47,6 +54,7 @@ private:
     String m_receive_address;
     String m_identity_hex;
     String m_bap_id;
+    void* m_auth_handle { nullptr };
 };
 
 }

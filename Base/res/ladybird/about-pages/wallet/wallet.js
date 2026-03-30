@@ -86,47 +86,10 @@ function refreshWallet() {
 
 let currentAddress = null;
 
-async function checkBackendAndFetchBalance() {
-    const url = backendURL.value || "https://api.1sat.app";
-
-    // Check backend connectivity and fetch balance via BRC-100 listOutputs
-    try {
-        // Use BRC-100 protocol: POST /listOutputs with JSON body
-        const resp = await fetch(`${url}/listOutputs`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ basket: "default", include: "locking scripts" }),
-            signal: AbortSignal.timeout(10000),
-        });
-
-        if (resp.ok) {
-            const result = await resp.json();
-            let confirmed = 0;
-            if (result.outputs && Array.isArray(result.outputs)) {
-                for (const output of result.outputs) {
-                    if (output.spendable) confirmed += output.satoshis || 0;
-                }
-            }
-            statusIndicator.className = "status-indicator connected";
-            statusText.textContent = "Connected";
-            updateBalance({ confirmed, unconfirmed: 0 });
-        } else if (resp.status === 503) {
-            // Wallet locked or not authenticated
-            statusIndicator.className = "status-indicator connected";
-            statusText.textContent = "Connected (auth required)";
-            updateBalance({ confirmed: 0, unconfirmed: 0 });
-        } else {
-            // Server responding but endpoint unknown — still "connected"
-            statusIndicator.className = "status-indicator connected";
-            statusText.textContent = "Connected";
-            updateBalance({ confirmed: 0, unconfirmed: 0 });
-        }
-    } catch (e) {
-        console.log("Backend check failed:", e);
-        statusIndicator.className = "status-indicator disconnected";
-        statusText.textContent = "Unreachable";
-        updateBalance({ confirmed: 0, unconfirmed: 0 });
-    }
+function requestBalance() {
+    statusIndicator.className = "status-indicator disconnected";
+    statusText.textContent = "Connecting...";
+    ladybird.sendMessage("getBalance");
 }
 
 // ── Status updates ──────────────────────────────────────────────────
@@ -145,10 +108,7 @@ function updateStatus(status) {
     if (status.backendURL) backendURL.value = status.backendURL;
 
     if (status.enabled) {
-        statusIndicator.className = "status-indicator disconnected";
-        statusText.textContent = "Connecting...";
-        // Actually check the backend
-        checkBackendAndFetchBalance();
+        requestBalance();
     } else {
         statusIndicator.className = "status-indicator disconnected";
         statusText.textContent = "Offline";
@@ -168,6 +128,15 @@ function updateStatus(status) {
 function updateBalance(balance) {
     balanceConfirmed.textContent = formatSatoshis(balance.confirmed);
     balanceUnconfirmed.textContent = `${formatSatoshis(balance.unconfirmed)} unconfirmed`;
+
+    // Update connection status based on backend response
+    if (balance.connected === true) {
+        statusIndicator.className = "status-indicator connected";
+        statusText.textContent = "Connected";
+    } else if (balance.connected === false) {
+        statusIndicator.className = "status-indicator disconnected";
+        statusText.textContent = "Unreachable";
+    }
 }
 
 function updateReceiveAddress(data) {
@@ -175,7 +144,7 @@ function updateReceiveAddress(data) {
         currentAddress = data.address;
         receiveAddress.className = "address-display";
         receiveAddress.textContent = data.address;
-        if (walletEnabled) checkBackendAndFetchBalance();
+        if (walletEnabled) requestBalance();
     } else {
         currentAddress = null;
         receiveAddress.className = "address-placeholder";

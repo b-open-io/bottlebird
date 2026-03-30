@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
+#include <AK/JsonArray.h>
 #include <AK/JsonObject.h>
 #include <LibURL/Parser.h>
 #include <LibWallet/WalletManager.h>
@@ -72,11 +73,54 @@ void WalletUI::load_wallet_status()
 
 void WalletUI::get_balance()
 {
-    // TODO: Fetch real balance from wallet backend
-    JsonObject balance;
-    balance.set("confirmed"sv, 0);
-    balance.set("unconfirmed"sv, 0);
+    auto& wallet = Wallet::WalletManager::the();
+    auto const& settings = WebView::Application::settings();
 
+    if (!wallet.is_initialized() || !settings.wallet_enabled()) {
+        JsonObject balance;
+        balance.set("error"sv, "Wallet not initialized or disabled"sv);
+        balance.set("confirmed"sv, 0);
+        balance.set("unconfirmed"sv, 0);
+        async_send_message("walletBalance"sv, move(balance));
+        return;
+    }
+
+    auto backend_url = settings.wallet_backend_url().serialize();
+    auto result = wallet.fetch_balance(backend_url);
+
+    if (result.is_error()) {
+        JsonObject balance;
+        balance.set("error"sv, MUST(String::formatted("{}", result.error())));
+        balance.set("confirmed"sv, 0);
+        balance.set("unconfirmed"sv, 0);
+        balance.set("connected"sv, false);
+        async_send_message("walletBalance"sv, move(balance));
+        return;
+    }
+
+    // Parse the listOutputs response to sum spendable satoshis
+    auto response_json = JsonValue::from_string(result.release_value());
+    i64 confirmed = 0;
+
+    if (!response_json.is_error() && response_json.value().is_object()) {
+        auto const& obj = response_json.value().as_object();
+        if (obj.has_array("outputs"sv)) {
+            auto const& outputs = obj.get_array("outputs"sv).value();
+            for (auto const& entry : outputs.values()) {
+                if (!entry.is_object())
+                    continue;
+                auto const& output = entry.as_object();
+                auto spendable = output.get_bool("spendable"sv).value_or(false);
+                if (spendable)
+                    confirmed += output.get_integer<i64>("satoshis"sv).value_or(0);
+            }
+        }
+    }
+
+    JsonObject balance;
+    balance.set("confirmed"sv, confirmed);
+    balance.set("unconfirmed"sv, 0);
+    balance.set("connected"sv, true);
     async_send_message("walletBalance"sv, move(balance));
 }
 

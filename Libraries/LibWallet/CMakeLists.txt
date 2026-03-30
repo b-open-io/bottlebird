@@ -5,6 +5,7 @@ set(SOURCES
 ladybird_lib(LibWallet wallet)
 
 target_include_directories(LibWallet PRIVATE /Users/satchmo/code/bsvz/include)
-target_link_libraries(LibWallet PRIVATE LibCore /Users/satchmo/code/bsvz/zig-out/lib/libbsvz_c.a)
+target_include_directories(LibWallet PRIVATE /Users/satchmo/code/zig-wallet-toolbox/include)
+target_link_libraries(LibWallet PRIVATE LibCore /Users/satchmo/code/bsvz/zig-out/lib/libbsvz_c.a /Users/satchmo/code/zig-wallet-toolbox/zig-out/lib/libbsvwallet_c.a)
 find_package(OpenSSL REQUIRED)
 target_link_libraries(LibWallet PRIVATE OpenSSL::Crypto)
