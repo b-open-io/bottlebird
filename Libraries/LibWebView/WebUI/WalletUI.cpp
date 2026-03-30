@@ -85,6 +85,19 @@ void WalletUI::get_balance()
         return;
     }
 
+    // TODO: The Zig HTTP client in bsvwallet_create_remote does synchronous TLS
+    // which crashes when called from Ladybird's UI thread. Need to move this to
+    // a background thread. For now, return 0 balance without hitting the network.
+    {
+        JsonObject balance;
+        balance.set("confirmed"sv, 0);
+        balance.set("unconfirmed"sv, 0);
+        balance.set("connected"sv, true);
+        balance.set("note"sv, "Balance fetching requires background thread (not yet implemented)"sv);
+        async_send_message("walletBalance"sv, move(balance));
+        return;
+    }
+
     auto backend_url = settings.wallet_backend_url().serialize();
     auto result = wallet.fetch_balance(backend_url);
 
