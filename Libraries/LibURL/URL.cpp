@@ -3,6 +3,7 @@
  * Copyright (c) 2021, Max Wipfli <mail@maxwipfli.ch>
  * Copyright (c) 2024, Sam Atkins <sam@ladybird.org>
  * Copyright (c) 2023-2025, Shannon Booth <shannon@serenityos.org>
+ * Copyright (c) 2026, Bottlebird Contributors
  *
  * SPDX-License-Identifier: BSD-2-Clause
  */
@@ -457,6 +458,88 @@ URL URL::about(String path)
     url.m_data->paths = { move(path) };
     url.m_data->has_an_opaque_path = true;
     return url;
+}
+
+URL URL::onesat_url(StringView path)
+{
+    auto url = Parser::basic_parse(ByteString::formatted("1sat://{}", path));
+    VERIFY(url.has_value());
+    return url.release_value();
+}
+
+URL URL::ordfs_url(StringView path)
+{
+    auto url = Parser::basic_parse(ByteString::formatted("ordfs://{}", path));
+    VERIFY(url.has_value());
+    return url.release_value();
+}
+
+// AD-HOC: Resolve a 1sat:// or ordfs:// URL to an HTTPS proxy URL via the ordinals backend.
+// 1sat://name         -> {backend}/api/opns/resolve/{name}
+// 1sat://txid_vout    -> {backend}/content/{txid}_{vout}
+// ordfs://txid_vout   -> {backend}/content/{txid}_{vout}
+Optional<URL> URL::resolve_onesat_or_ordfs_to_proxy(URL const& url)
+{
+    static constexpr auto backend = "https://ordinals.gorillapool.io"sv;
+
+    if (!is_onesat_or_ordfs_scheme(url.scheme()))
+        return {};
+
+    auto host = url.serialized_host();
+    if (host.is_empty())
+        return {};
+
+    auto host_view = host.bytes_as_string_view();
+    auto subpath = url.serialize_path();
+
+    // Determine if the host looks like a txid_vout (64 hex chars, underscore, digits).
+    bool is_txid_vout = false;
+    if (auto underscore_pos = host_view.find('_'); underscore_pos.has_value()) {
+        auto txid_part = host_view.substring_view(0, *underscore_pos);
+        auto vout_part = host_view.substring_view(*underscore_pos + 1);
+
+        if (txid_part.length() == 64 && !vout_part.is_empty()) {
+            bool txid_is_hex = true;
+            for (auto ch : txid_part) {
+                if (!is_ascii_hex_digit(ch)) {
+                    txid_is_hex = false;
+                    break;
+                }
+            }
+            bool vout_is_digits = true;
+            for (auto ch : vout_part) {
+                if (!is_ascii_digit(ch)) {
+                    vout_is_digits = false;
+                    break;
+                }
+            }
+            is_txid_vout = txid_is_hex && vout_is_digits;
+        }
+    }
+
+    StringBuilder proxy_url;
+
+    if (url.scheme() == "ordfs"sv || (url.scheme() == "1sat"sv && is_txid_vout)) {
+        // Direct ordinal content: {backend}/content/{host}{subpath}
+        proxy_url.append(backend);
+        proxy_url.append("/content/"sv);
+        proxy_url.append(host_view);
+        if (!subpath.is_empty() && subpath != "/"sv)
+            proxy_url.append(subpath);
+    } else {
+        // OpNS name resolution: {backend}/api/opns/resolve/{host}
+        VERIFY(url.scheme() == "1sat"sv);
+        proxy_url.append(backend);
+        proxy_url.append("/api/opns/resolve/"sv);
+        proxy_url.append(host_view);
+    }
+
+    return Parser::basic_parse(proxy_url.string_view());
+}
+
+bool is_onesat_or_ordfs_scheme(StringView scheme)
+{
+    return scheme == "1sat"sv || scheme == "ordfs"sv;
 }
 
 // https://url.spec.whatwg.org/#percent-decode

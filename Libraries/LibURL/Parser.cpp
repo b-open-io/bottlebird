@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2021, Max Wipfli <mail@maxwipfli.ch>
  * Copyright (c) 2023-2025, Shannon Booth <shannon@serenityos.org>
+ * Copyright (c) 2026, Bottlebird Contributors
  *
  * SPDX-License-Identifier: BSD-2-Clause
  */
@@ -806,6 +807,12 @@ Optional<URL> Parser::basic_parse(StringView raw_input, Optional<URL const&> bas
         case State::SchemeStart:
             // 1. If c is an ASCII alpha, append c, lowercased, to buffer, and set state to scheme state.
             if (is_ascii_alpha(code_point)) {
+                buffer.append_as_lowercase(code_point);
+                state = State::Scheme;
+            }
+            // AD-HOC: Handle known digit-prefixed schemes (e.g., "1sat://").
+            // The URL spec requires schemes to start with an ASCII alpha, but we support "1sat" as a non-standard scheme.
+            else if (is_ascii_digit(code_point) && !state_override.has_value() && processed_input.starts_with("1sat:"sv)) {
                 buffer.append_as_lowercase(code_point);
                 state = State::Scheme;
             }

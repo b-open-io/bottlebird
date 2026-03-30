@@ -2,6 +2,7 @@
  * Copyright (c) 2018-2020, Andreas Kling <andreas@ladybird.org>
  * Copyright (c) 2021, Max Wipfli <mail@maxwipfli.ch>
  * Copyright (c) 2023-2025, Shannon Booth <shannon@serenityos.org>
+ * Copyright (c) 2026, Bottlebird Contributors
  *
  * SPDX-License-Identifier: BSD-2-Clause
  */
@@ -144,6 +145,10 @@ public:
     void set_blob_url_entry(Optional<BlobURLEntry> entry) { m_data->blob_url_entry = move(entry); }
 
     static URL about(String path);
+    static URL onesat_url(StringView path);
+    static URL ordfs_url(StringView path);
+
+    static Optional<URL> resolve_onesat_or_ordfs_to_proxy(URL const& url);
 
 private:
     struct Data : public RefCounted<Data> {
@@ -210,6 +215,8 @@ inline URL about_srcdoc() { return URL::about("srcdoc"_string); }
 inline URL about_error() { return URL::about("error"_string); }
 inline URL about_version() { return URL::about("version"_string); }
 inline URL about_newtab() { return URL::about("newtab"_string); }
+
+bool is_onesat_or_ordfs_scheme(StringView scheme);
 
 }
 

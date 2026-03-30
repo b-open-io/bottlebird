@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2022, Linus Groh <linusg@serenityos.org>
  * Copyright (c) 2022, Andreas Kling <andreas@ladybird.org>
+ * Copyright (c) 2026, Bottlebird Contributors
  *
  * SPDX-License-Identifier: BSD-2-Clause
  */
@@ -35,7 +36,10 @@ inline constexpr Array FETCH_SCHEMES = {
     "about"sv, "blob"sv, "data"sv, "file"sv, "http"sv, "https"sv,
 
     // AD-HOC: Internal fetch schemes:
-    "resource"sv
+    "resource"sv,
+
+    // AD-HOC: 1Sat Ordinals and ORDFS schemes (proxied to HTTPS backend):
+    "1sat"sv, "ordfs"sv,
 };
 
 // https://fetch.spec.whatwg.org/#data-url-struct

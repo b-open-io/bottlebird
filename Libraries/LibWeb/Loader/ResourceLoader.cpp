@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2018-2024, Andreas Kling <andreas@ladybird.org>
  * Copyright (c) 2022, Dex♪ <dexes.ttp@gmail.com>
+ * Copyright (c) 2026, Bottlebird Contributors
  *
  * SPDX-License-Identifier: BSD-2-Clause
  */
@@ -58,7 +59,7 @@ ResourceLoader::ResourceLoader(GC::Heap& heap, NonnullRefPtr<Requests::RequestCl
 
 void ResourceLoader::prefetch_dns(URL::URL const& url)
 {
-    if (url.scheme().is_one_of("file"sv, "data"sv))
+    if (url.scheme().is_one_of("file"sv, "data"sv) || URL::is_onesat_or_ordfs_scheme(url.scheme()))
         return;
 
     if (ContentFilter::the().is_filtered(url)) {
@@ -71,7 +72,7 @@ void ResourceLoader::prefetch_dns(URL::URL const& url)
 
 void ResourceLoader::preconnect(URL::URL const& url)
 {
-    if (url.scheme().is_one_of("file"sv, "data"sv))
+    if (url.scheme().is_one_of("file"sv, "data"sv) || URL::is_onesat_or_ordfs_scheme(url.scheme()))
         return;
 
     if (ContentFilter::the().is_filtered(url)) {
@@ -211,8 +212,6 @@ static bool should_block_request(LoadRequest const& request)
 
 void ResourceLoader::load(LoadRequest& request, GC::Root<SuccessCallback> success_callback, GC::Root<ErrorCallback> error_callback, Optional<u32> timeout, GC::Root<TimeoutCallback> timeout_callback)
 {
-    auto const& url = request.url().value();
-
     log_request_start(request);
     request.start_timer();
 
@@ -220,6 +219,22 @@ void ResourceLoader::load(LoadRequest& request, GC::Root<SuccessCallback> succes
         error_callback->function()("Request was blocked", {}, {}, {}, {}, {});
         return;
     }
+
+    // AD-HOC: Rewrite 1sat:// and ordfs:// URLs to HTTPS proxy URLs before dispatch.
+    if (URL::is_onesat_or_ordfs_scheme(request.url().value().scheme())) {
+        auto proxy_url = URL::URL::resolve_onesat_or_ordfs_to_proxy(request.url().value());
+        if (!proxy_url.has_value()) {
+            auto error_message = ByteString::formatted("Failed to resolve {} URL: {}", request.url().value().scheme(), request.url().value());
+            log_failure(request, error_message);
+            if (error_callback)
+                error_callback->function()(error_message, {}, {}, {}, {}, {});
+            return;
+        }
+        dbgln_if(SPAM_DEBUG, "ResourceLoader: Rewriting {} to {}", request.url().value(), proxy_url.value());
+        request.set_url(proxy_url.release_value());
+    }
+
+    auto const& url = request.url().value();
 
     auto respond_directory_page = [](LoadRequest const& request, URL::URL const& url, GC::Root<SuccessCallback> success_callback, GC::Root<ErrorCallback> error_callback) {
         // FIXME: Implement timing info for directory requests.
@@ -473,8 +488,6 @@ void ResourceLoader::load(LoadRequest& request, GC::Root<SuccessCallback> succes
 
 void ResourceLoader::load_unbuffered(LoadRequest& request, GC::Root<OnHeadersReceived> on_headers_received, GC::Root<OnDataReceived> on_data_received, GC::Root<OnComplete> on_complete)
 {
-    auto const& url = request.url().value();
-
     log_request_start(request);
     request.start_timer();
 
@@ -482,6 +495,19 @@ void ResourceLoader::load_unbuffered(LoadRequest& request, GC::Root<OnHeadersRec
         on_complete->function()(false, {}, "Request was blocked"sv);
         return;
     }
+
+    // AD-HOC: Rewrite 1sat:// and ordfs:// URLs to HTTPS proxy URLs before dispatch.
+    if (URL::is_onesat_or_ordfs_scheme(request.url().value().scheme())) {
+        auto proxy_url = URL::URL::resolve_onesat_or_ordfs_to_proxy(request.url().value());
+        if (!proxy_url.has_value()) {
+            on_complete->function()(false, {}, "Failed to resolve 1sat/ordfs URL"sv);
+            return;
+        }
+        dbgln_if(SPAM_DEBUG, "ResourceLoader: Rewriting {} to {}", request.url().value(), proxy_url.value());
+        request.set_url(proxy_url.release_value());
+    }
+
+    auto const& url = request.url().value();
 
     if (!url.scheme().is_one_of("http"sv, "https"sv)) {
         // FIXME: Non-network requests from fetch should not go through this path.
