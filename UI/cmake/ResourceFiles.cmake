@@ -73,6 +73,7 @@ set(ABOUT_PAGES
     newtab.html
     processes.html
     settings.html
+    wallet.html
 )
 list(TRANSFORM ABOUT_PAGES PREPEND "${LADYBIRD_SOURCE_DIR}/Base/res/ladybird/about-pages/")
 
@@ -86,6 +87,11 @@ set(ABOUT_SETTINGS_RESOURCES
     search.js
 )
 list(TRANSFORM ABOUT_SETTINGS_RESOURCES PREPEND "${LADYBIRD_SOURCE_DIR}/Base/res/ladybird/about-pages/settings/")
+
+set(ABOUT_WALLET_RESOURCES
+    wallet.js
+)
+list(TRANSFORM ABOUT_WALLET_RESOURCES PREPEND "${LADYBIRD_SOURCE_DIR}/Base/res/ladybird/about-pages/wallet/")
 
 set(WEB_TEMPLATES
     directory.html
@@ -181,6 +187,10 @@ function(copy_resources_to_build base_directory bundle_target)
         DESTINATION ${base_directory} TARGET ${bundle_target}
     )
 
+    copy_resource_set(ladybird/about-pages/wallet RESOURCES ${ABOUT_WALLET_RESOURCES}
+        DESTINATION ${base_directory} TARGET ${bundle_target}
+    )
+
     copy_resource_set(ladybird/templates RESOURCES ${WEB_TEMPLATES}
         DESTINATION ${base_directory} TARGET ${bundle_target}
     )
@@ -203,6 +213,7 @@ function(install_ladybird_resources destination component)
     install(FILES ${INTERNAL_RESOURCES} DESTINATION "${destination}/ladybird" COMPONENT ${component})
     install(FILES ${ABOUT_PAGES} DESTINATION "${destination}/ladybird/about-pages" COMPONENT ${component})
     install(FILES ${ABOUT_SETTINGS_RESOURCES} DESTINATION "${destination}/ladybird/about-pages/settings" COMPONENT ${component})
+    install(FILES ${ABOUT_WALLET_RESOURCES} DESTINATION "${destination}/ladybird/about-pages/wallet" COMPONENT ${component})
     install(FILES ${WEB_TEMPLATES} DESTINATION "${destination}/ladybird/templates" COMPONENT ${component})
     install(FILES ${CONFIG_RESOURCES} DESTINATION "${destination}/ladybird/default-config" COMPONENT ${component})
 endfunction()
