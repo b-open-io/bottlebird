@@ -555,9 +555,11 @@ Optional<URL> URL::resolve_onesat_or_ordfs_to_proxy(URL const& url)
     StringBuilder proxy_url;
 
     if (url.scheme() == "ordfs"sv || (url.scheme() == "1sat"sv && is_txid_vout)) {
-        // Direct ordinal content: {backend}/content/{host}{subpath}
-        proxy_url.append(default_backend);
-        proxy_url.append("/content/"sv);
+        // Ordinal content via ORDFS gateway: ordfs.network/{outpoint}
+        // ordfs.network serves inscribed content directly by outpoint
+        static constexpr auto ordfs_gateway = "https://ordfs.network"sv;
+        proxy_url.append(ordfs_gateway);
+        proxy_url.append("/"sv);
         proxy_url.append(host_view);
         if (!subpath.is_empty() && subpath != "/"sv)
             proxy_url.append(subpath);
