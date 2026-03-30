@@ -42,8 +42,6 @@ private:
     WalletManager() = default;
 
     ErrorOr<void> derive_keys_from_seed(unsigned char const* seed, size_t seed_len);
-    ErrorOr<void> init_wallet_handle(StringView backend_url);
-    void destroy_wallet_handle();
     ErrorOr<void> compute_bap_id();
     ByteString wallet_key_path() const;
 
@@ -53,7 +51,6 @@ private:
     String m_receive_address;
     String m_identity_hex;
     String m_bap_id;
-    void* m_wallet_handle { nullptr };
 };
 
 }

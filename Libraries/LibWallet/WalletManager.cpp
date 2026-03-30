@@ -303,58 +303,43 @@ ErrorOr<void> WalletManager::load_from_disk()
     return {};
 }
 
-WalletManager::~WalletManager()
-{
-    destroy_wallet_handle();
-}
-
-ErrorOr<void> WalletManager::init_wallet_handle(StringView backend_url)
-{
-    destroy_wallet_handle();
-
-    int rc = bsvwallet_create_remote(
-        m_root_privkey, 0, // mainnet
-        backend_url.characters_without_null_termination(), backend_url.length(),
-        &m_wallet_handle);
-
-    if (rc != 0) {
-        dbgln("WalletManager: bsvwallet_create_remote failed with rc={}", rc);
-        return Error::from_string_literal("Failed to create remote wallet connection");
-    }
-
-    dbgln("WalletManager: Connected to backend {}", backend_url);
-    return {};
-}
-
-void WalletManager::destroy_wallet_handle()
-{
-    if (m_wallet_handle) {
-        bsvwallet_destroy(m_wallet_handle);
-        m_wallet_handle = nullptr;
-    }
-}
+WalletManager::~WalletManager() = default;
 
 ErrorOr<String> WalletManager::fetch_balance(StringView backend_url)
 {
     if (!m_initialized)
         return Error::from_string_literal("Wallet not initialized");
 
-    // Ensure wallet handle exists and is connected to the backend
-    if (!m_wallet_handle)
-        TRY(init_wallet_handle(backend_url));
+    // Create a temporary wallet handle for this request.
+    // Must be created and used on the same thread (background thread)
+    // because the Zig allocator state isn't thread-safe.
+    void* handle = nullptr;
+    int rc = bsvwallet_create_remote(
+        m_root_privkey, 0,
+        backend_url.characters_without_null_termination(), backend_url.length(),
+        &handle);
 
-    // Use the wallet's listOutputs which goes through the proper
-    // RemoteStorageClient → JSON-RPC → BRC-103 authenticated HTTP
+    if (rc != 0) {
+        dbgln("WalletManager: bsvwallet_create_remote failed with rc={}", rc);
+        return Error::from_string_literal("Failed to connect to backend");
+    }
+
+    dbgln("WalletManager: Connected to backend {}", backend_url);
+
+    // Call listOutputs through the proper BRC-100 path
     constexpr size_t buf_capacity = 65536;
     auto response_buf = TRY(ByteBuffer::create_uninitialized(buf_capacity));
     size_t body_len = buf_capacity;
 
     static constexpr auto args = "{\"basket\":\"default\"}"sv;
 
-    int rc = bsvwallet_list_outputs(
-        m_wallet_handle,
+    rc = bsvwallet_list_outputs(
+        handle,
         args.characters_without_null_termination(), args.length(),
         reinterpret_cast<char*>(response_buf.data()), &body_len);
+
+    // Always destroy the handle on this thread
+    bsvwallet_destroy(handle);
 
     if (rc != 0) {
         dbgln("WalletManager: bsvwallet_list_outputs failed with rc={}", rc);
