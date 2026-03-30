@@ -84,19 +84,48 @@ function refreshWallet() {
     ladybird.sendMessage("getReceiveAddress");
 }
 
-async function fetchBalanceFromBackend(address) {
-    if (!address) return;
-    const url = backendURL.value || "https://ordinals.gorillapool.io";
+let currentAddress = null;
+
+async function checkBackendAndFetchBalance() {
+    const url = backendURL.value || "https://api.1sat.app";
+
+    // Check if backend is reachable
     try {
-        const resp = await fetch(`${url}/api/bsv/address/${address}/balance`);
-        if (resp.ok) {
-            const data = await resp.json();
-            updateBalance({ confirmed: data.confirmed || 0, unconfirmed: data.unconfirmed || 0 });
+        const resp = await fetch(`${url}/api/v1/status`, { signal: AbortSignal.timeout(5000) });
+        if (resp.ok || resp.status === 404) {
+            // Server is responding (404 is fine — endpoint may not exist but server is up)
+            statusIndicator.className = "status-indicator connected";
+            statusText.textContent = "Connected";
         } else {
-            updateBalance({ confirmed: 0, unconfirmed: 0 });
+            statusIndicator.className = "status-indicator disconnected";
+            statusText.textContent = "Server Error";
+            return;
         }
     } catch (e) {
-        console.log("Balance fetch failed:", e);
+        // Try a simpler check — just HEAD the root
+        try {
+            const resp2 = await fetch(url, { method: "HEAD", signal: AbortSignal.timeout(5000) });
+            statusIndicator.className = "status-indicator connected";
+            statusText.textContent = "Connected";
+        } catch {
+            statusIndicator.className = "status-indicator disconnected";
+            statusText.textContent = "Unreachable";
+            return;
+        }
+    }
+
+    // Fetch balance if we have an address
+    if (currentAddress) {
+        try {
+            const resp = await fetch(`${url}/api/bsv/address/${currentAddress}/balance`);
+            if (resp.ok) {
+                const data = await resp.json();
+                updateBalance({ confirmed: data.confirmed || 0, unconfirmed: data.unconfirmed || 0 });
+                return;
+            }
+        } catch (e) {
+            console.log("Balance fetch failed:", e);
+        }
         updateBalance({ confirmed: 0, unconfirmed: 0 });
     }
 }
@@ -116,12 +145,11 @@ function updateStatus(status) {
     walletEnabledToggle.checked = status.enabled;
     if (status.backendURL) backendURL.value = status.backendURL;
 
-    if (status.connected) {
-        statusIndicator.className = "status-indicator connected";
-        statusText.textContent = "Connected";
-    } else if (status.enabled) {
+    if (status.enabled) {
         statusIndicator.className = "status-indicator disconnected";
         statusText.textContent = "Connecting...";
+        // Actually check the backend
+        checkBackendAndFetchBalance();
     } else {
         statusIndicator.className = "status-indicator disconnected";
         statusText.textContent = "Offline";
@@ -145,12 +173,14 @@ function updateBalance(balance) {
 
 function updateReceiveAddress(data) {
     if (data.address) {
+        currentAddress = data.address;
         receiveAddress.className = "address-display";
         receiveAddress.textContent = data.address;
-        fetchBalanceFromBackend(data.address);
+        if (walletEnabled) checkBackendAndFetchBalance();
     } else {
+        currentAddress = null;
         receiveAddress.className = "address-placeholder";
-        receiveAddress.textContent = "Enable wallet to see your address";
+        receiveAddress.textContent = "Create or import a wallet to see your address";
         updateBalance({ confirmed: 0, unconfirmed: 0 });
     }
 }
