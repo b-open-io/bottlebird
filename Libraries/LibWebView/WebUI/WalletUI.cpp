@@ -6,6 +6,7 @@
 
 #include <AK/JsonArray.h>
 #include <AK/JsonObject.h>
+#include <LibThreading/BackgroundAction.h>
 #include <LibURL/Parser.h>
 #include <LibWallet/WalletManager.h>
 #include <LibWebView/Application.h>
@@ -78,65 +79,54 @@ void WalletUI::get_balance()
 
     if (!wallet.is_initialized() || !settings.wallet_enabled()) {
         JsonObject balance;
-        balance.set("error"sv, "Wallet not initialized or disabled"sv);
         balance.set("confirmed"sv, 0);
         balance.set("unconfirmed"sv, 0);
-        async_send_message("walletBalance"sv, move(balance));
-        return;
-    }
-
-    // TODO: The Zig HTTP client in bsvwallet_create_remote does synchronous TLS
-    // which crashes when called from Ladybird's UI thread. Need to move this to
-    // a background thread. For now, return 0 balance without hitting the network.
-    {
-        JsonObject balance;
-        balance.set("confirmed"sv, 0);
-        balance.set("unconfirmed"sv, 0);
-        balance.set("connected"sv, true);
-        balance.set("note"sv, "Balance fetching requires background thread (not yet implemented)"sv);
         async_send_message("walletBalance"sv, move(balance));
         return;
     }
 
     auto backend_url = settings.wallet_backend_url().serialize();
-    auto result = wallet.fetch_balance(backend_url);
 
-    if (result.is_error()) {
-        // Auth handshake or network failure — show 0 balance but don't say "Unreachable"
-        // for a new wallet this is expected (no history on backend yet)
-        JsonObject balance;
-        balance.set("confirmed"sv, 0);
-        balance.set("unconfirmed"sv, 0);
-        balance.set("connected"sv, true); // Server may be up even if our request failed
-        balance.set("note"sv, MUST(String::formatted("Backend: {}", result.error())));
-        async_send_message("walletBalance"sv, move(balance));
-        return;
-    }
+    // Run the BRC-100 network call on a background thread to avoid blocking the UI.
+    (void)Threading::BackgroundAction<String>::construct(
+        [backend_url = move(backend_url)](auto&) -> ErrorOr<String> {
+            return Wallet::WalletManager::the().fetch_balance(backend_url);
+        },
+        [this](String response) {
+            // Parse the listOutputs response to sum spendable satoshis
+            auto response_json = JsonValue::from_string(response);
+            i64 confirmed = 0;
 
-    // Parse the listOutputs response to sum spendable satoshis
-    auto response_json = JsonValue::from_string(result.release_value());
-    i64 confirmed = 0;
-
-    if (!response_json.is_error() && response_json.value().is_object()) {
-        auto const& obj = response_json.value().as_object();
-        if (obj.has_array("outputs"sv)) {
-            auto const& outputs = obj.get_array("outputs"sv).value();
-            for (auto const& entry : outputs.values()) {
-                if (!entry.is_object())
-                    continue;
-                auto const& output = entry.as_object();
-                auto spendable = output.get_bool("spendable"sv).value_or(false);
-                if (spendable)
-                    confirmed += output.get_integer<i64>("satoshis"sv).value_or(0);
+            if (!response_json.is_error() && response_json.value().is_object()) {
+                auto const& obj = response_json.value().as_object();
+                if (obj.has_array("outputs"sv)) {
+                    auto const& outputs = obj.get_array("outputs"sv).value();
+                    for (auto const& entry : outputs.values()) {
+                        if (!entry.is_object())
+                            continue;
+                        auto const& output = entry.as_object();
+                        auto spendable = output.get_bool("spendable"sv).value_or(false);
+                        if (spendable)
+                            confirmed += output.get_integer<i64>("satoshis"sv).value_or(0);
+                    }
+                }
             }
-        }
-    }
 
-    JsonObject balance;
-    balance.set("confirmed"sv, confirmed);
-    balance.set("unconfirmed"sv, 0);
-    balance.set("connected"sv, true);
-    async_send_message("walletBalance"sv, move(balance));
+            JsonObject balance;
+            balance.set("confirmed"sv, confirmed);
+            balance.set("unconfirmed"sv, 0);
+            balance.set("connected"sv, true);
+            async_send_message("walletBalance"sv, move(balance));
+        },
+        [this](Error error) {
+            dbgln("WalletUI: Balance fetch error: {}", error);
+            JsonObject balance;
+            balance.set("confirmed"sv, 0);
+            balance.set("unconfirmed"sv, 0);
+            balance.set("connected"sv, false);
+            balance.set("note"sv, MUST(String::formatted("{}", error)));
+            async_send_message("walletBalance"sv, move(balance));
+        });
 }
 
 void WalletUI::get_receive_address()
