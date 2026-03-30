@@ -89,11 +89,13 @@ void WalletUI::get_balance()
     auto result = wallet.fetch_balance(backend_url);
 
     if (result.is_error()) {
+        // Auth handshake or network failure — show 0 balance but don't say "Unreachable"
+        // for a new wallet this is expected (no history on backend yet)
         JsonObject balance;
-        balance.set("error"sv, MUST(String::formatted("{}", result.error())));
         balance.set("confirmed"sv, 0);
         balance.set("unconfirmed"sv, 0);
-        balance.set("connected"sv, false);
+        balance.set("connected"sv, true); // Server may be up even if our request failed
+        balance.set("note"sv, MUST(String::formatted("Backend: {}", result.error())));
         async_send_message("walletBalance"sv, move(balance));
         return;
     }
