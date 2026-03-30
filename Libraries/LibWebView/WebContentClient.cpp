@@ -787,7 +787,7 @@ Messages::WebContentClient::RequestWorkerAgentResponse WebContentClient::request
     return { IPC::TransportHandle {}, IPC::TransportHandle {}, IPC::TransportHandle {} };
 }
 
-void WebContentClient::did_request_wallet_operation(u64 page_id, u64 request_id, String operation, String params)
+void WebContentClient::did_request_wallet_operation(u64 page_id, u64 request_id, String operation, String params [[maybe_unused]])
 {
     auto const& settings = Application::settings();
 
