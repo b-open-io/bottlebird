@@ -145,7 +145,7 @@ Settings Settings::create(Badge<Application>)
 
 Settings::Settings(ByteString settings_path)
     : m_settings_path(move(settings_path))
-    , m_new_tab_page_url(URL::about_wallet())
+    , m_new_tab_page_url(URL::about_newtab())
     , m_show_bookmarks_bar(default_show_bookmarks_bar)
     , m_default_zoom_level_factor(initial_zoom_level_factor)
     , m_languages({ default_language })
