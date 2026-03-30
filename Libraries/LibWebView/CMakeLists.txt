@@ -31,6 +31,7 @@ set(SOURCES
     WebUI.cpp
     WebUI/ProcessesUI.cpp
     WebUI/SettingsUI.cpp
+    WebUI/WalletUI.cpp
 )
 
 set(GENERATED_SOURCES ${CURRENT_LIB_GENERATED})

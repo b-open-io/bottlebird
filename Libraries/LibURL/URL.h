@@ -221,6 +221,7 @@ inline URL about_newtab() { return URL::about("newtab"_string); }
 inline URL about_processes() { return URL::about("processes"_string); }
 inline URL about_settings() { return URL::about("settings"_string); }
 inline URL about_version() { return URL::about("version"_string); }
+inline URL about_wallet() { return URL::about("wallet"_string); }
 
 }
 

@@ -10,6 +10,7 @@
 #include <LibWebView/WebUI.h>
 #include <LibWebView/WebUI/ProcessesUI.h>
 #include <LibWebView/WebUI/SettingsUI.h>
+#include <LibWebView/WebUI/WalletUI.h>
 
 namespace WebView {
 
@@ -33,6 +34,8 @@ ErrorOr<RefPtr<WebUI>> WebUI::create(WebContentClient& client, String host)
         web_ui = TRY(create_web_ui<ProcessesUI>(client, move(host)));
     else if (host == "settings"sv)
         web_ui = TRY(create_web_ui<SettingsUI>(client, move(host)));
+    else if (host == "wallet"sv)
+        web_ui = TRY(create_web_ui<WalletUI>(client, move(host)));
 
     if (web_ui)
         web_ui->register_interfaces();
