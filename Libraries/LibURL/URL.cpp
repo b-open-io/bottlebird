@@ -491,9 +491,27 @@ URL URL::ordfs_url(StringView path)
 // 1sat://name         -> {backend}/api/opns/resolve/{name}
 // 1sat://txid_vout    -> {backend}/content/{txid}_{vout}
 // ordfs://txid_vout   -> {backend}/content/{txid}_{vout}
+// Internal wallet pages that should not be proxied to the backend.
+// These are React routes in the reference wallet-desktop app.
+static bool is_internal_wallet_page(StringView host)
+{
+    static constexpr Array internal_pages = {
+        "ordinals"sv, "tokens"sv, "market"sv, "identity"sv,
+        "apps"sv, "chat"sv, "browser"sv, "publish"sv,
+        "dashboard"sv, "send"sv, "receive"sv, "locks"sv,
+        "settings"sv, "social"sv, "opns"sv, "ai-chat"sv,
+    };
+    for (auto const& page : internal_pages) {
+        if (host == page)
+            return true;
+    }
+    return false;
+}
+
 Optional<URL> URL::resolve_onesat_or_ordfs_to_proxy(URL const& url)
 {
-    static constexpr auto backend = "https://ordinals.gorillapool.io"sv;
+    // Default backend — callers should override with user settings when possible
+    static constexpr auto default_backend = "https://api.1sat.app"sv;
 
     if (!is_onesat_or_ordfs_scheme(url.scheme()))
         return {};
@@ -504,6 +522,10 @@ Optional<URL> URL::resolve_onesat_or_ordfs_to_proxy(URL const& url)
 
     auto host_view = host.bytes_as_string_view();
     auto subpath = url.serialize_path();
+
+    // Internal wallet pages redirect to about:wallet
+    if (url.scheme() == "1sat"sv && is_internal_wallet_page(host_view))
+        return about_wallet();
 
     // Determine if the host looks like a txid_vout (64 hex chars, underscore, digits).
     bool is_txid_vout = false;
@@ -534,7 +556,7 @@ Optional<URL> URL::resolve_onesat_or_ordfs_to_proxy(URL const& url)
 
     if (url.scheme() == "ordfs"sv || (url.scheme() == "1sat"sv && is_txid_vout)) {
         // Direct ordinal content: {backend}/content/{host}{subpath}
-        proxy_url.append(backend);
+        proxy_url.append(default_backend);
         proxy_url.append("/content/"sv);
         proxy_url.append(host_view);
         if (!subpath.is_empty() && subpath != "/"sv)
@@ -542,7 +564,7 @@ Optional<URL> URL::resolve_onesat_or_ordfs_to_proxy(URL const& url)
     } else {
         // OpNS name resolution: {backend}/api/opns/resolve/{host}
         VERIFY(url.scheme() == "1sat"sv);
-        proxy_url.append(backend);
+        proxy_url.append(default_backend);
         proxy_url.append("/api/opns/resolve/"sv);
         proxy_url.append(host_view);
     }
