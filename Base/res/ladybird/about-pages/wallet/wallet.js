@@ -46,6 +46,10 @@ const filePasswordGroup = document.querySelector("#file-password-group");
 const filePassword = document.querySelector("#file-password");
 const importFileError = document.querySelector("#import-file-error");
 
+// Identity
+const identityCard = document.querySelector("#identity-card");
+const identityPubkey = document.querySelector("#identity-pubkey");
+
 // Dashboard add account
 const btnAddAccount = document.querySelector("#btn-add-account");
 
@@ -100,6 +104,14 @@ function updateStatus(status) {
     } else {
         statusIndicator.className = "status-indicator disconnected";
         statusText.textContent = "Not Connected";
+    }
+
+    if (status.identityPubkey) {
+        identityCard.classList.remove("hidden");
+        identityPubkey.textContent = status.identityPubkey;
+    } else {
+        identityCard.classList.add("hidden");
+        identityPubkey.textContent = "";
     }
 }
 
@@ -249,6 +261,15 @@ backendURL.addEventListener("change", () => {
     }
 });
 
+identityPubkey.addEventListener("click", () => {
+    if (identityPubkey.textContent) {
+        navigator.clipboard.writeText(identityPubkey.textContent);
+        const original = identityPubkey.textContent;
+        identityPubkey.textContent = "Copied!";
+        setTimeout(() => { identityPubkey.textContent = original; }, 1500);
+    }
+});
+
 receiveAddress.addEventListener("click", () => {
     if (receiveAddress.classList.contains("address-display")) {
         navigator.clipboard.writeText(receiveAddress.textContent);
@@ -299,6 +320,11 @@ document.addEventListener("WebUIMessage", event => {
             }
         } else {
             refreshWallet();
+        }
+    } else if (name === "walletIdentity") {
+        if (data.identityPubkey) {
+            identityCard.classList.remove("hidden");
+            identityPubkey.textContent = data.identityPubkey;
         }
     } else if (name === "paymentResult") {
         if (data.error) {

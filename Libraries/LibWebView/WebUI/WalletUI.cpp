@@ -5,8 +5,8 @@
  */
 
 #include <AK/JsonObject.h>
-#include <AK/Random.h>
 #include <LibURL/Parser.h>
+#include <LibWallet/WalletManager.h>
 #include <LibWebView/Application.h>
 #include <LibWebView/WebUI/WalletUI.h>
 
@@ -49,18 +49,25 @@ void WalletUI::register_interfaces()
 void WalletUI::load_wallet_status()
 {
     auto const& settings = WebView::Application::settings();
+    auto& wallet = Wallet::WalletManager::the();
 
     JsonObject status;
     status.set("enabled"sv, settings.wallet_enabled());
     status.set("backendURL"sv, settings.wallet_backend_url().serialize());
     status.set("connected"sv, false);
 
+    if (wallet.is_initialized()) {
+        auto identity = wallet.get_identity_pubkey();
+        if (!identity.is_error())
+            status.set("identityPubkey"sv, identity.release_value());
+    }
+
     async_send_message("walletStatus"sv, move(status));
 }
 
 void WalletUI::get_balance()
 {
-    // TODO: Fetch real balance from wallet backend via LibWallet
+    // TODO: Fetch real balance from wallet backend
     JsonObject balance;
     balance.set("confirmed"sv, 0);
     balance.set("unconfirmed"sv, 0);
@@ -70,9 +77,18 @@ void WalletUI::get_balance()
 
 void WalletUI::get_receive_address()
 {
-    // TODO: Derive real address from wallet key via LibWallet
+    auto& wallet = Wallet::WalletManager::the();
+
     JsonObject address;
-    address.set("address"sv, ""sv);
+    if (wallet.is_initialized()) {
+        auto addr = wallet.get_receive_address();
+        if (!addr.is_error())
+            address.set("address"sv, addr.release_value());
+        else
+            address.set("address"sv, ""sv);
+    } else {
+        address.set("address"sv, ""sv);
+    }
 
     async_send_message("receiveAddress"sv, move(address));
 }
@@ -92,9 +108,9 @@ void WalletUI::send_payment(JsonValue const& data)
         return;
     }
 
-    // TODO: Send via LibWallet
+    // TODO: Build and broadcast transaction via LibWallet
     JsonObject result;
-    result.set("error"sv, "Wallet backend not yet connected"sv);
+    result.set("error"sv, "Transaction broadcasting not yet implemented"sv);
     async_send_message("paymentResult"sv, move(result));
 }
 
@@ -122,31 +138,21 @@ void WalletUI::set_wallet_backend_url(JsonValue const& data)
 
 void WalletUI::create_wallet()
 {
-    // TODO: Use bsvz BIP39 mnemonic generation via LibWallet C ABI.
-    // For now, generate a placeholder 12-word mnemonic to demonstrate the flow.
-    // This will be replaced with real bsvz_mnemonic_generate() call.
-    static constexpr Array placeholder_words = {
-        "abandon"sv, "ability"sv, "able"sv, "about"sv, "above"sv, "absent"sv,
-        "absorb"sv, "abstract"sv, "absurd"sv, "abuse"sv, "access"sv, "accident"sv,
-        "acquire"sv, "across"sv, "act"sv, "action"sv, "actual"sv, "adapt"sv,
-        "add"sv, "addict"sv, "address"sv, "adjust"sv, "admit"sv, "adult"sv,
-    };
+    auto& wallet = Wallet::WalletManager::the();
+    auto result = wallet.create_wallet();
 
-    StringBuilder mnemonic_builder;
-    for (int i = 0; i < 12; i++) {
-        if (i > 0)
-            mnemonic_builder.append(' ');
-        // Pick pseudo-random words for demo (NOT cryptographically secure - placeholder only)
-        u32 random_value = 0;
-        fill_with_random({ reinterpret_cast<u8*>(&random_value), sizeof(random_value) });
-        mnemonic_builder.append(placeholder_words[random_value % placeholder_words.size()]);
+    if (result.is_error()) {
+        JsonObject error;
+        error.set("error"sv, MUST(String::formatted("Failed to create wallet: {}", result.error())));
+        async_send_message("walletCreated"sv, move(error));
+        return;
     }
 
-    m_pending_mnemonic = mnemonic_builder.to_string_without_validation();
+    m_pending_mnemonic = result.release_value();
 
-    JsonObject result;
-    result.set("mnemonic"sv, m_pending_mnemonic);
-    async_send_message("walletCreated"sv, move(result));
+    JsonObject response;
+    response.set("mnemonic"sv, m_pending_mnemonic);
+    async_send_message("walletCreated"sv, move(response));
 }
 
 void WalletUI::import_wallet(JsonValue const& data)
@@ -159,24 +165,21 @@ void WalletUI::import_wallet(JsonValue const& data)
     }
 
     auto mnemonic = data.as_string();
-    auto words = mnemonic.bytes_as_string_view().split_view(' ');
+    auto& wallet = Wallet::WalletManager::the();
+    auto result = wallet.import_from_mnemonic(mnemonic.bytes_as_string_view());
 
-    if (words.size() != 12 && words.size() != 24) {
+    if (result.is_error()) {
         JsonObject error;
-        error.set("error"sv, MUST(String::formatted("Expected 12 or 24 words, got {}", words.size())));
+        error.set("error"sv, MUST(String::formatted("{}", result.error())));
         async_send_message("walletImported"sv, move(error));
         return;
     }
 
-    // TODO: Validate mnemonic checksum via bsvz and derive keys via LibWallet.
-    // For now, accept any 12/24 word input and enable the wallet.
-    m_pending_mnemonic = mnemonic;
-
     WebView::Application::settings().set_wallet_enabled(true);
 
-    JsonObject result;
-    result.set("success"sv, true);
-    async_send_message("walletImported"sv, move(result));
+    JsonObject response;
+    response.set("success"sv, true);
+    async_send_message("walletImported"sv, move(response));
 }
 
 void WalletUI::import_backup_file(JsonValue const& data)
@@ -198,20 +201,47 @@ void WalletUI::import_backup_file(JsonValue const& data)
         return;
     }
 
-    // TODO: Decrypt using bitcoin-backup AES-256-GCM + PBKDF2 via LibWallet.
-    // For now, try to parse as unencrypted JSON and extract the key.
+    // Try to parse as unencrypted JSON and extract the key
     auto maybe_json = JsonValue::from_string(*file_data);
     if (!maybe_json.is_error() && maybe_json.value().is_object()) {
         auto const& obj = maybe_json.value().as_object();
+        auto& wallet = Wallet::WalletManager::the();
 
-        // Detect backup type from fields (matching bitcoin-backup format)
-        if (obj.has_string("wif"sv) || obj.has_string("rootPk"sv) || obj.has_string("mnemonic"sv) || obj.has_string("xprv"sv)) {
-            // Valid unencrypted backup — enable wallet
-            WebView::Application::settings().set_wallet_enabled(true);
+        // Try WIF import
+        if (obj.has_string("wif"sv)) {
+            auto wif = obj.get_string("wif"sv);
+            if (wif.has_value()) {
+                auto result = wallet.import_from_wif(wif->bytes_as_string_view());
+                if (!result.is_error()) {
+                    WebView::Application::settings().set_wallet_enabled(true);
+                    JsonObject response;
+                    response.set("success"sv, true);
+                    async_send_message("walletImported"sv, move(response));
+                    return;
+                }
+            }
+        }
 
-            JsonObject result;
-            result.set("success"sv, true);
-            async_send_message("walletImported"sv, move(result));
+        // Try mnemonic import
+        if (obj.has_string("mnemonic"sv)) {
+            auto mnemonic = obj.get_string("mnemonic"sv);
+            if (mnemonic.has_value()) {
+                auto result = wallet.import_from_mnemonic(mnemonic->bytes_as_string_view());
+                if (!result.is_error()) {
+                    WebView::Application::settings().set_wallet_enabled(true);
+                    JsonObject response;
+                    response.set("success"sv, true);
+                    async_send_message("walletImported"sv, move(response));
+                    return;
+                }
+            }
+        }
+
+        // Detect other backup types we recognize but haven't implemented
+        if (obj.has_string("rootPk"sv) || obj.has_string("xprv"sv)) {
+            JsonObject error;
+            error.set("error"sv, "This backup format is not yet supported. Use recovery phrase import instead."sv);
+            async_send_message("walletImported"sv, move(error));
             return;
         }
     }
@@ -234,8 +264,7 @@ void WalletUI::confirm_wallet_creation()
     if (m_pending_mnemonic.is_empty())
         return;
 
-    // TODO: Store mnemonic securely via SecureEnclave + Vault (LibWallet).
-    // For now, just enable the wallet.
+    // Keys were already derived during create_wallet(), just enable the wallet
     WebView::Application::settings().set_wallet_enabled(true);
     m_pending_mnemonic = {};
 
