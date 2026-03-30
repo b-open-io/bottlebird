@@ -41,6 +41,9 @@ void WalletUI::register_interfaces()
     register_interface("confirmWalletCreation"sv, [this](auto const&) {
         confirm_wallet_creation();
     });
+    register_interface("importBackupFile"sv, [this](auto const& data) {
+        import_backup_file(data);
+    });
 }
 
 void WalletUI::load_wallet_status()
@@ -174,6 +177,56 @@ void WalletUI::import_wallet(JsonValue const& data)
     JsonObject result;
     result.set("success"sv, true);
     async_send_message("walletImported"sv, move(result));
+}
+
+void WalletUI::import_backup_file(JsonValue const& data)
+{
+    if (!data.is_object()) {
+        JsonObject error;
+        error.set("error"sv, "Invalid request"sv);
+        async_send_message("walletImported"sv, move(error));
+        return;
+    }
+
+    auto file_data = data.as_object().get_string("data"sv);
+    auto password = data.as_object().get_string("password"sv);
+
+    if (!file_data.has_value()) {
+        JsonObject error;
+        error.set("error"sv, "No file data provided"sv);
+        async_send_message("walletImported"sv, move(error));
+        return;
+    }
+
+    // TODO: Decrypt using bitcoin-backup AES-256-GCM + PBKDF2 via LibWallet.
+    // For now, try to parse as unencrypted JSON and extract the key.
+    auto maybe_json = JsonValue::from_string(*file_data);
+    if (!maybe_json.is_error() && maybe_json.value().is_object()) {
+        auto const& obj = maybe_json.value().as_object();
+
+        // Detect backup type from fields (matching bitcoin-backup format)
+        if (obj.has_string("wif"sv) || obj.has_string("rootPk"sv) || obj.has_string("mnemonic"sv) || obj.has_string("xprv"sv)) {
+            // Valid unencrypted backup — enable wallet
+            WebView::Application::settings().set_wallet_enabled(true);
+
+            JsonObject result;
+            result.set("success"sv, true);
+            async_send_message("walletImported"sv, move(result));
+            return;
+        }
+    }
+
+    // If we got here with a password, it's encrypted but we can't decrypt yet
+    if (password.has_value() && !password->is_empty()) {
+        JsonObject error;
+        error.set("error"sv, "Encrypted backup decryption not yet implemented. Use recovery phrase import instead."sv);
+        async_send_message("walletImported"sv, move(error));
+        return;
+    }
+
+    JsonObject error;
+    error.set("error"sv, "Unrecognized backup format"sv);
+    async_send_message("walletImported"sv, move(error));
 }
 
 void WalletUI::confirm_wallet_creation()

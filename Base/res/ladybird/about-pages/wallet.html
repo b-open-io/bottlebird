@@ -315,20 +315,63 @@
             </div>
         </div>
 
-        <!-- Onboarding: import mnemonic -->
+        <!-- Import: choose method -->
         <div id="import-view" class="hidden">
             <div class="card">
                 <div class="card-header">Import Wallet</div>
                 <div class="card-body">
+                    <p class="description">Choose how to import your wallet.</p>
+                    <div class="onboarding-actions" style="padding: 20px 0;">
+                        <button id="btn-import-mnemonic" class="primary-button">Enter Recovery Phrase</button>
+                        <button id="btn-import-file" class="secondary-button">Import from Backup File</button>
+                    </div>
+                    <div class="button-row" style="margin-top: 8px;">
+                        <button id="btn-import-back" class="secondary-button" style="min-width: auto; padding: 10px 24px;">Back</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Import: mnemonic entry -->
+        <div id="import-mnemonic-view" class="hidden">
+            <div class="card">
+                <div class="card-header">Recovery Phrase</div>
+                <div class="card-body">
                     <div class="card-group">
-                        <label for="import-mnemonic">Recovery Phrase</label>
-                        <p class="description">Enter your 12 or 24 word seed phrase, separated by spaces.</p>
+                        <label for="import-mnemonic">Enter your 12 or 24 word seed phrase</label>
                         <textarea id="import-mnemonic" rows="4" style="width: 100%; background-color: var(--input-background-color); border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; font-size: 15px; font-family: Menlo, Monaco, Consolas, monospace; resize: vertical;" placeholder="abandon ability able about above absent absorb abstract absurd abuse access accident"></textarea>
                     </div>
-                    <div id="import-error" class="hidden"></div>
+                    <div id="import-mnemonic-error" class="hidden"></div>
                     <div class="button-row">
-                        <button id="btn-import-back" class="secondary-button" style="min-width: auto; padding: 10px 24px;">Back</button>
-                        <button id="btn-import-confirm" class="primary-button" style="min-width: auto; padding: 10px 24px;">Import</button>
+                        <button id="btn-mnemonic-import-back" class="secondary-button" style="min-width: auto; padding: 10px 24px;">Back</button>
+                        <button id="btn-mnemonic-import-confirm" class="primary-button" style="min-width: auto; padding: 10px 24px;">Import</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Import: backup file + password -->
+        <div id="import-file-view" class="hidden">
+            <div class="card">
+                <div class="card-header">Import from Backup File</div>
+                <div class="card-body">
+                    <div class="card-group">
+                        <label>Backup File (.bep)</label>
+                        <p class="description">Select an encrypted backup file created by bitcoin-backup.</p>
+                        <div class="button-row" style="justify-content: flex-start;">
+                            <button id="btn-pick-file" class="secondary-button" style="min-width: auto; padding: 10px 24px;">Choose File...</button>
+                            <span id="file-name" style="font-size: 14px; opacity: 0.7;">No file selected</span>
+                        </div>
+                    </div>
+                    <div id="file-password-group" class="card-group hidden">
+                        <label for="file-password">Backup Password</label>
+                        <p class="description">Enter the password used to encrypt this backup.</p>
+                        <input id="file-password" type="password" style="background-color: var(--input-background-color); width: 100%; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 12px;" placeholder="Password" />
+                    </div>
+                    <div id="import-file-error" class="hidden"></div>
+                    <div class="button-row">
+                        <button id="btn-file-import-back" class="secondary-button" style="min-width: auto; padding: 10px 24px;">Back</button>
+                        <button id="btn-file-import-confirm" class="primary-button hidden" style="min-width: auto; padding: 10px 24px;">Decrypt & Import</button>
                     </div>
                 </div>
             </div>

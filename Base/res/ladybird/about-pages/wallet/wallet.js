@@ -2,9 +2,11 @@
 const onboardingView = document.querySelector("#onboarding-view");
 const mnemonicShowView = document.querySelector("#mnemonic-show-view");
 const importView = document.querySelector("#import-view");
+const importMnemonicView = document.querySelector("#import-mnemonic-view");
+const importFileView = document.querySelector("#import-file-view");
 const walletView = document.querySelector("#wallet-view");
 
-// Controls
+// Wallet dashboard controls
 const walletEnabledToggle = document.querySelector("#wallet-enabled-toggle");
 const backendURL = document.querySelector("#backend-url");
 const statusIndicator = document.querySelector("#status-indicator");
@@ -17,31 +19,68 @@ const sendAmount = document.querySelector("#send-amount");
 const sendButton = document.querySelector("#send-button");
 const sendMessage = document.querySelector("#send-message");
 
-// Onboarding buttons
+// Onboarding
 const btnCreateWallet = document.querySelector("#btn-create-wallet");
 const btnImportWallet = document.querySelector("#btn-import-wallet");
 const btnMnemonicBack = document.querySelector("#btn-mnemonic-back");
 const btnMnemonicConfirm = document.querySelector("#btn-mnemonic-confirm");
-const btnImportBack = document.querySelector("#btn-import-back");
-const btnImportConfirm = document.querySelector("#btn-import-confirm");
-const btnAddAccount = document.querySelector("#btn-add-account");
 const mnemonicDisplay = document.querySelector("#mnemonic-display");
+
+// Import method choice
+const btnImportBack = document.querySelector("#btn-import-back");
+const btnImportMnemonic = document.querySelector("#btn-import-mnemonic");
+const btnImportFile = document.querySelector("#btn-import-file");
+
+// Import: mnemonic
+const btnMnemonicImportBack = document.querySelector("#btn-mnemonic-import-back");
+const btnMnemonicImportConfirm = document.querySelector("#btn-mnemonic-import-confirm");
 const importMnemonic = document.querySelector("#import-mnemonic");
-const importError = document.querySelector("#import-error");
+const importMnemonicError = document.querySelector("#import-mnemonic-error");
+
+// Import: file
+const btnFileImportBack = document.querySelector("#btn-file-import-back");
+const btnFileImportConfirm = document.querySelector("#btn-file-import-confirm");
+const btnPickFile = document.querySelector("#btn-pick-file");
+const fileNameDisplay = document.querySelector("#file-name");
+const filePasswordGroup = document.querySelector("#file-password-group");
+const filePassword = document.querySelector("#file-password");
+const importFileError = document.querySelector("#import-file-error");
+
+// Dashboard add account
+const btnAddAccount = document.querySelector("#btn-add-account");
 
 let walletEnabled = false;
 let previousView = "onboarding";
+let pendingFileData = null;
 
 function formatSatoshis(sats) {
     return `${Number(sats).toLocaleString()} sat`;
 }
 
+const ALL_VIEWS = [onboardingView, mnemonicShowView, importView, importMnemonicView, importFileView, walletView];
+
 function showView(name) {
-    onboardingView.classList.toggle("hidden", name !== "onboarding");
-    mnemonicShowView.classList.toggle("hidden", name !== "mnemonic-show");
-    importView.classList.toggle("hidden", name !== "import");
-    walletView.classList.toggle("hidden", name !== "wallet");
+    const map = {
+        "onboarding": onboardingView,
+        "mnemonic-show": mnemonicShowView,
+        "import": importView,
+        "import-mnemonic": importMnemonicView,
+        "import-file": importFileView,
+        "wallet": walletView,
+    };
+    for (const v of ALL_VIEWS) {
+        v.classList.add("hidden");
+    }
+    if (map[name]) map[name].classList.remove("hidden");
 }
+
+function refreshWallet() {
+    ladybird.sendMessage("loadWalletStatus");
+    ladybird.sendMessage("getBalance");
+    ladybird.sendMessage("getReceiveAddress");
+}
+
+// ── Status updates ──────────────────────────────────────────────────
 
 function updateStatus(status) {
     walletEnabled = status.enabled;
@@ -53,10 +92,7 @@ function updateStatus(status) {
 
     showView("wallet");
     walletEnabledToggle.checked = status.enabled;
-
-    if (status.backendURL) {
-        backendURL.value = status.backendURL;
-    }
+    if (status.backendURL) backendURL.value = status.backendURL;
 
     if (status.connected) {
         statusIndicator.className = "status-indicator connected";
@@ -87,64 +123,121 @@ function showSendMessage(text, isError) {
     sendMessage.className = `message ${isError ? "error" : "success"}`;
 }
 
-function openImportView(from) {
-    previousView = from;
-    importMnemonic.value = "";
-    importError.className = "hidden";
-    showView("import");
-}
-
-// ── Onboarding: Create ──────────────────────────────────────────────
+// ── Create wallet ───────────────────────────────────────────────────
 
 btnCreateWallet.addEventListener("click", () => {
     ladybird.sendMessage("createWallet");
 });
 
-btnMnemonicBack.addEventListener("click", () => {
-    showView("onboarding");
-});
+btnMnemonicBack.addEventListener("click", () => showView("onboarding"));
 
 btnMnemonicConfirm.addEventListener("click", () => {
     ladybird.sendMessage("confirmWalletCreation");
-    ladybird.sendMessage("loadWalletStatus");
-    ladybird.sendMessage("getBalance");
-    ladybird.sendMessage("getReceiveAddress");
+    refreshWallet();
 });
 
-// ── Import (available from onboarding AND wallet dashboard) ─────────
+// ── Import: method choice ───────────────────────────────────────────
 
-btnImportWallet.addEventListener("click", () => {
-    openImportView("onboarding");
-});
+function openImport(from) {
+    previousView = from;
+    showView("import");
+}
 
-btnAddAccount.addEventListener("click", (e) => {
-    e.preventDefault();
-    openImportView("wallet");
-});
+btnImportWallet.addEventListener("click", () => openImport("onboarding"));
+btnAddAccount.addEventListener("click", (e) => { e.preventDefault(); openImport("wallet"); });
 
 btnImportBack.addEventListener("click", () => {
-    if (previousView === "wallet" && walletEnabled) {
-        showView("wallet");
-    } else {
-        showView("onboarding");
-    }
+    showView(previousView === "wallet" && walletEnabled ? "wallet" : "onboarding");
 });
 
-btnImportConfirm.addEventListener("click", () => {
+// ── Import: mnemonic ────────────────────────────────────────────────
+
+btnImportMnemonic.addEventListener("click", () => {
+    importMnemonic.value = "";
+    importMnemonicError.className = "hidden";
+    showView("import-mnemonic");
+});
+
+btnMnemonicImportBack.addEventListener("click", () => showView("import"));
+
+btnMnemonicImportConfirm.addEventListener("click", () => {
     const mnemonic = importMnemonic.value.trim().toLowerCase();
     const words = mnemonic.split(/\s+/).filter(w => w.length > 0);
 
     if (words.length !== 12 && words.length !== 24) {
-        importError.textContent = `Expected 12 or 24 words, got ${words.length}.`;
-        importError.className = "message error";
+        importMnemonicError.textContent = `Expected 12 or 24 words, got ${words.length}.`;
+        importMnemonicError.className = "message error";
         return;
     }
 
-    importError.className = "hidden";
+    importMnemonicError.className = "hidden";
     ladybird.sendMessage("importWallet", words.join(" "));
 });
 
-// ── Settings controls ───────────────────────────────────────────────
+// ── Import: backup file ─────────────────────────────────────────────
+
+btnImportFile.addEventListener("click", () => {
+    pendingFileData = null;
+    fileNameDisplay.textContent = "No file selected";
+    filePasswordGroup.classList.add("hidden");
+    btnFileImportConfirm.classList.add("hidden");
+    importFileError.className = "hidden";
+    if (filePassword) filePassword.value = "";
+    showView("import-file");
+});
+
+btnFileImportBack.addEventListener("click", () => showView("import"));
+
+btnPickFile.addEventListener("click", () => {
+    // Use the browser's file input since we don't have native file picker wired yet
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".bep,.json,.txt";
+    input.addEventListener("change", () => {
+        const file = input.files[0];
+        if (!file) return;
+
+        fileNameDisplay.textContent = file.name;
+        const reader = new FileReader();
+        reader.onload = () => {
+            pendingFileData = reader.result;
+
+            // Check if it's unencrypted JSON
+            try {
+                JSON.parse(pendingFileData);
+                // Unencrypted — import directly
+                ladybird.sendMessage("importBackupFile", { data: pendingFileData, password: "" });
+            } catch {
+                // Encrypted — need password
+                filePasswordGroup.classList.remove("hidden");
+                btnFileImportConfirm.classList.remove("hidden");
+                filePassword.focus();
+            }
+        };
+        reader.readAsText(file);
+    });
+    input.click();
+});
+
+btnFileImportConfirm.addEventListener("click", () => {
+    if (!pendingFileData) {
+        importFileError.textContent = "No file selected.";
+        importFileError.className = "message error";
+        return;
+    }
+
+    const pw = filePassword ? filePassword.value : "";
+    if (!pw) {
+        importFileError.textContent = "Please enter the backup password.";
+        importFileError.className = "message error";
+        return;
+    }
+
+    importFileError.className = "hidden";
+    ladybird.sendMessage("importBackupFile", { data: pendingFileData, password: pw });
+});
+
+// ── Settings ────────────────────────────────────────────────────────
 
 walletEnabledToggle.addEventListener("change", () => {
     ladybird.sendMessage("setWalletEnabled", walletEnabledToggle.checked);
@@ -156,7 +249,6 @@ backendURL.addEventListener("change", () => {
     }
 });
 
-// Copy address on click
 receiveAddress.addEventListener("click", () => {
     if (receiveAddress.classList.contains("address-display")) {
         navigator.clipboard.writeText(receiveAddress.textContent);
@@ -166,20 +258,12 @@ receiveAddress.addEventListener("click", () => {
     }
 });
 
-// Send
 sendButton.addEventListener("click", () => {
     const recipient = sendRecipient.value.trim();
     const amount = parseInt(sendAmount.value, 10);
 
-    if (!recipient) {
-        showSendMessage("Please enter a recipient address.", true);
-        return;
-    }
-
-    if (!amount || amount <= 0) {
-        showSendMessage("Please enter a valid amount.", true);
-        return;
-    }
+    if (!recipient) { showSendMessage("Please enter a recipient address.", true); return; }
+    if (!amount || amount <= 0) { showSendMessage("Please enter a valid amount.", true); return; }
 
     sendMessage.className = "hidden";
     ladybird.sendMessage("sendPayment", { recipient, amount });
@@ -187,11 +271,7 @@ sendButton.addEventListener("click", () => {
 
 // ── WebUI lifecycle ─────────────────────────────────────────────────
 
-document.addEventListener("WebUILoaded", () => {
-    ladybird.sendMessage("loadWalletStatus");
-    ladybird.sendMessage("getBalance");
-    ladybird.sendMessage("getReceiveAddress");
-});
+document.addEventListener("WebUILoaded", () => refreshWallet());
 
 document.addEventListener("WebUIMessage", event => {
     const { name, data } = event.detail;
@@ -209,12 +289,16 @@ document.addEventListener("WebUIMessage", event => {
         }
     } else if (name === "walletImported") {
         if (data.error) {
-            importError.textContent = data.error;
-            importError.className = "message error";
+            // Show error on whichever import view is active
+            if (!importMnemonicView.classList.contains("hidden")) {
+                importMnemonicError.textContent = data.error;
+                importMnemonicError.className = "message error";
+            } else if (!importFileView.classList.contains("hidden")) {
+                importFileError.textContent = data.error;
+                importFileError.className = "message error";
+            }
         } else {
-            ladybird.sendMessage("loadWalletStatus");
-            ladybird.sendMessage("getBalance");
-            ladybird.sendMessage("getReceiveAddress");
+            refreshWallet();
         }
     } else if (name === "paymentResult") {
         if (data.error) {

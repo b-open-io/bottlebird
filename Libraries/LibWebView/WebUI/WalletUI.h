@@ -24,6 +24,7 @@ private:
     void set_wallet_backend_url(JsonValue const&);
     void create_wallet();
     void import_wallet(JsonValue const&);
+    void import_backup_file(JsonValue const&);
     void confirm_wallet_creation();
 
     String m_pending_mnemonic;
