@@ -18,6 +18,7 @@
 #include <LibWeb/Loader/UserAgent.h>
 #include <LibWebView/Application.h>
 #include <LibWebView/CookieJar.h>
+#include <LibWebView/MCPServer.h>
 #include <LibWebView/HeadlessWebView.h>
 #include <LibWebView/HelperProcess.h>
 #include <LibWebView/Menu.h>
@@ -137,6 +138,7 @@ ErrorOr<void> Application::initialize(Main::Arguments const& arguments)
     bool disable_scripting = false;
     bool disable_sql_database = false;
     Optional<u16> devtools_port;
+    Optional<u16> mcp_port;
     Optional<StringView> debug_process;
     Optional<StringView> profile_process;
     Optional<StringView> webdriver_endpoint;
@@ -240,6 +242,21 @@ ErrorOr<void> Application::initialize(Main::Arguments const& arguments)
     });
 
     args_parser.add_option(Core::ArgsParser::Option {
+        .argument_mode = Core::ArgsParser::OptionArgumentMode::Optional,
+        .help_string = "Enable the MCP (Model Context Protocol) server, with an optional port (default: 3322)",
+        .long_name = "mcp",
+        .value_name = "port",
+        .accept_value = [&](StringView value) {
+            if (value.is_empty())
+                mcp_port = WebView::default_mcp_port;
+            else
+                mcp_port = value.to_number<u16>();
+
+            return mcp_port.has_value();
+        },
+    });
+
+    args_parser.add_option(Core::ArgsParser::Option {
         .argument_mode = Core::ArgsParser::OptionArgumentMode::Required,
         .help_string = "Name of the User-Agent preset to use in place of the default User-Agent",
         .long_name = "user-agent-preset",
@@ -290,6 +307,7 @@ ErrorOr<void> Application::initialize(Main::Arguments const& arguments)
                           : DNSSettings(DNSOverUDP(dns_server_address.release_value(), *dns_server_port, validate_dnssec_locally)) }
                 : OptionalNone()),
         .devtools_port = devtools_port,
+        .mcp_port = mcp_port,
         .enable_content_filter = disable_content_filter ? EnableContentFilter::No : EnableContentFilter::Yes,
     };
 
@@ -462,6 +480,9 @@ ErrorOr<void> Application::launch_services()
     if (m_browser_options.devtools_port.has_value())
         TRY(launch_devtools_server());
 
+    if (m_browser_options.mcp_port.has_value())
+        TRY(launch_mcp_server());
+
     return {};
 }
 
@@ -543,6 +564,18 @@ ErrorOr<void> Application::launch_devtools_server()
 
     m_devtools = TRY(DevTools::DevToolsServer::create(*this, *m_browser_options.devtools_port));
     on_devtools_enabled();
+
+    return {};
+}
+
+ErrorOr<void> Application::launch_mcp_server()
+{
+    VERIFY(!m_mcp_server);
+
+    if (!m_browser_options.mcp_port.has_value())
+        m_browser_options.mcp_port = WebView::default_mcp_port;
+
+    m_mcp_server = TRY(MCPServer::create(*m_browser_options.mcp_port));
 
     return {};
 }
