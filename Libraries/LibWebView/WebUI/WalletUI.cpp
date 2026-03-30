@@ -52,6 +52,7 @@ void WalletUI::load_wallet_status()
     auto& wallet = Wallet::WalletManager::the();
 
     JsonObject status;
+    status.set("initialized"sv, wallet.is_initialized());
     status.set("enabled"sv, settings.wallet_enabled());
     status.set("backendURL"sv, settings.wallet_backend_url().serialize());
     status.set("connected"sv, false);

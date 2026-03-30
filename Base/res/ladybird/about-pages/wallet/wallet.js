@@ -106,7 +106,8 @@ async function fetchBalanceFromBackend(address) {
 function updateStatus(status) {
     walletEnabled = status.enabled;
 
-    if (!status.enabled) {
+    // Show onboarding only if no wallet has been created/imported
+    if (!status.initialized) {
         showView("onboarding");
         return;
     }
@@ -118,9 +119,12 @@ function updateStatus(status) {
     if (status.connected) {
         statusIndicator.className = "status-indicator connected";
         statusText.textContent = "Connected";
+    } else if (status.enabled) {
+        statusIndicator.className = "status-indicator disconnected";
+        statusText.textContent = "Connecting...";
     } else {
         statusIndicator.className = "status-indicator disconnected";
-        statusText.textContent = "Not Connected";
+        statusText.textContent = "Offline";
     }
 
     if (status.bapId || status.identityPubkey) {
