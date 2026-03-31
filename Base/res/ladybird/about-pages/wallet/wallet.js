@@ -505,7 +505,6 @@ const OVERLAY_HOSTS = [
     "https://overlay-us-1.bsvb.tech",
     "https://overlay-eu-1.bsvb.tech",
     "https://overlay-ap-1.bsvb.tech",
-    "https://users.bapp.dev",
 ];
 
 async function fetchApps(force = false) {
