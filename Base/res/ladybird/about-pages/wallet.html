@@ -107,9 +107,9 @@ body {
 .w-full { width: 100%; }
 .gap-1 { gap: 0.25rem; }
 .gap-2 { gap: 0.5rem; }
-.gap-2\.5 { gap: 0.625rem; }
+.gap-3 { gap: 0.625rem; }
 .gap-3 { gap: 0.75rem; }
-.gap-3\.5 { gap: 0.875rem; }
+.gap-4 { gap: 0.875rem; }
 .gap-4 { gap: 1rem; }
 .hidden { display: none; }
 .text-center { text-align: center; }
@@ -620,7 +620,7 @@ h1, h2, h3, h4 { letter-spacing: -0.025em; line-height: 1.2; }
                 <div class="card-body">
                     <p class="description">Write down these 12 words in order and keep them safe. This is the only way to recover your wallet.</p>
                     <div id="mnemonic-display" class="address-display leading-8 text-base text-center"></div>
-                    <div class="flex justify-end gap-2\.5 mt-4">
+                    <div class="flex justify-end gap-3 mt-4">
                         <button id="btn-mnemonic-back" class="btn btn-secondary">Back</button>
                         <button id="btn-mnemonic-confirm" class="btn btn-primary">I've Saved It</button>
                     </div>
@@ -638,7 +638,7 @@ h1, h2, h3, h4 { letter-spacing: -0.025em; line-height: 1.2; }
                         <button id="btn-import-mnemonic" class="btn btn-primary btn-lg">Enter Recovery Phrase</button>
                         <button id="btn-import-file" class="btn btn-secondary btn-lg">Import from Backup File</button>
                     </div>
-                    <div class="flex justify-end gap-2\.5 mt-2">
+                    <div class="flex justify-end gap-3 mt-2">
                         <button id="btn-import-back" class="btn btn-secondary">Back</button>
                     </div>
                 </div>
@@ -655,7 +655,7 @@ h1, h2, h3, h4 { letter-spacing: -0.025em; line-height: 1.2; }
                         <textarea id="import-mnemonic" rows="4" class="textarea textarea-mono" placeholder="abandon ability able about above absent absorb abstract absurd abuse access accident"></textarea>
                     </div>
                     <div id="import-mnemonic-error" class="hidden"></div>
-                    <div class="flex justify-end gap-2\.5">
+                    <div class="flex justify-end gap-3">
                         <button id="btn-mnemonic-import-back" class="btn btn-secondary">Back</button>
                         <button id="btn-mnemonic-import-confirm" class="btn btn-primary">Import</button>
                     </div>
@@ -671,7 +671,7 @@ h1, h2, h3, h4 { letter-spacing: -0.025em; line-height: 1.2; }
                     <div class="mb-5">
                         <label class="label">Backup File (.bep)</label>
                         <p class="description">Select an encrypted backup file created by bitcoin-backup.</p>
-                        <div class="flex justify-start gap-2\.5">
+                        <div class="flex justify-start gap-3">
                             <button id="btn-pick-file" class="btn btn-secondary">Choose File...</button>
                             <span id="file-name" class="text-sm text-muted-foreground self-center">No file selected</span>
                         </div>
@@ -682,7 +682,7 @@ h1, h2, h3, h4 { letter-spacing: -0.025em; line-height: 1.2; }
                         <input id="file-password" type="password" class="input" placeholder="Password" />
                     </div>
                     <div id="import-file-error" class="hidden"></div>
-                    <div class="flex justify-end gap-2\.5">
+                    <div class="flex justify-end gap-3">
                         <button id="btn-file-import-back" class="btn btn-secondary">Back</button>
                         <button id="btn-file-import-confirm" class="btn btn-primary hidden">Decrypt & Import</button>
                     </div>
@@ -729,13 +729,13 @@ h1, h2, h3, h4 { letter-spacing: -0.025em; line-height: 1.2; }
                 <div class="card mb-5">
                     <div class="card-header">Status</div>
                     <div class="card-body">
-                        <div class="flex items-center justify-between gap-2\.5 mb-5">
+                        <div class="flex items-center justify-between gap-3 mb-5">
                             <span>
                                 <span id="status-indicator" class="status-indicator disconnected"></span>
                                 <span id="status-text">Not Connected</span>
                             </span>
-                            <label class="flex items-center gap-2\.5 mb-0">
-                                <span>Connect</span>
+                            <label class="flex items-center gap-3 mb-0">
+                                <span class="text-sm">Connect</span>
                                 <input id="wallet-enabled-toggle" type="checkbox" switch />
                             </label>
                         </div>
@@ -878,7 +878,7 @@ h1, h2, h3, h4 { letter-spacing: -0.025em; line-height: 1.2; }
                                 <label class="label" for="send-amount">Amount (satoshis)</label>
                                 <input id="send-amount" type="number" min="1" class="input" placeholder="0" />
                             </div>
-                            <div class="flex justify-end gap-2\.5">
+                            <div class="flex justify-end gap-3">
                                 <button id="send-button" class="btn btn-primary">Send</button>
                             </div>
                             <div id="send-message" class="hidden"></div>
