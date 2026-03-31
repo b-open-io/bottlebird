@@ -87,10 +87,10 @@ body {
     color: var(--muted-foreground);
 }
 
-/* ── Search bar ───────────────────────────────────────────── */
+/* ── Search bar (shadcn Input pattern) ───────────────────── */
 .search-wrap {
     width: 100%;
-    max-width: 560px;
+    max-width: 35rem;
 }
 .search-bar {
     display: flex;
@@ -98,10 +98,11 @@ body {
     gap: 0.75rem;
     height: 2.5rem;
     width: 100%;
-    border-radius: calc(var(--radius) - 2px);
+    border-radius: calc(var(--radius) - 0.125rem);
     border: 1px solid var(--input);
     background: var(--background);
     padding: 0 0.75rem;
+    transition: box-shadow 0.15s;
 }
 .search-bar svg {
     width: 1rem;
@@ -124,7 +125,7 @@ body {
     text-align: left;
 }
 .search-bar:focus-within {
-    box-shadow: 0 0 0 2px var(--ring);
+    box-shadow: 0 0 0 0.125rem var(--ring);
 }
 
 /* ── Shortcut grid ────────────────────────────────────────── */
@@ -169,6 +170,21 @@ body {
     line-height: 1rem;
     color: var(--muted-foreground);
 }
+
+/* ── Shortcut thumb background variants ──────────────────── */
+.thumb-chart-1 { background: var(--chart-1); }
+.thumb-chart-2 { background: var(--chart-2); }
+.thumb-chart-3 { background: var(--chart-3); }
+.thumb-chart-4 { background: var(--chart-4); }
+.thumb-chart-5 { background: var(--chart-5); }
+.thumb-muted   { background: var(--muted); }
+.thumb-muted .thumb-letter { color: var(--muted-foreground); }
+
+/* ── Focus-visible rings ─────────────────────────────────── */
+button:focus-visible, a:focus-visible, input:focus-visible {
+    outline: 0.125rem solid var(--ring);
+    outline-offset: 0.125rem;
+}
         </style>
     </head>
     <body>
@@ -192,35 +208,35 @@ body {
         <!-- Shortcut grid -->
         <div class="shortcut-grid">
             <a class="shortcut-card" href="about:wallet">
-                <div class="shortcut-thumb" style="background:var(--chart-1)">W</div>
+                <div class="shortcut-thumb thumb-chart-1">W</div>
                 <div class="shortcut-label">
                     <div class="shortcut-label-title">Wallet</div>
                     <div class="shortcut-label-sub">Dashboard</div>
                 </div>
             </a>
             <a class="shortcut-card" href="about:wallet#ordinals">
-                <div class="shortcut-thumb" style="background:var(--chart-2)">O</div>
+                <div class="shortcut-thumb thumb-chart-2">O</div>
                 <div class="shortcut-label">
                     <div class="shortcut-label-title">Ordinals</div>
                     <div class="shortcut-label-sub">Your NFTs</div>
                 </div>
             </a>
             <a class="shortcut-card" href="about:wallet#tokens">
-                <div class="shortcut-thumb" style="background:var(--chart-3)">T</div>
+                <div class="shortcut-thumb thumb-chart-3">T</div>
                 <div class="shortcut-label">
                     <div class="shortcut-label-title">Tokens</div>
                     <div class="shortcut-label-sub">BSV21</div>
                 </div>
             </a>
             <a class="shortcut-card" href="about:wallet#market">
-                <div class="shortcut-thumb" style="background:var(--chart-4)">M</div>
+                <div class="shortcut-thumb thumb-chart-4">M</div>
                 <div class="shortcut-label">
                     <div class="shortcut-label-title">Market</div>
                     <div class="shortcut-label-sub">Browse</div>
                 </div>
             </a>
             <a class="shortcut-card" href="about:wallet#apps">
-                <div class="shortcut-thumb" style="background:var(--chart-5)">
+                <div class="shortcut-thumb thumb-chart-5">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
                 </div>
                 <div class="shortcut-label">
@@ -229,15 +245,15 @@ body {
                 </div>
             </a>
             <a class="shortcut-card" href="about:wallet#identity">
-                <div class="shortcut-thumb" style="background:var(--chart-1)">I</div>
+                <div class="shortcut-thumb thumb-chart-1">I</div>
                 <div class="shortcut-label">
                     <div class="shortcut-label-title">Identity</div>
                     <div class="shortcut-label-sub">BAP Profile</div>
                 </div>
             </a>
             <a class="shortcut-card" href="about:settings">
-                <div class="shortcut-thumb" style="background:var(--muted)">
-                    <span style="color:var(--muted-foreground)">S</span>
+                <div class="shortcut-thumb thumb-muted">
+                    <span class="thumb-letter">S</span>
                 </div>
                 <div class="shortcut-label">
                     <div class="shortcut-label-title">Settings</div>
@@ -245,14 +261,14 @@ body {
                 </div>
             </a>
             <a class="shortcut-card" href="about:wallet#chat">
-                <div class="shortcut-thumb" style="background:var(--chart-1)">C</div>
+                <div class="shortcut-thumb thumb-chart-1">C</div>
                 <div class="shortcut-label">
                     <div class="shortcut-label-title">BitChat</div>
                     <div class="shortcut-label-sub">Messages</div>
                 </div>
             </a>
             <a class="shortcut-card" href="about:wallet#publish">
-                <div class="shortcut-thumb" style="background:var(--chart-3)">P</div>
+                <div class="shortcut-thumb thumb-chart-3">P</div>
                 <div class="shortcut-label">
                     <div class="shortcut-label-title">Publish</div>
                     <div class="shortcut-label-sub">Inscribe</div>
