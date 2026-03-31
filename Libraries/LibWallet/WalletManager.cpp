@@ -17,6 +17,10 @@
 #include <LibCore/System.h>
 #include <LibWallet/WalletManager.h>
 
+#ifdef __APPLE__
+#    include <LibWallet/SecureEnclave.h>
+#endif
+
 #include <bsvwallet.h>
 #include <bsvz.h>
 #include <openssl/evp.h>
@@ -321,12 +325,60 @@ ByteString WalletManager::wallet_key_path() const
     return ByteString::formatted("{}/Ladybird/wallet.key", Core::StandardPaths::config_directory());
 }
 
+ByteString WalletManager::wallet_enc_path() const
+{
+    return ByteString::formatted("{}/Ladybird/wallet.enc", Core::StandardPaths::config_directory());
+}
+
+static constexpr auto se_label = "bottlebird-wallet"sv;
+
 ErrorOr<void> WalletManager::save_to_disk()
 {
     if (!m_initialized)
         return Error::from_string_literal("Wallet not initialized");
 
     auto wif = TRY(get_wif());
+
+#ifdef __APPLE__
+    // Try Secure Enclave encryption (Touch ID protected)
+    do {
+        if (!SecureEnclave::is_available())
+            break;
+
+        // Ensure the SE key exists; generate if not
+        auto encrypted = SecureEnclave::encrypt(se_label, wif);
+        if (encrypted.is_error()) {
+            // Key might not exist yet -- generate it and retry
+            auto gen = SecureEnclave::generate_key(se_label);
+            if (gen.is_error()) {
+                dbgln("WalletManager: Failed to generate SE key ({}), saving plaintext", gen.error());
+                break;
+            }
+            encrypted = SecureEnclave::encrypt(se_label, wif);
+            if (encrypted.is_error()) {
+                dbgln("WalletManager: SE encrypt failed after keygen ({}), saving plaintext", encrypted.error());
+                break;
+            }
+        }
+
+        auto ciphertext = encrypted.release_value();
+        auto enc_path = wallet_enc_path();
+        auto directory = LexicalPath { enc_path }.parent();
+        TRY(Core::Directory::create(directory, Core::Directory::CreateDirectories::Yes));
+
+        auto file = TRY(Core::File::open(enc_path, Core::File::OpenMode::Write));
+        TRY(file->write_until_depleted(ciphertext.bytes()));
+        TRY(Core::System::chmod(enc_path, 0600));
+
+        // Remove legacy plaintext file if it exists
+        (void)Core::System::unlink(wallet_key_path());
+
+        dbgln("WalletManager: Wallet saved with Secure Enclave protection");
+        return {};
+    } while (false);
+#endif
+
+    // Plaintext storage (non-Apple, SE not available, or SE failed)
     auto path = wallet_key_path();
     auto directory = LexicalPath { path }.parent();
     TRY(Core::Directory::create(directory, Core::Directory::CreateDirectories::Yes));
@@ -335,14 +387,37 @@ ErrorOr<void> WalletManager::save_to_disk()
     TRY(file->write_until_depleted(wif.bytes()));
 
     TRY(Core::System::chmod(path, 0600));
+    dbgln("WalletManager: Wallet saved as plaintext (Secure Enclave not available)");
 
     return {};
 }
 
 ErrorOr<void> WalletManager::load_from_disk()
 {
-    auto path = wallet_key_path();
+#ifdef __APPLE__
+    // 1. Try encrypted wallet first
+    auto enc_path = wallet_enc_path();
+    auto enc_file = Core::File::open(enc_path, Core::File::OpenMode::Read);
+    if (!enc_file.is_error()) {
+        auto enc_contents = TRY(enc_file.value()->read_until_eof());
+        auto ciphertext = StringView { enc_contents }.trim_whitespace();
 
+        if (!ciphertext.is_empty()) {
+            // Decrypt via Secure Enclave — triggers Touch ID
+            auto plaintext = SecureEnclave::decrypt(se_label, ciphertext);
+            if (!plaintext.is_error()) {
+                auto wif = plaintext.release_value();
+                TRY(import_from_wif(wif));
+                dbgln("WalletManager: Loaded encrypted wallet (Touch ID authenticated)");
+                return {};
+            }
+            dbgln("WalletManager: SE decrypt failed ({}), trying legacy plaintext", plaintext.error());
+        }
+    }
+#endif
+
+    // 2. Try legacy plaintext wallet
+    auto path = wallet_key_path();
     auto file = Core::File::open(path, Core::File::OpenMode::Read);
     if (file.is_error()) {
         if (file.error().is_errno() && file.error().code() == ENOENT)
@@ -359,6 +434,19 @@ ErrorOr<void> WalletManager::load_from_disk()
         return Error::from_string_literal("Wallet key file is empty");
 
     TRY(import_from_wif(wif));
+
+#ifdef __APPLE__
+    // 3. Migrate: encrypt the plaintext key and remove the legacy file
+    if (SecureEnclave::is_available()) {
+        dbgln("WalletManager: Migrating plaintext wallet to Secure Enclave...");
+        auto save_result = save_to_disk();
+        if (save_result.is_error())
+            dbgln("WalletManager: Migration failed ({}), plaintext file retained", save_result.error());
+        else
+            dbgln("WalletManager: Migration to Secure Enclave complete");
+    }
+#endif
+
     return {};
 }
 

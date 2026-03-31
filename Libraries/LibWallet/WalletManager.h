@@ -49,6 +49,7 @@ private:
     ErrorOr<void> derive_keys_from_seed(unsigned char const* seed, size_t seed_len);
     ErrorOr<void> compute_bap_id();
     ByteString wallet_key_path() const;
+    ByteString wallet_enc_path() const;
 
     bool m_initialized { false };
     u8 m_root_privkey[32] {};
