@@ -78,6 +78,7 @@ enum SpecialContext : u8 {
     CubicBezierFunctionXCoordinate,
     DOMMatrixInitString,
     FontStyleAngle,
+    GridTrackRepeatCount,
     MediaCondition,
     RadialSizeLengthPercentage,
     RandomValueSharingFixedValue,
@@ -169,7 +170,7 @@ public:
 
     static NonnullRefPtr<StyleValue const> resolve_unresolved_style_value(ParsingParams const&, DOM::AbstractElement, PropertyNameAndID const&, UnresolvedStyleValue const&, Optional<GuardedSubstitutionContexts&> = {});
 
-    [[nodiscard]] LengthOrCalculated parse_as_sizes_attribute(DOM::Element const& element, HTML::HTMLImageElement const* img = nullptr);
+    [[nodiscard]] NonnullRefPtr<StyleValue const> parse_as_sizes_attribute(DOM::Element const& element, HTML::HTMLImageElement const* img = nullptr);
 
     static Optional<Vector<ComponentValue>> parse_declaration_value(TokenStream<ComponentValue>&, Optional<Token::Type> end_token_type = {});
 
@@ -184,15 +185,18 @@ public:
     GC::Ref<Descriptors> convert_to_descriptors(AtRuleID, Vector<Declaration> const& declarations);
     GC::Ref<CSSStyleProperties> convert_to_style_declaration(Vector<Declaration> const&);
 
-private:
-    Parser(ParsingParams const&, Vector<Token>);
-
     enum class ParseError : u8 {
         IncludesIgnoredVendorPrefix,
         SyntaxError,
     };
     template<typename T>
     using ParseErrorOr = ErrorOr<T, ParseError>;
+
+    static ParseErrorOr<void> collect_arbitrary_substitution_function_presence(Vector<ComponentValue> const&, SubstitutionFunctionsPresence&);
+    static ParseErrorOr<void> collect_arbitrary_substitution_function_presence(ComponentValue const&, SubstitutionFunctionsPresence&);
+
+private:
+    Parser(ParsingParams const&, Vector<Token>);
 
     // "Parse a stylesheet" is intended to be the normal parser entry point, for parsing stylesheets.
     struct ParsedStyleSheet {
@@ -306,6 +310,8 @@ private:
     template<typename NestedDeclarationsRule>
     GC::Ptr<CSSRule> convert_to_rule(Rule const&, Nested);
     GC::Ptr<CSSStyleRule> convert_to_style_rule(QualifiedRule const&, Nested);
+    template<typename NestedDeclarationsRule>
+    GC::Ptr<CSSContainerRule> convert_to_container_rule(AtRule const&, Nested);
     GC::Ptr<CSSCounterStyleRule> convert_to_counter_style_rule(AtRule const&);
     GC::Ptr<CSSFontFaceRule> convert_to_font_face_rule(AtRule const&);
     GC::Ptr<CSSFontFeatureValuesRule> convert_to_font_feature_values_rule(AtRule const&);
@@ -331,21 +337,13 @@ private:
     Optional<Descriptor> convert_to_descriptor(AtRuleID, Declaration const&);
 
     Optional<Dimension> parse_dimension(ComponentValue const&);
-    Optional<AngleOrCalculated> parse_angle(TokenStream<ComponentValue>&);
     Optional<AnglePercentage> parse_angle_percentage(TokenStream<ComponentValue>&);
-    Optional<FlexOrCalculated> parse_flex(TokenStream<ComponentValue>&);
-    Optional<FrequencyOrCalculated> parse_frequency(TokenStream<ComponentValue>&);
     Optional<FrequencyPercentage> parse_frequency_percentage(TokenStream<ComponentValue>&);
-    Optional<IntegerOrCalculated> parse_integer(TokenStream<ComponentValue>&);
-    Optional<LengthOrCalculated> parse_length(TokenStream<ComponentValue>&);
     Optional<LengthPercentage> parse_length_percentage(TokenStream<ComponentValue>&);
-    Optional<NumberOrCalculated> parse_number(TokenStream<ComponentValue>&);
     Optional<NumberPercentage> parse_number_percentage(TokenStream<ComponentValue>&);
-    Optional<ResolutionOrCalculated> parse_resolution(TokenStream<ComponentValue>&);
-    Optional<TimeOrCalculated> parse_time(TokenStream<ComponentValue>&);
     Optional<TimePercentage> parse_time_percentage(TokenStream<ComponentValue>&);
 
-    Optional<LengthOrAutoOrCalculated> parse_source_size_value(TokenStream<ComponentValue>&);
+    RefPtr<StyleValue const> parse_source_size_value(TokenStream<ComponentValue>&);
     Optional<Gfx::UnicodeRange> parse_unicode_range(TokenStream<ComponentValue>&);
     Optional<Gfx::UnicodeRange> parse_unicode_range(StringView);
     Vector<Gfx::UnicodeRange> parse_unicode_ranges(TokenStream<ComponentValue>&);
@@ -608,6 +606,10 @@ private:
     OwnPtr<BooleanExpression> parse_supports_condition(TokenStream<ComponentValue>&);
     OwnPtr<BooleanExpression> parse_supports_feature(TokenStream<ComponentValue>&);
     OwnPtr<Supports::Declaration> parse_supports_declaration(TokenStream<ComponentValue>&);
+
+    OwnPtr<BooleanExpression> parse_container_query_condition(TokenStream<ComponentValue>&);
+    OwnPtr<BooleanExpression> parse_container_query_feature(TokenStream<ComponentValue>&);
+    RefPtr<ContainerQuery> parse_container_query(TokenStream<ComponentValue>&);
 
     NonnullRefPtr<StyleValue const> resolve_unresolved_style_value(DOM::AbstractElement, GuardedSubstitutionContexts&, PropertyNameAndID const&, UnresolvedStyleValue const&);
 

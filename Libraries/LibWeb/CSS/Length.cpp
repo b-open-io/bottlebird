@@ -140,18 +140,6 @@ Length::ResolutionContext Length::ResolutionContext::for_element(DOM::AbstractEl
     };
 }
 
-Length::ResolutionContext Length::ResolutionContext::for_window(HTML::Window const& window)
-{
-    auto const& initial_font = window.associated_document().font_computer().initial_font();
-    Gfx::FontPixelMetrics const& initial_font_metrics = initial_font.pixel_metrics();
-    Length::FontMetrics font_metrics { CSSPixels { initial_font.pixel_size() }, initial_font_metrics, InitialValues::line_height() };
-    return Length::ResolutionContext {
-        .viewport_rect = window.page().web_exposed_screen_area(),
-        .font_metrics = font_metrics,
-        .root_font_metrics = font_metrics,
-    };
-}
-
 Length::ResolutionContext Length::ResolutionContext::for_document(DOM::Document const& document)
 {
     auto const& initial_font = document.font_computer().initial_font();
@@ -280,6 +268,13 @@ Length Length::from_style_value(NonnullRefPtr<StyleValue const> const& style_val
     }
 
     VERIFY_NOT_REACHED();
+}
+
+LengthOrAuto LengthOrAuto::from_style_value(NonnullRefPtr<StyleValue const> const& style_value, Optional<Length> percentage_basis)
+{
+    if (style_value->has_auto())
+        return make_auto();
+    return LengthOrAuto { Length::from_style_value(style_value, percentage_basis) };
 }
 
 Length Length::resolve_calculated(NonnullRefPtr<CalculatedStyleValue const> const& calculated, Layout::Node const& layout_node, Length const& reference_value)
