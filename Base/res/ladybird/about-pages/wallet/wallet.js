@@ -174,7 +174,7 @@ function fetchOrdinals() {
     ordinalsEmpty.classList.add("hidden");
     ordinalsError.classList.add("hidden");
     ordinalsGrid.innerHTML = "";
-    ordinalsSkeleton.classList.remove("hidden");
+    if (ordinalsSkeleton) ordinalsSkeleton.classList.remove("hidden");
 
     // Request ordinals via WalletUI C++ (BRC-100 listOutputs on background thread)
     ladybird.sendMessage("listOrdinals");
@@ -183,7 +183,7 @@ function fetchOrdinals() {
 
 // Legacy fetch removed — ordinals come from wallet's listOutputs via C++
 function handleOrdinalsResponse(data) {
-    ordinalsSkeleton.classList.add("hidden");
+    if (ordinalsSkeleton) ordinalsSkeleton.classList.add("hidden");
     fetchState.ordinals.loading = false;
 
     if (data.error) {
@@ -331,7 +331,7 @@ function fetchMarketListings() {
     // Market listings require a local 1sat-stack — not available via the wallet API
     fetchState.market.loading = false;
     fetchState.market.loaded = true;
-    marketSkeleton.classList.add("hidden");
+    if (marketSkeleton) marketSkeleton.classList.add("hidden");
     marketGrid.innerHTML = "";
     marketEmpty.classList.remove("hidden");
     const heading = marketEmpty.querySelector("h3");
