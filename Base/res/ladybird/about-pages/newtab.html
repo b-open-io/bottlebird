@@ -3,206 +3,62 @@
     <head>
         <title>New Tab</title>
         <link rel="stylesheet" type="text/css" href="resource://ladybird/ladybird.css" />
-        <style>
-            @media (prefers-color-scheme: light) {
-                :root {
-                    --card-background-color: #f9f9f9;
-                    --border-color: #dcdde1;
-                    --input-background-color: white;
-                    --shortcut-bg: #f0f2f5;
-                    --shortcut-bg-hover: #e4e6eb;
-                    --search-shadow: rgba(0, 0, 0, 0.08);
-                    --logo-gradient-start: #3b82f6;
-                    --logo-gradient-end: #8b5cf6;
-                }
-            }
-
-            @media (prefers-color-scheme: dark) {
-                :root {
-                    --card-background-color: #2c2c2c;
-                    --border-color: #3d3d3d;
-                    --input-background-color: #333;
-                    --shortcut-bg: #333;
-                    --shortcut-bg-hover: #444;
-                    --search-shadow: rgba(0, 0, 0, 0.3);
-                    --logo-gradient-start: #60a5fa;
-                    --logo-gradient-end: #a78bfa;
-                }
-            }
-
-            * { box-sizing: border-box; }
-
-            body {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                min-height: 100vh;
-                padding: 40px 20px;
-                gap: 32px;
-            }
-
-            /* Branding */
-            .branding {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                gap: 10px;
-            }
-
-            .logo {
-                width: 56px;
-                height: 56px;
-                border-radius: 50%;
-                background: linear-gradient(135deg, var(--logo-gradient-start) 0%, var(--logo-gradient-end) 100%);
-                flex-shrink: 0;
-            }
-
-            .brand-name {
-                font-size: 18px;
-                font-weight: 500;
-                opacity: 0.7;
-            }
-
-            /* Search bar */
-            .search-container {
-                width: 100%;
-                max-width: 560px;
-            }
-
-            .search-bar {
-                display: flex;
-                align-items: center;
-                gap: 12px;
-                background-color: var(--card-background-color);
-                border: 1px solid var(--border-color);
-                border-radius: 8px;
-                padding: 14px 16px;
-                transition: border-color 0.15s, box-shadow 0.15s;
-            }
-
-            .search-bar:focus-within {
-                border-color: var(--violet-100);
-                box-shadow: 0 2px 8px var(--search-shadow);
-            }
-
-            .search-icon {
-                flex-shrink: 0;
-                width: 16px;
-                height: 16px;
-                opacity: 0.5;
-            }
-
-            .search-input {
-                flex: 1;
-                background: none;
-                border: none;
-                outline: none;
-                font-size: 14px;
-                color: var(--text-color);
-                font-family: sans-serif;
-            }
-
-            .search-input::placeholder {
-                opacity: 0.5;
-            }
-
-            /* Shortcuts grid */
-            .shortcuts {
-                display: grid;
-                grid-template-columns: repeat(4, 80px);
-                gap: 16px;
-                justify-content: center;
-            }
-
-            .shortcut {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                gap: 8px;
-                padding: 16px 8px;
-                background: var(--shortcut-bg);
-                border-radius: 12px;
-                cursor: pointer;
-                text-decoration: none;
-                color: inherit;
-                font-size: 12px;
-                transition: background 0.15s;
-            }
-
-            .shortcut:hover {
-                background: var(--shortcut-bg-hover);
-            }
-
-            .shortcut-icon {
-                width: 40px;
-                height: 40px;
-                border-radius: 10px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 18px;
-                color: white;
-                font-weight: 600;
-            }
-
-            .shortcut-label {
-                text-align: center;
-                line-height: 1.2;
-            }
+        <script src="resource://ladybird/about-pages/wallet/tailwind.js"></script>
+        <style type="text/tailwindcss">
+@import "tailwindcss";
         </style>
     </head>
-    <body>
+    <body class="flex flex-col items-center justify-center min-h-screen py-10 px-5 gap-8 bg-zinc-950 text-zinc-100">
         <!-- Branding -->
-        <div class="branding">
-            <div class="logo"></div>
-            <span class="brand-name">Bottlebird</span>
+        <div class="flex flex-col items-center gap-2.5">
+            <div class="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-violet-500 shrink-0"></div>
+            <span class="text-lg font-medium text-zinc-400">Bottlebird</span>
         </div>
 
         <!-- Search bar -->
-        <div class="search-container">
-            <div class="search-bar">
-                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <div class="w-full max-w-[560px]">
+            <div class="flex items-center gap-3 bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-3.5 transition-colors focus-within:border-blue-500 focus-within:shadow-md focus-within:shadow-black/20">
+                <svg class="shrink-0 w-4 h-4 text-zinc-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="11" cy="11" r="8"></circle>
                     <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
-                <input id="search-input" class="search-input" type="text" placeholder="Search or enter URL..." autofocus />
+                <input id="search-input" class="flex-1 bg-transparent border-none outline-none text-sm text-zinc-100 font-sans placeholder:text-zinc-500" type="text" placeholder="Search or enter URL..." autofocus />
             </div>
         </div>
 
         <!-- Shortcut grid -->
-        <div class="shortcuts">
-            <a class="shortcut" href="about:wallet">
-                <div class="shortcut-icon" style="background: #3b82f6;">W</div>
-                <span class="shortcut-label">Wallet</span>
+        <div class="grid grid-cols-4 gap-4 justify-center" style="grid-template-columns: repeat(4, 80px);">
+            <a class="flex flex-col items-center gap-2 py-4 px-2 bg-zinc-800 rounded-xl cursor-pointer no-underline text-inherit text-xs hover:bg-zinc-700 transition-colors" href="about:wallet">
+                <div class="w-10 h-10 rounded-[10px] flex items-center justify-center text-lg text-white font-semibold bg-blue-500">W</div>
+                <span class="text-center leading-tight">Wallet</span>
             </a>
-            <a class="shortcut" href="about:wallet#ordinals">
-                <div class="shortcut-icon" style="background: #8b5cf6;">O</div>
-                <span class="shortcut-label">Ordinals</span>
+            <a class="flex flex-col items-center gap-2 py-4 px-2 bg-zinc-800 rounded-xl cursor-pointer no-underline text-inherit text-xs hover:bg-zinc-700 transition-colors" href="about:wallet#ordinals">
+                <div class="w-10 h-10 rounded-[10px] flex items-center justify-center text-lg text-white font-semibold bg-violet-500">O</div>
+                <span class="text-center leading-tight">Ordinals</span>
             </a>
-            <a class="shortcut" href="about:wallet#tokens">
-                <div class="shortcut-icon" style="background: #eab308;">T</div>
-                <span class="shortcut-label">Tokens</span>
+            <a class="flex flex-col items-center gap-2 py-4 px-2 bg-zinc-800 rounded-xl cursor-pointer no-underline text-inherit text-xs hover:bg-zinc-700 transition-colors" href="about:wallet#tokens">
+                <div class="w-10 h-10 rounded-[10px] flex items-center justify-center text-lg text-white font-semibold bg-yellow-500">T</div>
+                <span class="text-center leading-tight">Tokens</span>
             </a>
-            <a class="shortcut" href="about:wallet#market">
-                <div class="shortcut-icon" style="background: #22c55e;">M</div>
-                <span class="shortcut-label">Market</span>
+            <a class="flex flex-col items-center gap-2 py-4 px-2 bg-zinc-800 rounded-xl cursor-pointer no-underline text-inherit text-xs hover:bg-zinc-700 transition-colors" href="about:wallet#market">
+                <div class="w-10 h-10 rounded-[10px] flex items-center justify-center text-lg text-white font-semibold bg-green-500">M</div>
+                <span class="text-center leading-tight">Market</span>
             </a>
-            <a class="shortcut" href="about:wallet#identity">
-                <div class="shortcut-icon" style="background: #ec4899;">I</div>
-                <span class="shortcut-label">Identity</span>
+            <a class="flex flex-col items-center gap-2 py-4 px-2 bg-zinc-800 rounded-xl cursor-pointer no-underline text-inherit text-xs hover:bg-zinc-700 transition-colors" href="about:wallet#identity">
+                <div class="w-10 h-10 rounded-[10px] flex items-center justify-center text-lg text-white font-semibold bg-pink-500">I</div>
+                <span class="text-center leading-tight">Identity</span>
             </a>
-            <a class="shortcut" href="about:settings">
-                <div class="shortcut-icon" style="background: #6b7280;">S</div>
-                <span class="shortcut-label">Settings</span>
+            <a class="flex flex-col items-center gap-2 py-4 px-2 bg-zinc-800 rounded-xl cursor-pointer no-underline text-inherit text-xs hover:bg-zinc-700 transition-colors" href="about:settings">
+                <div class="w-10 h-10 rounded-[10px] flex items-center justify-center text-lg text-white font-semibold bg-gray-500">S</div>
+                <span class="text-center leading-tight">Settings</span>
             </a>
-            <a class="shortcut" href="about:wallet#chat">
-                <div class="shortcut-icon" style="background: #10b981;">C</div>
-                <span class="shortcut-label">BitChat</span>
+            <a class="flex flex-col items-center gap-2 py-4 px-2 bg-zinc-800 rounded-xl cursor-pointer no-underline text-inherit text-xs hover:bg-zinc-700 transition-colors" href="about:wallet#chat">
+                <div class="w-10 h-10 rounded-[10px] flex items-center justify-center text-lg text-white font-semibold bg-emerald-500">C</div>
+                <span class="text-center leading-tight">BitChat</span>
             </a>
-            <a class="shortcut" href="about:wallet#publish">
-                <div class="shortcut-icon" style="background: #f43f5e;">P</div>
-                <span class="shortcut-label">Publish</span>
+            <a class="flex flex-col items-center gap-2 py-4 px-2 bg-zinc-800 rounded-xl cursor-pointer no-underline text-inherit text-xs hover:bg-zinc-700 transition-colors" href="about:wallet#publish">
+                <div class="w-10 h-10 rounded-[10px] flex items-center justify-center text-lg text-white font-semibold bg-rose-500">P</div>
+                <span class="text-center leading-tight">Publish</span>
             </a>
         </div>
 

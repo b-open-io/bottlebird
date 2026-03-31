@@ -3,790 +3,175 @@
     <head>
         <title>Wallet</title>
         <link rel="stylesheet" type="text/css" href="resource://ladybird/ladybird.css" />
-        <style>
-            @media (prefers-color-scheme: light) {
-                :root {
-                    --card-background-color: #f9f9f9;
-                    --card-header-background-color: #f0f2f5;
-                    --input-background-color: white;
-                    --border-color: #dcdde1;
-                    --status-connected: #2ecc71;
-                    --status-disconnected: #95a5a6;
-                    --status-error: #e74c3c;
-                    --accent: #3b82f6;
-                    --accent-hover: #2563eb;
-                    --shortcut-bg: #f0f2f5;
-                    --shortcut-bg-hover: #e4e6eb;
-                }
-            }
-
-            @media (prefers-color-scheme: dark) {
-                :root {
-                    --card-background-color: #2c2c2c;
-                    --card-header-background-color: #252525;
-                    --border-color: #3d3d3d;
-                    --status-connected: #27ae60;
-                    --status-disconnected: #636e72;
-                    --status-error: #c0392b;
-                    --accent: #3b82f6;
-                    --accent-hover: #60a5fa;
-                    --shortcut-bg: #333;
-                    --shortcut-bg-hover: #444;
-                }
-            }
-
-            * { box-sizing: border-box; }
-
-            body {
-                max-width: 800px;
-                margin: 0 auto;
-                padding: 20px;
-            }
-
-            header {
-                display: flex;
-                align-items: center;
-                margin-bottom: 30px;
-            }
-
-            header h1 { font-size: 20px; }
-
-            header img {
-                height: 48px;
-                margin-right: 10px;
-                float: left;
-            }
-
-            .card {
-                background-color: var(--card-background-color);
-                border-radius: 8px;
-                margin-bottom: 20px;
-                overflow: hidden;
-            }
-
-            .card-header {
-                background-color: var(--card-header-background-color);
-                border-bottom: 1px solid var(--border-color);
-                padding: 15px 20px;
-                font-size: 16px;
-                font-weight: 500;
-            }
-
-            .card-body { padding: 20px; }
-
-            .card-group { margin-bottom: 20px; }
-            .card-group:last-child { margin-bottom: 0; }
-
-            .inline-container {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                gap: 10px;
-            }
-
-            .description {
-                margin-bottom: 10px;
-                font-size: 14px;
-                opacity: 0.7;
-            }
-
-            label {
-                display: block;
-                margin-bottom: 8px;
-                font-size: 14px;
-            }
-
-            input[type="text"],
-            input[type="url"],
-            input[type="number"] {
-                background-color: var(--input-background-color);
-                width: 100%;
-                border: 1px solid var(--border-color);
-                border-radius: 6px;
-                padding: 8px 12px;
-                font-size: 14px;
-            }
-
-            hr {
-                height: 1px;
-                background-color: var(--border-color);
-                border: none;
-            }
-
-            .card-body > hr { margin: 0 8px 16px 8px; }
-
-            .status-indicator {
-                display: inline-block;
-                width: 10px;
-                height: 10px;
-                border-radius: 50%;
-                margin-right: 8px;
-            }
-
-            .status-indicator.connected { background-color: var(--status-connected); }
-            .status-indicator.disconnected { background-color: var(--status-disconnected); }
-
-            .balance-display {
-                font-size: 28px;
-                font-weight: 600;
-                margin-bottom: 4px;
-            }
-
-            .balance-unconfirmed {
-                font-size: 14px;
-                opacity: 0.6;
-            }
-
-            .address-display {
-                font-family: Menlo, Monaco, Consolas, monospace;
-                font-size: 13px;
-                background-color: var(--card-header-background-color);
-                border: 1px solid var(--border-color);
-                border-radius: 4px;
-                padding: 12px;
-                word-break: break-all;
-                user-select: all;
-                cursor: pointer;
-            }
-
-            .address-placeholder {
-                font-size: 14px;
-                opacity: 0.5;
-                font-style: italic;
-            }
-
-            .send-form {
-                display: flex;
-                flex-direction: column;
-                gap: 16px;
-            }
-
-            .button-row {
-                display: flex;
-                justify-content: flex-end;
-                gap: 10px;
-            }
-
-            .message {
-                font-size: 14px;
-                padding: 10px;
-                border-radius: 4px;
-                margin-top: 10px;
-            }
-
-            .message.error {
-                background-color: rgba(231, 76, 60, 0.15);
-                color: var(--status-error);
-            }
-
-            .message.success {
-                background-color: rgba(46, 204, 113, 0.15);
-                color: var(--status-connected);
-            }
-
-            .hidden { display: none; }
-
-            /* Onboarding */
-            .onboarding {
-                text-align: center;
-                padding: 60px 20px;
-            }
-
-            .onboarding h2 {
-                font-size: 24px;
-                font-weight: 600;
-                margin-bottom: 8px;
-            }
-
-            .onboarding p {
-                font-size: 15px;
-                opacity: 0.7;
-                margin-bottom: 32px;
-            }
-
-            .onboarding-actions {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                gap: 12px;
-            }
-
-            .primary-button {
-                background-color: var(--accent);
-                color: white;
-                border: none;
-                border-radius: 8px;
-                padding: 12px 32px;
-                font-size: 15px;
-                font-weight: 500;
-                cursor: pointer;
-                min-width: 240px;
-            }
-
-            .primary-button:hover { background-color: var(--accent-hover); }
-
-            .secondary-button {
-                background-color: var(--shortcut-bg);
-                color: inherit;
-                border: 1px solid var(--border-color);
-                border-radius: 8px;
-                padding: 12px 32px;
-                font-size: 15px;
-                cursor: pointer;
-                min-width: 240px;
-            }
-
-            .secondary-button:hover { background-color: var(--shortcut-bg-hover); }
-
-            /* Shortcuts grid */
-            .shortcuts {
-                display: grid;
-                grid-template-columns: repeat(4, 1fr);
-                gap: 12px;
-                margin-bottom: 24px;
-            }
-
-            .shortcut {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                gap: 8px;
-                padding: 16px 8px;
-                background: var(--shortcut-bg);
-                border-radius: 12px;
-                cursor: pointer;
-                text-decoration: none;
-                color: inherit;
-                font-size: 13px;
-                transition: background 0.15s;
-            }
-
-            .shortcut:hover { background: var(--shortcut-bg-hover); }
-
-            .shortcut-icon {
-                width: 36px;
-                height: 36px;
-                border-radius: 10px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 18px;
-                color: white;
-                font-weight: 600;
-            }
-
-            /* Navigation bar */
-            .wallet-nav {
-                display: flex;
-                gap: 4px;
-                background-color: var(--card-background-color);
-                border: 1px solid var(--border-color);
-                border-radius: 8px;
-                padding: 4px;
-                margin-bottom: 20px;
-                overflow-x: auto;
-            }
-
-            .nav-tab {
-                padding: 8px 14px;
-                border-radius: 6px;
-                font-size: 13px;
-                font-weight: 500;
-                text-decoration: none;
-                color: inherit;
-                opacity: 0.6;
-                cursor: pointer;
-                white-space: nowrap;
-                transition: background 0.15s, opacity 0.15s;
-            }
-
-            .nav-tab:hover {
-                background: var(--shortcut-bg-hover);
-                opacity: 0.85;
-            }
-
-            .nav-tab.active {
-                background: var(--accent);
-                color: white;
-                opacity: 1;
-            }
-
-            /* View sections */
-            .view-section { padding: 0; }
-
-            /* Ordinals grid */
-            .ordinals-grid {
-                display: grid;
-                grid-template-columns: repeat(4, 1fr);
-                gap: 12px;
-            }
-
-            .ordinals-grid:empty {
-                display: none;
-            }
-
-            .ordinal-card {
-                background-color: var(--card-background-color);
-                border: 1px solid var(--border-color);
-                border-radius: 8px;
-                overflow: hidden;
-                cursor: pointer;
-                transition: border-color 0.15s;
-            }
-
-            .ordinal-card:hover { border-color: var(--accent); }
-
-            .ordinal-card .thumb {
-                width: 100%;
-                aspect-ratio: 1;
-                background-color: var(--card-header-background-color);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 28px;
-                opacity: 0.3;
-            }
-
-            .ordinal-card .meta {
-                padding: 8px 10px;
-                font-size: 12px;
-            }
-
-            .ordinal-card .meta .name {
-                font-weight: 500;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-
-            .ordinal-card .meta .outpoint {
-                font-family: Menlo, Monaco, Consolas, monospace;
-                font-size: 10px;
-                opacity: 0.5;
-                margin-top: 2px;
-            }
-
-            /* Token list */
-            .token-row {
-                display: flex;
-                align-items: center;
-                gap: 14px;
-                padding: 14px 20px;
-                border-bottom: 1px solid var(--border-color);
-            }
-
-            .token-row:last-child { border-bottom: none; }
-
-            .token-icon {
-                width: 32px;
-                height: 32px;
-                border-radius: 6px;
-                background-color: var(--card-header-background-color);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 14px;
-                font-weight: 600;
-                color: var(--accent);
-                flex-shrink: 0;
-            }
-
-            .token-info { flex: 1; min-width: 0; }
-
-            .token-symbol {
-                font-size: 13px;
-                font-weight: 600;
-            }
-
-            .token-id {
-                font-family: Menlo, Monaco, Consolas, monospace;
-                font-size: 10px;
-                opacity: 0.5;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-
-            .token-balance {
-                font-family: Menlo, Monaco, Consolas, monospace;
-                font-size: 14px;
-                font-weight: 500;
-                text-align: right;
-            }
-
-            /* Market grid */
-            .market-grid {
-                display: grid;
-                grid-template-columns: repeat(4, 1fr);
-                gap: 12px;
-            }
-
-            .listing-card {
-                background-color: var(--card-background-color);
-                border: 1px solid var(--border-color);
-                border-radius: 8px;
-                overflow: hidden;
-                cursor: pointer;
-                transition: border-color 0.15s;
-            }
-
-            .listing-card:hover { border-color: var(--accent); }
-
-            .listing-card .thumb {
-                width: 100%;
-                aspect-ratio: 1;
-                background-color: var(--card-header-background-color);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 28px;
-                opacity: 0.3;
-            }
-
-            .listing-card .meta {
-                padding: 8px 10px;
-            }
-
-            .listing-card .meta .name {
-                font-size: 12px;
-                font-weight: 500;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-
-            .listing-card .meta .price {
-                font-family: Menlo, Monaco, Consolas, monospace;
-                font-size: 12px;
-                font-weight: 600;
-                margin-top: 2px;
-            }
-
-            /* Identity profile */
-            .profile-field {
-                margin-bottom: 14px;
-            }
-
-            .profile-field:last-child { margin-bottom: 0; }
-
-            .profile-field label {
-                font-size: 11px;
-                text-transform: uppercase;
-                letter-spacing: 0.05em;
-                opacity: 0.6;
-                margin-bottom: 4px;
-            }
-
-            .profile-field .value {
-                font-size: 14px;
-            }
-
-            .profile-field .value.mono {
-                font-family: Menlo, Monaco, Consolas, monospace;
-                font-size: 12px;
-                word-break: break-all;
-            }
-
-            /* Empty state placeholder */
-            .empty-state {
-                text-align: center;
-                padding: 32px 20px;
-                opacity: 0.6;
-            }
-
-            .empty-state .icon {
-                font-size: 36px;
-                margin-bottom: 12px;
-            }
-
-            .empty-state h3 {
-                font-size: 16px;
-                font-weight: 600;
-                margin-bottom: 6px;
-            }
-
-            .empty-state p {
-                font-size: 14px;
-                opacity: 0.7;
-            }
-
-            /* Receive view address share text */
-            .receive-share-text {
-                font-size: 13px;
-                opacity: 0.6;
-                text-align: center;
-                margin-top: 12px;
-            }
-
-            /* Ordinal/listing card thumbnail image */
-            .ordinal-card .thumb img,
-            .listing-card .thumb img {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-            }
-
-            .ordinal-card .thumb .thumb-error,
-            .listing-card .thumb .thumb-error {
-                font-size: 28px;
-                opacity: 0.3;
-            }
-
-            /* Token icon with image */
-            .token-icon img {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-                border-radius: 6px;
-            }
-
-            /* Loading spinner */
-            .loading-state {
-                text-align: center;
-                padding: 48px 20px;
-                opacity: 0.6;
-            }
-
-            .loading-state .spinner {
-                display: inline-block;
-                width: 24px;
-                height: 24px;
-                border: 3px solid var(--border-color);
-                border-top-color: var(--accent);
-                border-radius: 50%;
-                animation: spin 0.8s linear infinite;
-            }
-
-            @keyframes spin {
-                to { transform: rotate(360deg); }
-            }
-
-            .loading-state p {
-                font-size: 14px;
-                margin-top: 12px;
-            }
-
-            /* Skeleton card for loading state */
-            .skeleton {
-                background: linear-gradient(90deg, var(--card-header-background-color) 25%, var(--border-color) 50%, var(--card-header-background-color) 75%);
-                background-size: 200% 100%;
-                animation: shimmer 1.5s infinite;
-                border-radius: 4px;
-            }
-
-            @keyframes shimmer {
-                0% { background-position: 200% 0; }
-                100% { background-position: -200% 0; }
-            }
-
-            .skeleton-grid {
-                display: grid;
-                grid-template-columns: repeat(4, 1fr);
-                gap: 12px;
-            }
-
-            .skeleton-card {
-                background-color: var(--card-background-color);
-                border: 1px solid var(--border-color);
-                border-radius: 8px;
-                overflow: hidden;
-            }
-
-            .skeleton-card .skeleton-thumb {
-                width: 100%;
-                aspect-ratio: 1;
-            }
-
-            .skeleton-card .skeleton-text {
-                margin: 8px 10px;
-                height: 12px;
-                width: 70%;
-            }
-
-            .skeleton-card .skeleton-text-sm {
-                margin: 4px 10px 8px 10px;
-                height: 10px;
-                width: 50%;
-            }
-
-            /* Token skeleton rows */
-            .skeleton-row {
-                display: flex;
-                align-items: center;
-                gap: 14px;
-                padding: 14px 20px;
-                border-bottom: 1px solid var(--border-color);
-            }
-
-            .skeleton-row .skeleton-icon {
-                width: 32px;
-                height: 32px;
-                border-radius: 6px;
-                flex-shrink: 0;
-            }
-
-            .skeleton-row .skeleton-info {
-                flex: 1;
-                display: flex;
-                flex-direction: column;
-                gap: 4px;
-            }
-
-            .skeleton-row .skeleton-line {
-                height: 12px;
-                border-radius: 4px;
-            }
-
-            .skeleton-row .skeleton-line-sm {
-                height: 9px;
-                width: 60%;
-                border-radius: 4px;
-            }
-
-            /* Market view header controls */
-            .market-header {
-                display: flex;
-                align-items: center;
-                gap: 12px;
-                margin-bottom: 16px;
-            }
-
-            .market-header .search-box {
-                flex: 1;
-                max-width: 280px;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                background-color: var(--input-background-color);
-                border: 1px solid var(--border-color);
-                border-radius: 6px;
-                padding: 6px 10px;
-            }
-
-            .market-header .search-box input {
-                flex: 1;
-                background: none;
-                border: none;
-                outline: none;
-                font-size: 12px;
-                color: inherit;
-            }
-
-            .market-header select {
-                background-color: var(--input-background-color);
-                border: 1px solid var(--border-color);
-                border-radius: 6px;
-                padding: 6px 10px;
-                font-size: 12px;
-                color: inherit;
-            }
-
-            .market-header .refresh-btn {
-                width: 32px;
-                height: 32px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                border: 1px solid var(--border-color);
-                background-color: var(--input-background-color);
-                border-radius: 6px;
-                cursor: pointer;
-                color: inherit;
-                font-size: 14px;
-                transition: border-color 0.15s;
-            }
-
-            .market-header .refresh-btn:hover {
-                border-color: var(--accent);
-            }
-
-            .market-header .refresh-btn:disabled {
-                opacity: 0.4;
-                cursor: not-allowed;
-            }
-
-            .market-header .refresh-btn.spinning {
-                animation: spin 0.8s linear infinite;
-            }
-
-            /* Error banner */
-            .error-banner {
-                background-color: rgba(231, 76, 60, 0.1);
-                border: 1px solid rgba(231, 76, 60, 0.3);
-                border-radius: 6px;
-                padding: 10px 14px;
-                font-size: 13px;
-                color: var(--status-error);
-                margin-bottom: 16px;
-            }
-
-            /* Identity profile section */
-            .identity-receive-address {
-                font-family: Menlo, Monaco, Consolas, monospace;
-                font-size: 12px;
-                background-color: var(--card-header-background-color);
-                border: 1px solid var(--border-color);
-                border-radius: 4px;
-                padding: 10px;
-                word-break: break-all;
-                user-select: all;
-                cursor: pointer;
-            }
-
-            textarea {
-                background-color: var(--input-background-color);
-                width: 100%;
-                border: 1px solid var(--border-color);
-                border-radius: 6px;
-                padding: 8px 12px;
-                font-size: 14px;
-                font-family: inherit;
-                resize: vertical;
-                color: inherit;
-            }
-
-            .profile-save-note {
-                font-size: 12px;
-                opacity: 0.5;
-                font-style: italic;
-                margin-top: 8px;
-            }
+        <script src="resource://ladybird/about-pages/wallet/tailwind.js"></script>
+        <style type="text/tailwindcss">
+@import "tailwindcss";
+@theme {
+    --color-card: #1c1c1e;
+    --color-card-header: #161618;
+    --color-border: #2c2c2e;
+    --color-accent: #3b82f6;
+    --color-accent-hover: #2563eb;
+    --color-success: #22c55e;
+    --color-danger: #ef4444;
+    --color-muted: #71717a;
+}
+
+/* Classes set by JS via className = ... must be defined here */
+.status-indicator {
+    @apply inline-block w-2.5 h-2.5 rounded-full mr-2;
+}
+.status-indicator.connected {
+    @apply bg-green-500;
+}
+.status-indicator.disconnected {
+    @apply bg-zinc-500;
+}
+
+.address-display {
+    @apply font-mono text-xs bg-zinc-950 border border-zinc-800 rounded px-3 py-3 break-all select-all cursor-pointer;
+}
+
+.address-placeholder {
+    @apply text-sm text-zinc-500 italic;
+}
+
+.message {
+    @apply text-sm p-2.5 rounded mt-2.5;
+}
+.message.error {
+    @apply bg-red-500/15 text-red-400;
+}
+.message.success {
+    @apply bg-green-500/15 text-green-400;
+}
+
+/* JS-created element classes */
+.ordinal-card {
+    @apply bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden cursor-pointer transition-colors;
+}
+.ordinal-card:hover {
+    @apply border-blue-500;
+}
+.ordinal-card .thumb {
+    @apply w-full aspect-square bg-zinc-950 flex items-center justify-center text-3xl opacity-30;
+}
+.ordinal-card .thumb img {
+    @apply w-full h-full object-cover;
+}
+.ordinal-card .thumb .thumb-error {
+    @apply text-3xl opacity-30;
+}
+.ordinal-card .meta {
+    @apply px-2.5 py-2 text-xs;
+}
+.ordinal-card .meta .name {
+    @apply font-medium whitespace-nowrap overflow-hidden text-ellipsis;
+}
+.ordinal-card .meta .outpoint {
+    @apply font-mono text-[10px] text-zinc-500 mt-0.5;
+}
+
+.token-row {
+    @apply flex items-center gap-3.5 px-5 py-3.5 border-b border-zinc-800 last:border-b-0;
+}
+.token-icon {
+    @apply w-8 h-8 rounded-md bg-zinc-950 flex items-center justify-center text-sm font-semibold text-blue-500 shrink-0;
+}
+.token-icon img {
+    @apply w-full h-full object-cover rounded-md;
+}
+.token-info {
+    @apply flex-1 min-w-0;
+}
+.token-symbol {
+    @apply text-[13px] font-semibold;
+}
+.token-id {
+    @apply font-mono text-[10px] text-zinc-500 whitespace-nowrap overflow-hidden text-ellipsis;
+}
+.token-balance {
+    @apply font-mono text-sm font-medium text-right;
+}
+
+.listing-card {
+    @apply bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden cursor-pointer transition-colors;
+}
+.listing-card:hover {
+    @apply border-blue-500;
+}
+.listing-card .thumb {
+    @apply w-full aspect-square bg-zinc-950 flex items-center justify-center text-3xl opacity-30;
+}
+.listing-card .thumb img {
+    @apply w-full h-full object-cover;
+}
+.listing-card .thumb .thumb-error {
+    @apply text-3xl opacity-30;
+}
+.listing-card .meta {
+    @apply px-2.5 py-2;
+}
+.listing-card .meta .name {
+    @apply text-xs font-medium whitespace-nowrap overflow-hidden text-ellipsis;
+}
+.listing-card .meta .price {
+    @apply font-mono text-xs font-semibold mt-0.5;
+}
+
+/* Skeleton animation */
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.skeleton {
+    background: linear-gradient(90deg, #161618 25%, #2c2c2e 50%, #161618 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    @apply rounded;
+}
+
+/* Loading spinner */
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
         </style>
     </head>
-    <body>
-        <header>
+    <body class="max-w-3xl mx-auto p-5 bg-zinc-950 text-zinc-100 min-h-screen">
+        <header class="flex items-center mb-8">
             <picture>
                 <source
                     srcset="resource://icons/128x128/app-browser.png"
                     media="(prefers-color-scheme: dark)"
                 />
-                <img src="resource://icons/128x128/app-browser-dark.png" />
+                <img class="h-12 mr-2.5 float-left" src="resource://icons/128x128/app-browser-dark.png" />
             </picture>
-            <h1>Bottlebird Wallet</h1>
+            <h1 class="text-xl font-semibold">Bottlebird Wallet</h1>
         </header>
 
         <!-- Onboarding: choice screen -->
         <div id="onboarding-view" class="hidden">
-            <div class="onboarding">
-                <h2>Get Started with BSV</h2>
-                <p>Create a new wallet or import an existing one to begin.</p>
-                <div class="onboarding-actions">
-                    <button id="btn-create-wallet" class="primary-button">Create New Wallet</button>
-                    <button id="btn-import-wallet" class="secondary-button">Import from Backup</button>
+            <div class="text-center py-16 px-5">
+                <h2 class="text-2xl font-semibold mb-2">Get Started with BSV</h2>
+                <p class="text-[15px] text-zinc-500 mb-8">Create a new wallet or import an existing one to begin.</p>
+                <div class="flex flex-col items-center gap-3">
+                    <button id="btn-create-wallet" class="bg-blue-600 hover:bg-blue-700 text-white border-none rounded-lg px-8 py-3 text-sm font-medium cursor-pointer min-w-60">Create New Wallet</button>
+                    <button id="btn-import-wallet" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 rounded-lg px-8 py-3 text-sm cursor-pointer min-w-60">Import from Backup</button>
                 </div>
             </div>
         </div>
 
         <!-- Onboarding: show new mnemonic -->
         <div id="mnemonic-show-view" class="hidden">
-            <div class="card">
-                <div class="card-header">Your Recovery Phrase</div>
-                <div class="card-body">
-                    <p class="description">Write down these 12 words in order and keep them safe. This is the only way to recover your wallet.</p>
-                    <div id="mnemonic-display" class="address-display" style="line-height: 2; font-size: 15px; text-align: center;"></div>
-                    <div class="button-row" style="margin-top: 16px;">
-                        <button id="btn-mnemonic-back" class="secondary-button" style="min-width: auto; padding: 10px 24px;">Back</button>
-                        <button id="btn-mnemonic-confirm" class="primary-button" style="min-width: auto; padding: 10px 24px;">I've Saved It</button>
+            <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+                <div class="bg-zinc-950 border-b border-zinc-800 px-5 py-3.5 text-sm font-medium">Your Recovery Phrase</div>
+                <div class="p-5">
+                    <p class="mb-2.5 text-sm text-zinc-500">Write down these 12 words in order and keep them safe. This is the only way to recover your wallet.</p>
+                    <div id="mnemonic-display" class="address-display leading-8 text-[15px] text-center"></div>
+                    <div class="flex justify-end gap-2.5 mt-4">
+                        <button id="btn-mnemonic-back" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 rounded-lg px-6 py-2.5 text-sm cursor-pointer">Back</button>
+                        <button id="btn-mnemonic-confirm" class="bg-blue-600 hover:bg-blue-700 text-white border-none rounded-lg px-6 py-2.5 text-sm font-medium cursor-pointer">I've Saved It</button>
                     </div>
                 </div>
             </div>
@@ -794,16 +179,16 @@
 
         <!-- Import: choose method -->
         <div id="import-view" class="hidden">
-            <div class="card">
-                <div class="card-header">Import Wallet</div>
-                <div class="card-body">
-                    <p class="description">Choose how to import your wallet.</p>
-                    <div class="onboarding-actions" style="padding: 20px 0;">
-                        <button id="btn-import-mnemonic" class="primary-button">Enter Recovery Phrase</button>
-                        <button id="btn-import-file" class="secondary-button">Import from Backup File</button>
+            <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+                <div class="bg-zinc-950 border-b border-zinc-800 px-5 py-3.5 text-sm font-medium">Import Wallet</div>
+                <div class="p-5">
+                    <p class="mb-2.5 text-sm text-zinc-500">Choose how to import your wallet.</p>
+                    <div class="flex flex-col items-center gap-3 py-5">
+                        <button id="btn-import-mnemonic" class="bg-blue-600 hover:bg-blue-700 text-white border-none rounded-lg px-8 py-3 text-sm font-medium cursor-pointer min-w-60">Enter Recovery Phrase</button>
+                        <button id="btn-import-file" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 rounded-lg px-8 py-3 text-sm cursor-pointer min-w-60">Import from Backup File</button>
                     </div>
-                    <div class="button-row" style="margin-top: 8px;">
-                        <button id="btn-import-back" class="secondary-button" style="min-width: auto; padding: 10px 24px;">Back</button>
+                    <div class="flex justify-end gap-2.5 mt-2">
+                        <button id="btn-import-back" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 rounded-lg px-6 py-2.5 text-sm cursor-pointer">Back</button>
                     </div>
                 </div>
             </div>
@@ -811,17 +196,17 @@
 
         <!-- Import: mnemonic entry -->
         <div id="import-mnemonic-view" class="hidden">
-            <div class="card">
-                <div class="card-header">Recovery Phrase</div>
-                <div class="card-body">
-                    <div class="card-group">
-                        <label for="import-mnemonic">Enter your 12 or 24 word seed phrase</label>
-                        <textarea id="import-mnemonic" rows="4" style="width: 100%; background-color: var(--input-background-color); border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; font-size: 15px; font-family: Menlo, Monaco, Consolas, monospace; resize: vertical;" placeholder="abandon ability able about above absent absorb abstract absurd abuse access accident"></textarea>
+            <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+                <div class="bg-zinc-950 border-b border-zinc-800 px-5 py-3.5 text-sm font-medium">Recovery Phrase</div>
+                <div class="p-5">
+                    <div class="mb-5">
+                        <label class="block mb-2 text-sm text-zinc-400" for="import-mnemonic">Enter your 12 or 24 word seed phrase</label>
+                        <textarea id="import-mnemonic" rows="4" class="bg-zinc-950 w-full border border-zinc-800 rounded-md px-3 py-3 text-[15px] font-mono resize-y text-inherit" placeholder="abandon ability able about above absent absorb abstract absurd abuse access accident"></textarea>
                     </div>
                     <div id="import-mnemonic-error" class="hidden"></div>
-                    <div class="button-row">
-                        <button id="btn-mnemonic-import-back" class="secondary-button" style="min-width: auto; padding: 10px 24px;">Back</button>
-                        <button id="btn-mnemonic-import-confirm" class="primary-button" style="min-width: auto; padding: 10px 24px;">Import</button>
+                    <div class="flex justify-end gap-2.5">
+                        <button id="btn-mnemonic-import-back" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 rounded-lg px-6 py-2.5 text-sm cursor-pointer">Back</button>
+                        <button id="btn-mnemonic-import-confirm" class="bg-blue-600 hover:bg-blue-700 text-white border-none rounded-lg px-6 py-2.5 text-sm font-medium cursor-pointer">Import</button>
                     </div>
                 </div>
             </div>
@@ -829,26 +214,26 @@
 
         <!-- Import: backup file + password -->
         <div id="import-file-view" class="hidden">
-            <div class="card">
-                <div class="card-header">Import from Backup File</div>
-                <div class="card-body">
-                    <div class="card-group">
-                        <label>Backup File (.bep)</label>
-                        <p class="description">Select an encrypted backup file created by bitcoin-backup.</p>
-                        <div class="button-row" style="justify-content: flex-start;">
-                            <button id="btn-pick-file" class="secondary-button" style="min-width: auto; padding: 10px 24px;">Choose File...</button>
-                            <span id="file-name" style="font-size: 14px; opacity: 0.7;">No file selected</span>
+            <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+                <div class="bg-zinc-950 border-b border-zinc-800 px-5 py-3.5 text-sm font-medium">Import from Backup File</div>
+                <div class="p-5">
+                    <div class="mb-5">
+                        <label class="block mb-2 text-sm text-zinc-400">Backup File (.bep)</label>
+                        <p class="mb-2.5 text-sm text-zinc-500">Select an encrypted backup file created by bitcoin-backup.</p>
+                        <div class="flex justify-start gap-2.5">
+                            <button id="btn-pick-file" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 rounded-lg px-6 py-2.5 text-sm cursor-pointer">Choose File...</button>
+                            <span id="file-name" class="text-sm text-zinc-500 self-center">No file selected</span>
                         </div>
                     </div>
-                    <div id="file-password-group" class="card-group hidden">
-                        <label for="file-password">Backup Password</label>
-                        <p class="description">Enter the password used to encrypt this backup.</p>
-                        <input id="file-password" type="password" style="background-color: var(--input-background-color); width: 100%; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 12px;" placeholder="Password" />
+                    <div id="file-password-group" class="mb-5 hidden">
+                        <label class="block mb-2 text-sm text-zinc-400" for="file-password">Backup Password</label>
+                        <p class="mb-2.5 text-sm text-zinc-500">Enter the password used to encrypt this backup.</p>
+                        <input id="file-password" type="password" class="bg-zinc-950 w-full border border-zinc-800 rounded-md px-3 py-2 text-sm" placeholder="Password" />
                     </div>
                     <div id="import-file-error" class="hidden"></div>
-                    <div class="button-row">
-                        <button id="btn-file-import-back" class="secondary-button" style="min-width: auto; padding: 10px 24px;">Back</button>
-                        <button id="btn-file-import-confirm" class="primary-button hidden" style="min-width: auto; padding: 10px 24px;">Decrypt & Import</button>
+                    <div class="flex justify-end gap-2.5">
+                        <button id="btn-file-import-back" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 rounded-lg px-6 py-2.5 text-sm cursor-pointer">Back</button>
+                        <button id="btn-file-import-confirm" class="bg-blue-600 hover:bg-blue-700 text-white border-none rounded-lg px-6 py-2.5 text-sm font-medium cursor-pointer hidden">Decrypt & Import</button>
                     </div>
                 </div>
             </div>
@@ -857,100 +242,98 @@
         <!-- Main wallet view (shown when wallet is configured) -->
         <div id="wallet-view" class="hidden">
             <!-- Navigation bar -->
-            <nav class="wallet-nav">
-                <a class="nav-tab active" href="#dashboard" data-view="dashboard">Dashboard</a>
-                <a class="nav-tab" href="#ordinals" data-view="ordinals">Ordinals</a>
-                <a class="nav-tab" href="#tokens" data-view="tokens">Tokens</a>
-                <a class="nav-tab" href="#market" data-view="market">Market</a>
-                <a class="nav-tab" href="#identity" data-view="identity">Identity</a>
-                <a class="nav-tab" href="#send" data-view="send">Send</a>
-                <a class="nav-tab" href="#receive" data-view="receive">Receive</a>
+            <nav class="flex gap-1 bg-zinc-900 border border-zinc-800 rounded-lg p-1 mb-5 overflow-x-auto">
+                <a class="nav-tab px-3.5 py-2 rounded-md text-sm font-medium cursor-pointer no-underline bg-blue-600 text-white" href="#dashboard" data-view="dashboard">Dashboard</a>
+                <a class="nav-tab px-3.5 py-2 rounded-md text-sm font-medium cursor-pointer no-underline text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200" href="#ordinals" data-view="ordinals">Ordinals</a>
+                <a class="nav-tab px-3.5 py-2 rounded-md text-sm font-medium cursor-pointer no-underline text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200" href="#tokens" data-view="tokens">Tokens</a>
+                <a class="nav-tab px-3.5 py-2 rounded-md text-sm font-medium cursor-pointer no-underline text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200" href="#market" data-view="market">Market</a>
+                <a class="nav-tab px-3.5 py-2 rounded-md text-sm font-medium cursor-pointer no-underline text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200" href="#identity" data-view="identity">Identity</a>
+                <a class="nav-tab px-3.5 py-2 rounded-md text-sm font-medium cursor-pointer no-underline text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200" href="#send" data-view="send">Send</a>
+                <a class="nav-tab px-3.5 py-2 rounded-md text-sm font-medium cursor-pointer no-underline text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200" href="#receive" data-view="receive">Receive</a>
             </nav>
 
             <!-- VIEW: Dashboard -->
             <div id="view-dashboard" class="view-section">
                 <!-- Quick shortcuts -->
-                <div class="shortcuts">
-                    <a class="shortcut" href="#ordinals">
-                        <div class="shortcut-icon" style="background: #8b5cf6;">O</div>
+                <div class="grid grid-cols-4 gap-3 mb-6">
+                    <a class="flex flex-col items-center gap-2 py-4 px-2 bg-zinc-800 rounded-xl cursor-pointer no-underline text-inherit text-[13px] hover:bg-zinc-700 transition-colors" href="#ordinals">
+                        <div class="w-9 h-9 rounded-[10px] flex items-center justify-center text-lg text-white font-semibold" style="background: #8b5cf6;">O</div>
                         <span>Ordinals</span>
                     </a>
-                    <a class="shortcut" href="#tokens">
-                        <div class="shortcut-icon" style="background: #eab308;">T</div>
+                    <a class="flex flex-col items-center gap-2 py-4 px-2 bg-zinc-800 rounded-xl cursor-pointer no-underline text-inherit text-[13px] hover:bg-zinc-700 transition-colors" href="#tokens">
+                        <div class="w-9 h-9 rounded-[10px] flex items-center justify-center text-lg text-white font-semibold" style="background: #eab308;">T</div>
                         <span>Tokens</span>
                     </a>
-                    <a class="shortcut" href="#market">
-                        <div class="shortcut-icon" style="background: #22c55e;">M</div>
+                    <a class="flex flex-col items-center gap-2 py-4 px-2 bg-zinc-800 rounded-xl cursor-pointer no-underline text-inherit text-[13px] hover:bg-zinc-700 transition-colors" href="#market">
+                        <div class="w-9 h-9 rounded-[10px] flex items-center justify-center text-lg text-white font-semibold" style="background: #22c55e;">M</div>
                         <span>Market</span>
                     </a>
-                    <a id="btn-add-account" class="shortcut" href="javascript:void(0)">
-                        <div class="shortcut-icon" style="background: #6366f1;">+</div>
+                    <a id="btn-add-account" class="flex flex-col items-center gap-2 py-4 px-2 bg-zinc-800 rounded-xl cursor-pointer no-underline text-inherit text-[13px] hover:bg-zinc-700 transition-colors" href="javascript:void(0)">
+                        <div class="w-9 h-9 rounded-[10px] flex items-center justify-center text-lg text-white font-semibold" style="background: #6366f1;">+</div>
                         <span>Add Account</span>
                     </a>
                 </div>
 
                 <!-- Status + Config -->
-                <div class="card">
-                    <div class="card-header">Status</div>
-                    <div class="card-body">
-                        <div class="card-group inline-container">
+                <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden mb-5">
+                    <div class="bg-zinc-950 border-b border-zinc-800 px-5 py-3.5 text-sm font-medium">Status</div>
+                    <div class="p-5">
+                        <div class="flex items-center justify-between gap-2.5 mb-5">
                             <span>
                                 <span id="status-indicator" class="status-indicator disconnected"></span>
                                 <span id="status-text">Not Connected</span>
                             </span>
-                            <label class="inline-container" style="margin-bottom: 0;">
+                            <label class="flex items-center gap-2.5 mb-0">
                                 <span>Connect</span>
                                 <input id="wallet-enabled-toggle" type="checkbox" switch />
                             </label>
                         </div>
-                        <hr />
-                        <div class="card-group">
-                            <label for="backend-url">Backend URL</label>
-                            <p class="description">Ordinals API for wallet operations and content resolution.</p>
-                            <input id="backend-url" type="url" value="https://api.1sat.app" />
+                        <hr class="h-px bg-zinc-800 border-none mx-2 mb-4" />
+                        <div class="mb-5 last:mb-0">
+                            <label class="block mb-2 text-sm text-zinc-400" for="backend-url">Backend URL</label>
+                            <p class="mb-2.5 text-sm text-zinc-500">Ordinals API for wallet operations and content resolution.</p>
+                            <input id="backend-url" type="url" class="bg-zinc-950 w-full border border-zinc-800 rounded-md px-3 py-2 text-sm" value="https://api.1sat.app" />
                         </div>
                     </div>
                 </div>
 
                 <!-- Balance -->
-                <div class="card">
-                    <div class="card-header">Balance</div>
-                    <div class="card-body">
-                        <div id="balance-confirmed" class="balance-display">0 sat</div>
-                        <div id="balance-unconfirmed" class="balance-unconfirmed">0 sat unconfirmed</div>
+                <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden mb-5">
+                    <div class="bg-zinc-950 border-b border-zinc-800 px-5 py-3.5 text-sm font-medium">Balance</div>
+                    <div class="p-5">
+                        <div id="balance-confirmed" class="text-3xl font-semibold mb-1">0 sat</div>
+                        <div id="balance-unconfirmed" class="text-sm text-zinc-500">0 sat unconfirmed</div>
                     </div>
                 </div>
-
-                <!-- Identity: see dedicated Identity tab -->
             </div>
 
             <!-- VIEW: Ordinals -->
             <div id="view-ordinals" class="view-section hidden">
-                <div class="card">
-                    <div class="card-header">Your Ordinals</div>
-                    <div class="card-body">
-                        <div id="ordinals-loading" class="loading-state hidden">
-                            <div class="spinner"></div>
-                            <p>Loading ordinals...</p>
+                <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+                    <div class="bg-zinc-950 border-b border-zinc-800 px-5 py-3.5 text-sm font-medium">Your Ordinals</div>
+                    <div class="p-5">
+                        <div id="ordinals-loading" class="text-center py-12 px-5 text-zinc-500 hidden">
+                            <div class="inline-block w-6 h-6 border-3 border-zinc-800 border-t-blue-500 rounded-full animate-spin"></div>
+                            <p class="text-sm mt-3">Loading ordinals...</p>
                         </div>
-                        <div id="ordinals-skeleton" class="skeleton-grid hidden">
-                            <div class="skeleton-card"><div class="skeleton skeleton-thumb"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text-sm"></div></div>
-                            <div class="skeleton-card"><div class="skeleton skeleton-thumb"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text-sm"></div></div>
-                            <div class="skeleton-card"><div class="skeleton skeleton-thumb"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text-sm"></div></div>
-                            <div class="skeleton-card"><div class="skeleton skeleton-thumb"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text-sm"></div></div>
-                            <div class="skeleton-card"><div class="skeleton skeleton-thumb"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text-sm"></div></div>
-                            <div class="skeleton-card"><div class="skeleton skeleton-thumb"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text-sm"></div></div>
-                            <div class="skeleton-card"><div class="skeleton skeleton-thumb"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text-sm"></div></div>
-                            <div class="skeleton-card"><div class="skeleton skeleton-thumb"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text-sm"></div></div>
+                        <div id="ordinals-skeleton" class="grid grid-cols-4 gap-3 hidden">
+                            <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
+                            <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
+                            <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
+                            <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
+                            <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
+                            <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
+                            <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
+                            <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
                         </div>
-                        <div id="ordinals-error" class="error-banner hidden"></div>
-                        <div id="ordinals-grid" class="ordinals-grid">
+                        <div id="ordinals-error" class="bg-red-500/10 border border-red-500/30 rounded-md px-3.5 py-2.5 text-[13px] text-red-400 mb-4 hidden"></div>
+                        <div id="ordinals-grid" class="grid grid-cols-4 gap-3 empty:hidden">
                             <!-- Populated dynamically -->
                         </div>
-                        <div id="ordinals-empty" class="empty-state">
-                            <div class="icon">&#9670;</div>
-                            <h3>No ordinals yet</h3>
-                            <p>Ordinals appear here after you inscribe or receive one.</p>
+                        <div id="ordinals-empty" class="text-center py-8 px-5 text-zinc-500">
+                            <div class="text-4xl mb-3">&#9670;</div>
+                            <h3 class="text-base font-semibold mb-1.5">No ordinals yet</h3>
+                            <p class="text-sm text-zinc-600">Ordinals appear here after you inscribe or receive one.</p>
                         </div>
                     </div>
                 </div>
@@ -958,22 +341,22 @@
 
             <!-- VIEW: Tokens -->
             <div id="view-tokens" class="view-section hidden">
-                <div class="card">
-                    <div class="card-header">BSV21 Tokens</div>
-                    <div class="card-body">
+                <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+                    <div class="bg-zinc-950 border-b border-zinc-800 px-5 py-3.5 text-sm font-medium">BSV21 Tokens</div>
+                    <div class="p-5">
                         <div id="tokens-loading" class="hidden">
-                            <div class="skeleton-row"><div class="skeleton skeleton-icon"></div><div class="skeleton-info"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line-sm"></div></div></div>
-                            <div class="skeleton-row"><div class="skeleton skeleton-icon"></div><div class="skeleton-info"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line-sm"></div></div></div>
-                            <div class="skeleton-row"><div class="skeleton skeleton-icon"></div><div class="skeleton-info"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line-sm"></div></div></div>
+                            <div class="flex items-center gap-3.5 px-5 py-3.5 border-b border-zinc-800"><div class="skeleton w-8 h-8 rounded-md shrink-0"></div><div class="flex-1 flex flex-col gap-1"><div class="skeleton h-3 rounded"></div><div class="skeleton h-2.5 w-[60%] rounded"></div></div></div>
+                            <div class="flex items-center gap-3.5 px-5 py-3.5 border-b border-zinc-800"><div class="skeleton w-8 h-8 rounded-md shrink-0"></div><div class="flex-1 flex flex-col gap-1"><div class="skeleton h-3 rounded"></div><div class="skeleton h-2.5 w-[60%] rounded"></div></div></div>
+                            <div class="flex items-center gap-3.5 px-5 py-3.5 border-b border-zinc-800"><div class="skeleton w-8 h-8 rounded-md shrink-0"></div><div class="flex-1 flex flex-col gap-1"><div class="skeleton h-3 rounded"></div><div class="skeleton h-2.5 w-[60%] rounded"></div></div></div>
                         </div>
-                        <div id="tokens-error" class="error-banner hidden"></div>
+                        <div id="tokens-error" class="bg-red-500/10 border border-red-500/30 rounded-md px-3.5 py-2.5 text-[13px] text-red-400 mb-4 hidden"></div>
                         <div id="tokens-list">
                             <!-- Populated dynamically -->
                         </div>
-                        <div id="tokens-empty" class="empty-state">
-                            <div class="icon">&#9678;</div>
-                            <h3>No tokens yet</h3>
-                            <p>BSV-21 tokens you own will appear here.</p>
+                        <div id="tokens-empty" class="text-center py-8 px-5 text-zinc-500">
+                            <div class="text-4xl mb-3">&#9678;</div>
+                            <h3 class="text-base font-semibold mb-1.5">No tokens yet</h3>
+                            <p class="text-sm text-zinc-600">BSV-21 tokens you own will appear here.</p>
                         </div>
                     </div>
                 </div>
@@ -981,39 +364,39 @@
 
             <!-- VIEW: Market -->
             <div id="view-market" class="view-section hidden">
-                <div class="card">
-                    <div class="card-header">Marketplace</div>
-                    <div class="card-body">
-                        <div class="market-header">
-                            <div class="search-box">
-                                <span style="opacity: 0.5;">&#128269;</span>
-                                <input id="market-search" type="search" placeholder="Search listings..." />
+                <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+                    <div class="bg-zinc-950 border-b border-zinc-800 px-5 py-3.5 text-sm font-medium">Marketplace</div>
+                    <div class="p-5">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="flex-1 max-w-[280px] flex items-center gap-2 bg-zinc-950 border border-zinc-800 rounded-md px-2.5 py-1.5">
+                                <span class="text-zinc-500">&#128269;</span>
+                                <input id="market-search" type="search" class="flex-1 bg-transparent border-none outline-none text-xs text-inherit" placeholder="Search listings..." />
                             </div>
-                            <select id="market-sort">
+                            <select id="market-sort" class="bg-zinc-950 border border-zinc-800 rounded-md px-2.5 py-1.5 text-xs text-inherit">
                                 <option value="recent">Recent</option>
                                 <option value="price-asc">Price: Low to High</option>
                                 <option value="price-desc">Price: High to Low</option>
                             </select>
-                            <button id="market-refresh" class="refresh-btn" title="Refresh listings">&#8635;</button>
+                            <button id="market-refresh" class="w-8 h-8 flex items-center justify-center border border-zinc-800 bg-zinc-950 rounded-md cursor-pointer text-inherit text-sm transition-colors hover:border-blue-500 disabled:opacity-40 disabled:cursor-not-allowed" title="Refresh listings">&#8635;</button>
                         </div>
-                        <div id="market-skeleton" class="skeleton-grid hidden">
-                            <div class="skeleton-card"><div class="skeleton skeleton-thumb"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text-sm"></div></div>
-                            <div class="skeleton-card"><div class="skeleton skeleton-thumb"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text-sm"></div></div>
-                            <div class="skeleton-card"><div class="skeleton skeleton-thumb"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text-sm"></div></div>
-                            <div class="skeleton-card"><div class="skeleton skeleton-thumb"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text-sm"></div></div>
-                            <div class="skeleton-card"><div class="skeleton skeleton-thumb"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text-sm"></div></div>
-                            <div class="skeleton-card"><div class="skeleton skeleton-thumb"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text-sm"></div></div>
-                            <div class="skeleton-card"><div class="skeleton skeleton-thumb"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text-sm"></div></div>
-                            <div class="skeleton-card"><div class="skeleton skeleton-thumb"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text-sm"></div></div>
+                        <div id="market-skeleton" class="grid grid-cols-4 gap-3 hidden">
+                            <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
+                            <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
+                            <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
+                            <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
+                            <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
+                            <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
+                            <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
+                            <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
                         </div>
-                        <div id="market-error" class="error-banner hidden"></div>
-                        <div id="market-grid" class="market-grid">
+                        <div id="market-error" class="bg-red-500/10 border border-red-500/30 rounded-md px-3.5 py-2.5 text-[13px] text-red-400 mb-4 hidden"></div>
+                        <div id="market-grid" class="grid grid-cols-4 gap-3 empty:hidden">
                             <!-- Populated dynamically -->
                         </div>
-                        <div id="market-empty" class="empty-state">
-                            <div class="icon">&#9733;</div>
-                            <h3>No listings available</h3>
-                            <p>Marketplace listings appear once items are listed for sale.</p>
+                        <div id="market-empty" class="text-center py-8 px-5 text-zinc-500">
+                            <div class="text-4xl mb-3">&#9733;</div>
+                            <h3 class="text-base font-semibold mb-1.5">No listings available</h3>
+                            <p class="text-sm text-zinc-600">Marketplace listings appear once items are listed for sale.</p>
                         </div>
                     </div>
                 </div>
@@ -1021,40 +404,40 @@
 
             <!-- VIEW: Identity -->
             <div id="view-identity" class="view-section hidden">
-                <div class="card">
-                    <div class="card-header">Identity</div>
-                    <div class="card-body">
-                        <div class="profile-field">
-                            <label>BAP ID</label>
-                            <div id="identity-bap-id" class="value mono" style="cursor: pointer;" title="Click to copy"></div>
+                <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+                    <div class="bg-zinc-950 border-b border-zinc-800 px-5 py-3.5 text-sm font-medium">Identity</div>
+                    <div class="p-5">
+                        <div class="mb-3.5">
+                            <label class="block mb-1 text-[11px] uppercase tracking-wide text-zinc-500">BAP ID</label>
+                            <div id="identity-bap-id" class="text-sm font-mono text-xs break-all cursor-pointer" title="Click to copy"></div>
                         </div>
-                        <div class="profile-field">
-                            <label>Identity Key</label>
-                            <div id="identity-key" class="value mono" style="cursor: pointer;" title="Click to copy"></div>
+                        <div class="mb-3.5">
+                            <label class="block mb-1 text-[11px] uppercase tracking-wide text-zinc-500">Identity Key</label>
+                            <div id="identity-key" class="text-sm font-mono text-xs break-all cursor-pointer" title="Click to copy"></div>
                         </div>
-                        <hr style="margin: 16px 0;" />
-                        <div class="profile-field">
-                            <label>Receive Address</label>
-                            <div id="identity-receive-address" class="identity-receive-address" title="Click to copy">Loading...</div>
+                        <hr class="h-px bg-zinc-800 border-none my-4" />
+                        <div class="mb-3.5">
+                            <label class="block mb-1 text-[11px] uppercase tracking-wide text-zinc-500">Receive Address</label>
+                            <div id="identity-receive-address" class="font-mono text-xs bg-zinc-950 border border-zinc-800 rounded px-2.5 py-2.5 break-all select-all cursor-pointer" title="Click to copy">Loading...</div>
                         </div>
-                        <hr style="margin: 16px 0;" />
-                        <div class="profile-field">
-                            <label for="profile-name">Display Name</label>
-                            <input id="profile-name" type="text" placeholder="Your name" />
+                        <hr class="h-px bg-zinc-800 border-none my-4" />
+                        <div class="mb-3.5">
+                            <label class="block mb-2 text-sm text-zinc-400" for="profile-name">Display Name</label>
+                            <input id="profile-name" type="text" class="bg-zinc-950 w-full border border-zinc-800 rounded-md px-3 py-2 text-sm" placeholder="Your name" />
                         </div>
-                        <div class="profile-field">
-                            <label for="profile-description">Description</label>
-                            <textarea id="profile-description" rows="3" placeholder="A short bio about yourself"></textarea>
+                        <div class="mb-3.5">
+                            <label class="block mb-2 text-sm text-zinc-400" for="profile-description">Description</label>
+                            <textarea id="profile-description" rows="3" class="bg-zinc-950 w-full border border-zinc-800 rounded-md px-3 py-2 text-sm font-sans resize-y text-inherit" placeholder="A short bio about yourself"></textarea>
                         </div>
-                        <div class="profile-field">
-                            <label for="profile-avatar">Avatar URL</label>
-                            <input id="profile-avatar" type="url" placeholder="https://ordfs.network/{origin}" />
+                        <div class="mb-3.5">
+                            <label class="block mb-2 text-sm text-zinc-400" for="profile-avatar">Avatar URL</label>
+                            <input id="profile-avatar" type="url" class="bg-zinc-950 w-full border border-zinc-800 rounded-md px-3 py-2 text-sm" placeholder="https://ordfs.network/{origin}" />
                         </div>
-                        <p class="profile-save-note">Profile editing is not yet connected to on-chain publishing.</p>
-                        <div id="identity-empty" class="empty-state hidden">
-                            <div class="icon">&#128100;</div>
-                            <h3>No identity available</h3>
-                            <p>Create or import a wallet to set up your identity.</p>
+                        <p class="text-xs text-zinc-600 italic mt-2">Profile editing is not yet connected to on-chain publishing.</p>
+                        <div id="identity-empty" class="text-center py-8 px-5 text-zinc-500 hidden">
+                            <div class="text-4xl mb-3">&#128100;</div>
+                            <h3 class="text-base font-semibold mb-1.5">No identity available</h3>
+                            <p class="text-sm text-zinc-600">Create or import a wallet to set up your identity.</p>
                         </div>
                     </div>
                 </div>
@@ -1062,20 +445,20 @@
 
             <!-- VIEW: Send -->
             <div id="view-send" class="view-section hidden">
-                <div class="card">
-                    <div class="card-header">Send BSV</div>
-                    <div class="card-body">
-                        <div class="send-form">
-                            <div class="card-group">
-                                <label for="send-recipient">Recipient Address</label>
-                                <input id="send-recipient" type="text" placeholder="Enter BSV address" />
+                <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+                    <div class="bg-zinc-950 border-b border-zinc-800 px-5 py-3.5 text-sm font-medium">Send BSV</div>
+                    <div class="p-5">
+                        <div class="flex flex-col gap-4">
+                            <div class="mb-5 last:mb-0">
+                                <label class="block mb-2 text-sm text-zinc-400" for="send-recipient">Recipient Address</label>
+                                <input id="send-recipient" type="text" class="bg-zinc-950 w-full border border-zinc-800 rounded-md px-3 py-2 text-sm" placeholder="Enter BSV address" />
                             </div>
-                            <div class="card-group">
-                                <label for="send-amount">Amount (satoshis)</label>
-                                <input id="send-amount" type="number" min="1" placeholder="0" />
+                            <div class="mb-5 last:mb-0">
+                                <label class="block mb-2 text-sm text-zinc-400" for="send-amount">Amount (satoshis)</label>
+                                <input id="send-amount" type="number" min="1" class="bg-zinc-950 w-full border border-zinc-800 rounded-md px-3 py-2 text-sm" placeholder="0" />
                             </div>
-                            <div class="button-row">
-                                <button id="send-button" class="primary-button" style="min-width: auto; padding: 10px 24px;">Send</button>
+                            <div class="flex justify-end gap-2.5">
+                                <button id="send-button" class="bg-blue-600 hover:bg-blue-700 text-white border-none rounded-lg px-6 py-2.5 text-sm font-medium cursor-pointer">Send</button>
                             </div>
                             <div id="send-message" class="hidden"></div>
                         </div>
@@ -1085,27 +468,27 @@
 
             <!-- VIEW: Receive -->
             <div id="view-receive" class="view-section hidden">
-                <div class="card">
-                    <div class="card-header">Receive BSV</div>
-                    <div class="card-body">
-                        <div class="card-group">
-                            <label>Your Address</label>
+                <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+                    <div class="bg-zinc-950 border-b border-zinc-800 px-5 py-3.5 text-sm font-medium">Receive BSV</div>
+                    <div class="p-5">
+                        <div class="mb-5 last:mb-0">
+                            <label class="block mb-2 text-sm text-zinc-400">Your Address</label>
                             <div id="receive-address" class="address-placeholder">Enable wallet to see your address</div>
                         </div>
-                        <p class="receive-share-text">Share this address to receive BSV</p>
+                        <p class="text-[13px] text-zinc-500 text-center mt-3">Share this address to receive BSV</p>
                     </div>
                 </div>
             </div>
 
             <!-- VIEW: Chat (placeholder) -->
             <div id="view-chat" class="view-section hidden">
-                <div class="card">
-                    <div class="card-header">BitChat</div>
-                    <div class="card-body">
-                        <div class="empty-state">
-                            <div class="icon">&#128172;</div>
-                            <h3>BitChat</h3>
-                            <p>Decentralized messaging on the blockchain. Coming soon.</p>
+                <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+                    <div class="bg-zinc-950 border-b border-zinc-800 px-5 py-3.5 text-sm font-medium">BitChat</div>
+                    <div class="p-5">
+                        <div class="text-center py-8 px-5 text-zinc-500">
+                            <div class="text-4xl mb-3">&#128172;</div>
+                            <h3 class="text-base font-semibold mb-1.5">BitChat</h3>
+                            <p class="text-sm text-zinc-600">Decentralized messaging on the blockchain. Coming soon.</p>
                         </div>
                     </div>
                 </div>
@@ -1113,13 +496,13 @@
 
             <!-- VIEW: Publish (placeholder) -->
             <div id="view-publish" class="view-section hidden">
-                <div class="card">
-                    <div class="card-header">Publish / Inscribe</div>
-                    <div class="card-body">
-                        <div class="empty-state">
-                            <div class="icon">&#9998;</div>
-                            <h3>Inscribe on-chain</h3>
-                            <p>Publish content as ordinals on the BSV blockchain. Coming soon.</p>
+                <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+                    <div class="bg-zinc-950 border-b border-zinc-800 px-5 py-3.5 text-sm font-medium">Publish / Inscribe</div>
+                    <div class="p-5">
+                        <div class="text-center py-8 px-5 text-zinc-500">
+                            <div class="text-4xl mb-3">&#9998;</div>
+                            <h3 class="text-base font-semibold mb-1.5">Inscribe on-chain</h3>
+                            <p class="text-sm text-zinc-600">Publish content as ordinals on the BSV blockchain. Coming soon.</p>
                         </div>
                     </div>
                 </div>
