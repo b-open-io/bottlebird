@@ -46,23 +46,64 @@ const filePasswordGroup = document.querySelector("#file-password-group");
 const filePassword = document.querySelector("#file-password");
 const importFileError = document.querySelector("#import-file-error");
 
-// Identity (dashboard card)
-// Identity view elements (dedicated tab)
-
-// Identity (full view)
+// Identity view elements
 const identityBapIdView = document.querySelector("#identity-bap-id");
 const identityKeyView = document.querySelector("#identity-key");
 const identityEmpty = document.querySelector("#identity-empty");
+const identityReceiveAddress = document.querySelector("#identity-receive-address");
 
 // Dashboard add account
 const btnAddAccount = document.querySelector("#btn-add-account");
+
+// Ordinals view elements
+const ordinalsGrid = document.querySelector("#ordinals-grid");
+const ordinalsEmpty = document.querySelector("#ordinals-empty");
+const ordinalsSkeleton = document.querySelector("#ordinals-skeleton");
+const ordinalsError = document.querySelector("#ordinals-error");
+
+// Tokens view elements
+const tokensList = document.querySelector("#tokens-list");
+const tokensEmpty = document.querySelector("#tokens-empty");
+const tokensLoading = document.querySelector("#tokens-loading");
+const tokensError = document.querySelector("#tokens-error");
+
+// Market view elements
+const marketGrid = document.querySelector("#market-grid");
+const marketEmpty = document.querySelector("#market-empty");
+const marketSkeleton = document.querySelector("#market-skeleton");
+const marketError = document.querySelector("#market-error");
+const marketSearch = document.querySelector("#market-search");
+const marketSort = document.querySelector("#market-sort");
+const marketRefresh = document.querySelector("#market-refresh");
 
 let walletEnabled = false;
 let previousView = "onboarding";
 let pendingFileData = null;
 
+// ── Data fetch state tracking ─────────────────────────────────────
+// Prevents re-fetching data every time a user switches tabs
+const fetchState = {
+    ordinals: { loaded: false, loading: false },
+    tokens: { loaded: false, loading: false },
+    market: { loaded: false, loading: false, data: [] },
+};
+
+const ORDFS_BASE = "https://ordfs.network";
+const GORILLA_API = "https://ordinals.gorillapool.io/api";
+
 function formatSatoshis(sats) {
     return `${Number(sats).toLocaleString()} sat`;
+}
+
+function formatSatsCompact(sats) {
+    if (sats >= 1_000_000) return `${(sats / 1_000_000).toFixed(2)}M`;
+    if (sats >= 1_000) return `${(sats / 1_000).toFixed(0)}K`;
+    return sats.toLocaleString();
+}
+
+function truncateOutpoint(outpoint) {
+    if (!outpoint || outpoint.length <= 14) return outpoint || "";
+    return `${outpoint.slice(0, 8)}...${outpoint.slice(-4)}`;
 }
 
 const ALL_VIEWS = [onboardingView, mnemonicShowView, importView, importMnemonicView, importFileView, walletView];
@@ -109,9 +150,379 @@ function navigateToView(hash) {
     document.querySelectorAll(".nav-tab").forEach(tab => {
         tab.classList.toggle("active", tab.dataset.view === resolvedView);
     });
+
+    // Trigger data fetching for content views
+    if (resolvedView === "ordinals" && !fetchState.ordinals.loaded && !fetchState.ordinals.loading) {
+        fetchOrdinals();
+    }
+    if (resolvedView === "tokens" && !fetchState.tokens.loaded && !fetchState.tokens.loading) {
+        fetchTokens();
+    }
+    if (resolvedView === "market" && !fetchState.market.loaded && !fetchState.market.loading) {
+        fetchMarketListings();
+    }
 }
 
 window.addEventListener("hashchange", () => navigateToView(location.hash));
+
+// ── Ordinals fetching ─────────────────────────────────────────────
+
+async function fetchOrdinals() {
+    fetchState.ordinals.loading = true;
+    ordinalsEmpty.classList.add("hidden");
+    ordinalsError.classList.add("hidden");
+    ordinalsGrid.innerHTML = "";
+    ordinalsSkeleton.classList.remove("hidden");
+
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10_000);
+
+        const resp = await fetch(`${GORILLA_API}/market?limit=20&sort=recent`, {
+            signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+
+        const data = await resp.json();
+        const items = parseMarketItems(data);
+
+        ordinalsSkeleton.classList.add("hidden");
+
+        if (items.length === 0) {
+            ordinalsEmpty.classList.remove("hidden");
+            return;
+        }
+
+        for (const item of items) {
+            ordinalsGrid.appendChild(createOrdinalCard(item));
+        }
+
+        fetchState.ordinals.loaded = true;
+    } catch (err) {
+        ordinalsSkeleton.classList.add("hidden");
+        const isAbort = err instanceof DOMException && err.name === "AbortError";
+        ordinalsError.textContent = isAbort
+            ? "Request timed out. Check your connection."
+            : (err.message || "Failed to load ordinals.");
+        ordinalsError.classList.remove("hidden");
+    } finally {
+        fetchState.ordinals.loading = false;
+    }
+}
+
+function createOrdinalCard(item) {
+    const card = document.createElement("div");
+    card.className = "ordinal-card";
+    card.addEventListener("click", () => {
+        window.location.href = `1sat://${item.outpoint}`;
+    });
+
+    const thumb = document.createElement("div");
+    thumb.className = "thumb";
+    const img = document.createElement("img");
+    img.src = `${ORDFS_BASE}/${item.outpoint}`;
+    img.alt = item.name;
+    img.loading = "lazy";
+    img.addEventListener("error", () => {
+        img.remove();
+        const fallback = document.createElement("span");
+        fallback.className = "thumb-error";
+        fallback.textContent = "\u25C6"; // diamond
+        thumb.appendChild(fallback);
+    });
+    thumb.appendChild(img);
+
+    const meta = document.createElement("div");
+    meta.className = "meta";
+    const nameEl = document.createElement("div");
+    nameEl.className = "name";
+    nameEl.textContent = item.name || "Unnamed";
+    const outpointEl = document.createElement("div");
+    outpointEl.className = "outpoint";
+    outpointEl.textContent = truncateOutpoint(item.outpoint);
+    meta.appendChild(nameEl);
+    meta.appendChild(outpointEl);
+
+    card.appendChild(thumb);
+    card.appendChild(meta);
+    return card;
+}
+
+// ── Tokens fetching ───────────────────────────────────────────────
+
+async function fetchTokens() {
+    fetchState.tokens.loading = true;
+    tokensEmpty.classList.add("hidden");
+    tokensError.classList.add("hidden");
+    tokensList.innerHTML = "";
+    tokensLoading.classList.remove("hidden");
+
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10_000);
+
+        const resp = await fetch(`${GORILLA_API}/bsv21?limit=20&sort=height&dir=desc`, {
+            signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+
+        const data = await resp.json();
+        const tokens = parseTokenItems(data);
+
+        tokensLoading.classList.add("hidden");
+
+        if (tokens.length === 0) {
+            tokensEmpty.classList.remove("hidden");
+            return;
+        }
+
+        for (const token of tokens) {
+            tokensList.appendChild(createTokenRow(token));
+        }
+
+        fetchState.tokens.loaded = true;
+    } catch (err) {
+        tokensLoading.classList.add("hidden");
+        const isAbort = err instanceof DOMException && err.name === "AbortError";
+        tokensError.textContent = isAbort
+            ? "Request timed out. Check your connection."
+            : (err.message || "Failed to load tokens.");
+        tokensError.classList.remove("hidden");
+    } finally {
+        fetchState.tokens.loading = false;
+    }
+}
+
+function parseTokenItems(data) {
+    const items = Array.isArray(data) ? data : (data?.results || data?.tokens || []);
+    return items.map((item, index) => {
+        const id = item.id || item.txid || item.outpoint || `token-${index}`;
+        const sym = item.sym || item.symbol || item.tick || id.slice(0, 8);
+        const name = item.name || sym;
+        const supply = item.supply || item.amt || item.totalSupply || "0";
+        const dec = item.dec ?? item.decimals ?? 0;
+        const icon = item.icon || null;
+        return { id, sym, name, supply, dec, icon };
+    });
+}
+
+function createTokenRow(token) {
+    const row = document.createElement("div");
+    row.className = "token-row";
+
+    const icon = document.createElement("div");
+    icon.className = "token-icon";
+    if (token.icon) {
+        const img = document.createElement("img");
+        img.src = `${ORDFS_BASE}/${token.icon}`;
+        img.alt = token.sym;
+        img.loading = "lazy";
+        img.addEventListener("error", () => {
+            img.remove();
+            icon.textContent = token.sym.charAt(0).toUpperCase();
+        });
+        icon.appendChild(img);
+    } else {
+        icon.textContent = token.sym.charAt(0).toUpperCase();
+    }
+
+    const info = document.createElement("div");
+    info.className = "token-info";
+    const symEl = document.createElement("div");
+    symEl.className = "token-symbol";
+    symEl.textContent = token.sym;
+    const idEl = document.createElement("div");
+    idEl.className = "token-id";
+    idEl.textContent = truncateOutpoint(token.id);
+    idEl.title = token.id;
+    info.appendChild(symEl);
+    info.appendChild(idEl);
+
+    const balanceEl = document.createElement("div");
+    balanceEl.className = "token-balance";
+    const supplyNum = Number(token.supply) / (10 ** token.dec);
+    balanceEl.textContent = supplyNum.toLocaleString(undefined, { maximumFractionDigits: token.dec });
+
+    row.appendChild(icon);
+    row.appendChild(info);
+    row.appendChild(balanceEl);
+    return row;
+}
+
+// ── Market fetching ───────────────────────────────────────────────
+
+async function fetchMarketListings(force) {
+    if (force) {
+        fetchState.market.loaded = false;
+    }
+    fetchState.market.loading = true;
+    marketEmpty.classList.add("hidden");
+    marketError.classList.add("hidden");
+    marketGrid.innerHTML = "";
+    marketSkeleton.classList.remove("hidden");
+    if (marketRefresh) marketRefresh.classList.add("spinning");
+
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10_000);
+
+        const resp = await fetch(`${GORILLA_API}/market?limit=20&sort=recent`, {
+            signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+
+        const data = await resp.json();
+        const items = parseMarketItems(data);
+
+        fetchState.market.data = items;
+        marketSkeleton.classList.add("hidden");
+
+        renderMarketGrid(items);
+        fetchState.market.loaded = true;
+    } catch (err) {
+        marketSkeleton.classList.add("hidden");
+        const isAbort = err instanceof DOMException && err.name === "AbortError";
+        marketError.textContent = isAbort
+            ? "Request timed out. Check your connection."
+            : (err.message || "Failed to load marketplace.");
+        marketError.classList.remove("hidden");
+    } finally {
+        fetchState.market.loading = false;
+        if (marketRefresh) marketRefresh.classList.remove("spinning");
+    }
+}
+
+function parseMarketItems(raw) {
+    const items = Array.isArray(raw)
+        ? raw
+        : (raw?.listings || raw?.data || raw?.results || []);
+
+    return items.map((r, index) => {
+        const outpoint = r.outpoint
+            || (r.txid && typeof r.vout === "number" ? `${r.txid}_${r.vout}` : null)
+            || r.origin?.outpoint
+            || `unknown_${index}`;
+
+        const priceSats = r.price ?? r.priceSats ?? r.satoshis ?? 0;
+
+        const seller = r.owner || r.seller || r.address || "unknown";
+
+        const name = r.name
+            || r.metadata?.name
+            || r.origin?.data?.map?.name
+            || truncateOutpoint(outpoint);
+
+        return {
+            id: outpoint,
+            outpoint,
+            name,
+            priceSats: Number(priceSats),
+            seller,
+        };
+    });
+}
+
+function renderMarketGrid(items) {
+    marketGrid.innerHTML = "";
+
+    // Apply search filter
+    const query = (marketSearch?.value || "").toLowerCase().trim();
+    let filtered = query
+        ? items.filter(l => l.name.toLowerCase().includes(query))
+        : items;
+
+    // Apply sort
+    const sortMode = marketSort?.value || "recent";
+    if (sortMode === "price-asc") {
+        filtered = [...filtered].sort((a, b) => a.priceSats - b.priceSats);
+    } else if (sortMode === "price-desc") {
+        filtered = [...filtered].sort((a, b) => b.priceSats - a.priceSats);
+    }
+
+    if (filtered.length === 0) {
+        marketEmpty.classList.remove("hidden");
+        if (query) {
+            marketEmpty.querySelector("h3").textContent = `No listings match "${query}"`;
+        } else {
+            marketEmpty.querySelector("h3").textContent = "No listings available";
+        }
+        return;
+    }
+
+    marketEmpty.classList.add("hidden");
+    for (const item of filtered) {
+        marketGrid.appendChild(createListingCard(item));
+    }
+}
+
+function createListingCard(item) {
+    const card = document.createElement("div");
+    card.className = "listing-card";
+    card.addEventListener("click", () => {
+        window.location.href = `1sat://${item.outpoint}`;
+    });
+
+    const thumb = document.createElement("div");
+    thumb.className = "thumb";
+    const img = document.createElement("img");
+    img.src = `${ORDFS_BASE}/${item.outpoint}`;
+    img.alt = item.name;
+    img.loading = "lazy";
+    img.addEventListener("error", () => {
+        img.remove();
+        const fallback = document.createElement("span");
+        fallback.className = "thumb-error";
+        fallback.textContent = "\u2605"; // star
+        thumb.appendChild(fallback);
+    });
+    thumb.appendChild(img);
+
+    const meta = document.createElement("div");
+    meta.className = "meta";
+    const nameEl = document.createElement("div");
+    nameEl.className = "name";
+    nameEl.textContent = item.name;
+    const priceEl = document.createElement("div");
+    priceEl.className = "price";
+    priceEl.textContent = `${formatSatsCompact(item.priceSats)} sats`;
+    meta.appendChild(nameEl);
+    meta.appendChild(priceEl);
+
+    card.appendChild(thumb);
+    card.appendChild(meta);
+    return card;
+}
+
+// Market search/sort event handlers
+if (marketSearch) {
+    marketSearch.addEventListener("input", () => {
+        if (fetchState.market.loaded) {
+            renderMarketGrid(fetchState.market.data);
+        }
+    });
+}
+
+if (marketSort) {
+    marketSort.addEventListener("change", () => {
+        if (fetchState.market.loaded) {
+            renderMarketGrid(fetchState.market.data);
+        }
+    });
+}
+
+if (marketRefresh) {
+    marketRefresh.addEventListener("click", () => {
+        if (!fetchState.market.loading) {
+            fetchMarketListings(true);
+        }
+    });
+}
 
 // ── Routing ────────────────────────────────────────────────────────
 
@@ -184,11 +595,22 @@ function updateReceiveAddress(data) {
         currentAddress = data.address;
         receiveAddress.className = "address-display";
         receiveAddress.textContent = data.address;
+
+        // Also show in identity view
+        if (identityReceiveAddress) {
+            identityReceiveAddress.textContent = data.address;
+        }
+
         if (walletEnabled) requestBalance();
     } else {
         currentAddress = null;
         receiveAddress.className = "address-placeholder";
         receiveAddress.textContent = "Create or import a wallet to see your address";
+
+        if (identityReceiveAddress) {
+            identityReceiveAddress.textContent = "No address available";
+        }
+
         updateBalance({ confirmed: 0, unconfirmed: 0 });
     }
 }
@@ -347,25 +769,17 @@ if (identityKeyView) {
     });
 }
 
-identityBapIdView.addEventListener("click", () => {
-    const text = identityBapIdView.textContent;
-    if (text && text !== "No BAP ID available") {
-        navigator.clipboard.writeText(text);
-        const original = text;
-        identityBapIdView.textContent = "Copied!";
-        setTimeout(() => { identityBapIdView.textContent = original; }, 1500);
-    }
-});
-
-identityKeyView.addEventListener("click", () => {
-    const text = identityKeyView.textContent;
-    if (text && text !== "No identity key available") {
-        navigator.clipboard.writeText(text);
-        const original = text;
-        identityKeyView.textContent = "Copied!";
-        setTimeout(() => { identityKeyView.textContent = original; }, 1500);
-    }
-});
+if (identityReceiveAddress) {
+    identityReceiveAddress.addEventListener("click", () => {
+        const text = identityReceiveAddress.textContent;
+        if (text && text !== "Loading..." && text !== "No address available") {
+            navigator.clipboard.writeText(text);
+            const original = text;
+            identityReceiveAddress.textContent = "Copied!";
+            setTimeout(() => { identityReceiveAddress.textContent = original; }, 1500);
+        }
+    });
+}
 
 receiveAddress.addEventListener("click", () => {
     if (receiveAddress.classList.contains("address-display")) {

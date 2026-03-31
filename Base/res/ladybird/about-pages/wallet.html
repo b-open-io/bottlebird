@@ -513,6 +513,240 @@
                 text-align: center;
                 margin-top: 12px;
             }
+
+            /* Ordinal/listing card thumbnail image */
+            .ordinal-card .thumb img,
+            .listing-card .thumb img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            .ordinal-card .thumb .thumb-error,
+            .listing-card .thumb .thumb-error {
+                font-size: 28px;
+                opacity: 0.3;
+            }
+
+            /* Token icon with image */
+            .token-icon img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                border-radius: 6px;
+            }
+
+            /* Loading spinner */
+            .loading-state {
+                text-align: center;
+                padding: 48px 20px;
+                opacity: 0.6;
+            }
+
+            .loading-state .spinner {
+                display: inline-block;
+                width: 24px;
+                height: 24px;
+                border: 3px solid var(--border-color);
+                border-top-color: var(--accent);
+                border-radius: 50%;
+                animation: spin 0.8s linear infinite;
+            }
+
+            @keyframes spin {
+                to { transform: rotate(360deg); }
+            }
+
+            .loading-state p {
+                font-size: 14px;
+                margin-top: 12px;
+            }
+
+            /* Skeleton card for loading state */
+            .skeleton {
+                background: linear-gradient(90deg, var(--card-header-background-color) 25%, var(--border-color) 50%, var(--card-header-background-color) 75%);
+                background-size: 200% 100%;
+                animation: shimmer 1.5s infinite;
+                border-radius: 4px;
+            }
+
+            @keyframes shimmer {
+                0% { background-position: 200% 0; }
+                100% { background-position: -200% 0; }
+            }
+
+            .skeleton-grid {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 12px;
+            }
+
+            .skeleton-card {
+                background-color: var(--card-background-color);
+                border: 1px solid var(--border-color);
+                border-radius: 8px;
+                overflow: hidden;
+            }
+
+            .skeleton-card .skeleton-thumb {
+                width: 100%;
+                aspect-ratio: 1;
+            }
+
+            .skeleton-card .skeleton-text {
+                margin: 8px 10px;
+                height: 12px;
+                width: 70%;
+            }
+
+            .skeleton-card .skeleton-text-sm {
+                margin: 4px 10px 8px 10px;
+                height: 10px;
+                width: 50%;
+            }
+
+            /* Token skeleton rows */
+            .skeleton-row {
+                display: flex;
+                align-items: center;
+                gap: 14px;
+                padding: 14px 20px;
+                border-bottom: 1px solid var(--border-color);
+            }
+
+            .skeleton-row .skeleton-icon {
+                width: 32px;
+                height: 32px;
+                border-radius: 6px;
+                flex-shrink: 0;
+            }
+
+            .skeleton-row .skeleton-info {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            .skeleton-row .skeleton-line {
+                height: 12px;
+                border-radius: 4px;
+            }
+
+            .skeleton-row .skeleton-line-sm {
+                height: 9px;
+                width: 60%;
+                border-radius: 4px;
+            }
+
+            /* Market view header controls */
+            .market-header {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                margin-bottom: 16px;
+            }
+
+            .market-header .search-box {
+                flex: 1;
+                max-width: 280px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                background-color: var(--input-background-color);
+                border: 1px solid var(--border-color);
+                border-radius: 6px;
+                padding: 6px 10px;
+            }
+
+            .market-header .search-box input {
+                flex: 1;
+                background: none;
+                border: none;
+                outline: none;
+                font-size: 12px;
+                color: inherit;
+            }
+
+            .market-header select {
+                background-color: var(--input-background-color);
+                border: 1px solid var(--border-color);
+                border-radius: 6px;
+                padding: 6px 10px;
+                font-size: 12px;
+                color: inherit;
+            }
+
+            .market-header .refresh-btn {
+                width: 32px;
+                height: 32px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border: 1px solid var(--border-color);
+                background-color: var(--input-background-color);
+                border-radius: 6px;
+                cursor: pointer;
+                color: inherit;
+                font-size: 14px;
+                transition: border-color 0.15s;
+            }
+
+            .market-header .refresh-btn:hover {
+                border-color: var(--accent);
+            }
+
+            .market-header .refresh-btn:disabled {
+                opacity: 0.4;
+                cursor: not-allowed;
+            }
+
+            .market-header .refresh-btn.spinning {
+                animation: spin 0.8s linear infinite;
+            }
+
+            /* Error banner */
+            .error-banner {
+                background-color: rgba(231, 76, 60, 0.1);
+                border: 1px solid rgba(231, 76, 60, 0.3);
+                border-radius: 6px;
+                padding: 10px 14px;
+                font-size: 13px;
+                color: var(--status-error);
+                margin-bottom: 16px;
+            }
+
+            /* Identity profile section */
+            .identity-receive-address {
+                font-family: Menlo, Monaco, Consolas, monospace;
+                font-size: 12px;
+                background-color: var(--card-header-background-color);
+                border: 1px solid var(--border-color);
+                border-radius: 4px;
+                padding: 10px;
+                word-break: break-all;
+                user-select: all;
+                cursor: pointer;
+            }
+
+            textarea {
+                background-color: var(--input-background-color);
+                width: 100%;
+                border: 1px solid var(--border-color);
+                border-radius: 6px;
+                padding: 8px 12px;
+                font-size: 14px;
+                font-family: inherit;
+                resize: vertical;
+                color: inherit;
+            }
+
+            .profile-save-note {
+                font-size: 12px;
+                opacity: 0.5;
+                font-style: italic;
+                margin-top: 8px;
+            }
         </style>
     </head>
     <body>
@@ -691,8 +925,23 @@
                 <div class="card">
                     <div class="card-header">Your Ordinals</div>
                     <div class="card-body">
+                        <div id="ordinals-loading" class="loading-state hidden">
+                            <div class="spinner"></div>
+                            <p>Loading ordinals...</p>
+                        </div>
+                        <div id="ordinals-skeleton" class="skeleton-grid hidden">
+                            <div class="skeleton-card"><div class="skeleton skeleton-thumb"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text-sm"></div></div>
+                            <div class="skeleton-card"><div class="skeleton skeleton-thumb"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text-sm"></div></div>
+                            <div class="skeleton-card"><div class="skeleton skeleton-thumb"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text-sm"></div></div>
+                            <div class="skeleton-card"><div class="skeleton skeleton-thumb"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text-sm"></div></div>
+                            <div class="skeleton-card"><div class="skeleton skeleton-thumb"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text-sm"></div></div>
+                            <div class="skeleton-card"><div class="skeleton skeleton-thumb"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text-sm"></div></div>
+                            <div class="skeleton-card"><div class="skeleton skeleton-thumb"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text-sm"></div></div>
+                            <div class="skeleton-card"><div class="skeleton skeleton-thumb"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text-sm"></div></div>
+                        </div>
+                        <div id="ordinals-error" class="error-banner hidden"></div>
                         <div id="ordinals-grid" class="ordinals-grid">
-                            <!-- Populated dynamically when connected -->
+                            <!-- Populated dynamically -->
                         </div>
                         <div id="ordinals-empty" class="empty-state">
                             <div class="icon">&#9670;</div>
@@ -708,8 +957,14 @@
                 <div class="card">
                     <div class="card-header">BSV21 Tokens</div>
                     <div class="card-body">
+                        <div id="tokens-loading" class="hidden">
+                            <div class="skeleton-row"><div class="skeleton skeleton-icon"></div><div class="skeleton-info"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line-sm"></div></div></div>
+                            <div class="skeleton-row"><div class="skeleton skeleton-icon"></div><div class="skeleton-info"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line-sm"></div></div></div>
+                            <div class="skeleton-row"><div class="skeleton skeleton-icon"></div><div class="skeleton-info"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line-sm"></div></div></div>
+                        </div>
+                        <div id="tokens-error" class="error-banner hidden"></div>
                         <div id="tokens-list">
-                            <!-- Populated dynamically when connected -->
+                            <!-- Populated dynamically -->
                         </div>
                         <div id="tokens-empty" class="empty-state">
                             <div class="icon">&#9678;</div>
@@ -725,8 +980,31 @@
                 <div class="card">
                     <div class="card-header">Marketplace</div>
                     <div class="card-body">
+                        <div class="market-header">
+                            <div class="search-box">
+                                <span style="opacity: 0.5;">&#128269;</span>
+                                <input id="market-search" type="search" placeholder="Search listings..." />
+                            </div>
+                            <select id="market-sort">
+                                <option value="recent">Recent</option>
+                                <option value="price-asc">Price: Low to High</option>
+                                <option value="price-desc">Price: High to Low</option>
+                            </select>
+                            <button id="market-refresh" class="refresh-btn" title="Refresh listings">&#8635;</button>
+                        </div>
+                        <div id="market-skeleton" class="skeleton-grid hidden">
+                            <div class="skeleton-card"><div class="skeleton skeleton-thumb"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text-sm"></div></div>
+                            <div class="skeleton-card"><div class="skeleton skeleton-thumb"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text-sm"></div></div>
+                            <div class="skeleton-card"><div class="skeleton skeleton-thumb"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text-sm"></div></div>
+                            <div class="skeleton-card"><div class="skeleton skeleton-thumb"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text-sm"></div></div>
+                            <div class="skeleton-card"><div class="skeleton skeleton-thumb"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text-sm"></div></div>
+                            <div class="skeleton-card"><div class="skeleton skeleton-thumb"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text-sm"></div></div>
+                            <div class="skeleton-card"><div class="skeleton skeleton-thumb"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text-sm"></div></div>
+                            <div class="skeleton-card"><div class="skeleton skeleton-thumb"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text-sm"></div></div>
+                        </div>
+                        <div id="market-error" class="error-banner hidden"></div>
                         <div id="market-grid" class="market-grid">
-                            <!-- Populated dynamically when connected -->
+                            <!-- Populated dynamically -->
                         </div>
                         <div id="market-empty" class="empty-state">
                             <div class="icon">&#9733;</div>
@@ -744,11 +1022,16 @@
                     <div class="card-body">
                         <div class="profile-field">
                             <label>BAP ID</label>
-                            <div id="identity-bap-id" class="value mono" style="cursor: pointer;"></div>
+                            <div id="identity-bap-id" class="value mono" style="cursor: pointer;" title="Click to copy"></div>
                         </div>
                         <div class="profile-field">
                             <label>Identity Key</label>
-                            <div id="identity-key" class="value mono" style="cursor: pointer;"></div>
+                            <div id="identity-key" class="value mono" style="cursor: pointer;" title="Click to copy"></div>
+                        </div>
+                        <hr style="margin: 16px 0;" />
+                        <div class="profile-field">
+                            <label>Receive Address</label>
+                            <div id="identity-receive-address" class="identity-receive-address" title="Click to copy">Loading...</div>
                         </div>
                         <hr style="margin: 16px 0;" />
                         <div class="profile-field">
@@ -757,12 +1040,13 @@
                         </div>
                         <div class="profile-field">
                             <label for="profile-description">Description</label>
-                            <input id="profile-description" type="text" placeholder="A short bio" />
+                            <textarea id="profile-description" rows="3" placeholder="A short bio about yourself"></textarea>
                         </div>
                         <div class="profile-field">
                             <label for="profile-avatar">Avatar URL</label>
-                            <input id="profile-avatar" type="url" placeholder="https://example.com/avatar.png" />
+                            <input id="profile-avatar" type="url" placeholder="https://ordfs.network/{origin}" />
                         </div>
+                        <p class="profile-save-note">Profile editing is not yet connected to on-chain publishing.</p>
                         <div id="identity-empty" class="empty-state hidden">
                             <div class="icon">&#128100;</div>
                             <h3>No identity available</h3>
