@@ -36,6 +36,8 @@ public:
 
     // BRC-100 wallet operations via remote backend
     ErrorOr<String> fetch_balance(StringView backend_url);
+    ErrorOr<String> fetch_ordinals(StringView backend_url);
+    ErrorOr<String> fetch_tokens(StringView backend_url);
 
     // Persistence
     ErrorOr<void> save_to_disk();

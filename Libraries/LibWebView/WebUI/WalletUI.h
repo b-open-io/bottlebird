@@ -26,6 +26,8 @@ private:
     void import_wallet(JsonValue const&);
     void import_backup_file(JsonValue const&);
     void confirm_wallet_creation();
+    void list_ordinals();
+    void list_tokens();
 
     String m_pending_mnemonic;
 };

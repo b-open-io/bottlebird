@@ -4,7 +4,11 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
+#include <AK/ByteBuffer.h>
 #include <AK/Hex.h>
+#include <AK/JsonArray.h>
+#include <AK/JsonObject.h>
+#include <AK/JsonValue.h>
 #include <AK/LexicalPath.h>
 #include <AK/StringBuilder.h>
 #include <LibCore/Directory.h>
@@ -381,6 +385,200 @@ ErrorOr<String> WalletManager::fetch_balance(StringView backend_url)
     dbgln("WalletManager: Balance: confirmed={} unconfirmed={}", confirmed, unconfirmed);
 
     return TRY(String::formatted("{{\"confirmed\":{},\"unconfirmed\":{}}}", confirmed, unconfirmed));
+}
+
+ErrorOr<String> WalletManager::fetch_ordinals(StringView backend_url)
+{
+    if (!m_initialized)
+        return Error::from_string_literal("Wallet not initialized");
+
+    bsvwallet_t handle = nullptr;
+    int rc = bsvwallet_create_remote(
+        m_root_privkey, 0,
+        backend_url.characters_without_null_termination(), backend_url.length(),
+        &handle);
+
+    if (rc != 0) {
+        dbgln("WalletManager: bsvwallet_create_remote failed with rc={}", rc);
+        return Error::from_string_literal("Failed to connect to backend");
+    }
+
+    constexpr size_t buf_capacity = 65536;
+    auto response_buf = TRY(ByteBuffer::create_uninitialized(buf_capacity));
+    size_t body_len = buf_capacity;
+
+    static constexpr auto args = "{\"basket\":\"ordinals\",\"limit\":100,\"includeTags\":true}"sv;
+    rc = bsvwallet_list_outputs(
+        handle,
+        args.characters_without_null_termination(), args.length(),
+        reinterpret_cast<char*>(response_buf.data()), &body_len);
+
+    bsvwallet_destroy(handle);
+
+    if (rc != 0) {
+        dbgln("WalletManager: bsvwallet_list_outputs (ordinals) failed with rc={}", rc);
+        return Error::from_string_literal("Failed to list ordinals from backend");
+    }
+
+    auto raw_response = TRY(String::from_utf8({ response_buf.data(), body_len }));
+    dbgln("WalletManager: Ordinals response ({} bytes): {}", body_len, raw_response);
+
+    // Parse the listOutputs response and transform into our ordinals format
+    auto parsed = JsonValue::from_string(raw_response);
+    if (parsed.is_error()) {
+        // Return the raw response wrapped in our expected format
+        return TRY(String::formatted("{{\"ordinals\":[],\"note\":\"Failed to parse backend response\"}}"));
+    }
+
+    // listOutputs returns { outputs: [...], totalOutputs: N }
+    // Each output has: outpoint, satoshis, tags, customInstructions, etc.
+    auto const& root = parsed.value();
+    JsonArray ordinals;
+
+    if (root.is_object()) {
+        auto outputs = root.as_object().get_array("outputs"sv);
+        if (outputs.has_value()) {
+            outputs->for_each([&](JsonValue const& output_val) {
+                if (!output_val.is_object())
+                    return;
+                auto const& output = output_val.as_object();
+
+                JsonObject item;
+                auto outpoint = output.get_string("outpoint"sv);
+                if (outpoint.has_value())
+                    item.set("outpoint"sv, *outpoint);
+
+                // Try to extract name from tags
+                auto tags = output.get_array("tags"sv);
+                if (tags.has_value()) {
+                    tags->for_each([&](JsonValue const& tag_val) {
+                        if (!tag_val.is_object())
+                            return;
+                        auto const& tag = tag_val.as_object();
+                        auto tag_name = tag.get_string("tag"sv);
+                        auto tag_value = tag.get_string("value"sv);
+                        if (tag_name.has_value() && *tag_name == "name" && tag_value.has_value())
+                            item.set("name"sv, *tag_value);
+                        if (tag_name.has_value() && *tag_name == "contentType" && tag_value.has_value())
+                            item.set("contentType"sv, *tag_value);
+                    });
+                }
+
+                ordinals.must_append(move(item));
+            });
+        }
+    }
+
+    JsonObject result;
+    result.set("ordinals"sv, move(ordinals));
+    if (ordinals.size() == 0)
+        result.set("note"sv, "No ordinals in this wallet"sv);
+
+    StringBuilder json;
+    result.serialize(json);
+    return json.to_string_without_validation();
+}
+
+ErrorOr<String> WalletManager::fetch_tokens(StringView backend_url)
+{
+    if (!m_initialized)
+        return Error::from_string_literal("Wallet not initialized");
+
+    bsvwallet_t handle = nullptr;
+    int rc = bsvwallet_create_remote(
+        m_root_privkey, 0,
+        backend_url.characters_without_null_termination(), backend_url.length(),
+        &handle);
+
+    if (rc != 0) {
+        dbgln("WalletManager: bsvwallet_create_remote failed with rc={}", rc);
+        return Error::from_string_literal("Failed to connect to backend");
+    }
+
+    constexpr size_t buf_capacity = 65536;
+    auto response_buf = TRY(ByteBuffer::create_uninitialized(buf_capacity));
+    size_t body_len = buf_capacity;
+
+    static constexpr auto args = "{\"basket\":\"bsv21\",\"limit\":100,\"includeTags\":true}"sv;
+    rc = bsvwallet_list_outputs(
+        handle,
+        args.characters_without_null_termination(), args.length(),
+        reinterpret_cast<char*>(response_buf.data()), &body_len);
+
+    bsvwallet_destroy(handle);
+
+    if (rc != 0) {
+        dbgln("WalletManager: bsvwallet_list_outputs (tokens) failed with rc={}", rc);
+        return Error::from_string_literal("Failed to list tokens from backend");
+    }
+
+    auto raw_response = TRY(String::from_utf8({ response_buf.data(), body_len }));
+    dbgln("WalletManager: Tokens response ({} bytes): {}", body_len, raw_response);
+
+    // Parse the listOutputs response and transform into our tokens format
+    auto parsed = JsonValue::from_string(raw_response);
+    if (parsed.is_error()) {
+        return TRY(String::formatted("{{\"tokens\":[],\"note\":\"Failed to parse backend response\"}}"));
+    }
+
+    auto const& root = parsed.value();
+    JsonArray tokens;
+
+    if (root.is_object()) {
+        auto outputs = root.as_object().get_array("outputs"sv);
+        if (outputs.has_value()) {
+            outputs->for_each([&](JsonValue const& output_val) {
+                if (!output_val.is_object())
+                    return;
+                auto const& output = output_val.as_object();
+
+                JsonObject item;
+                auto outpoint = output.get_string("outpoint"sv);
+                if (outpoint.has_value())
+                    item.set("id"sv, *outpoint);
+
+                auto satoshis = output.get_integer<i64>("satoshis"sv);
+                if (satoshis.has_value())
+                    item.set("balance"sv, *satoshis);
+
+                // Extract token metadata from tags
+                auto tags = output.get_array("tags"sv);
+                if (tags.has_value()) {
+                    tags->for_each([&](JsonValue const& tag_val) {
+                        if (!tag_val.is_object())
+                            return;
+                        auto const& tag = tag_val.as_object();
+                        auto tag_name = tag.get_string("tag"sv);
+                        auto tag_value = tag.get_string("value"sv);
+                        if (tag_name.has_value() && tag_value.has_value()) {
+                            if (*tag_name == "symbol" || *tag_name == "sym")
+                                item.set("symbol"sv, *tag_value);
+                            if (*tag_name == "icon")
+                                item.set("icon"sv, *tag_value);
+                        }
+                    });
+                }
+
+                // Default symbol from id if not found in tags
+                if (!item.has_string("symbol"sv)) {
+                    auto id = item.get_string("id"sv);
+                    if (id.has_value())
+                        item.set("symbol"sv, id->bytes_as_string_view().substring_view(0, min(static_cast<size_t>(8), id->bytes_as_string_view().length())));
+                }
+
+                tokens.must_append(move(item));
+            });
+        }
+    }
+
+    JsonObject result;
+    result.set("tokens"sv, move(tokens));
+    if (tokens.size() == 0)
+        result.set("note"sv, "No tokens in this wallet"sv);
+
+    StringBuilder json;
+    result.serialize(json);
+    return json.to_string_without_validation();
 }
 
 }

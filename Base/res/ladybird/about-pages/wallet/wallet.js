@@ -89,8 +89,8 @@ const fetchState = {
 };
 
 const ORDFS_BASE = "https://ordfs.network";
-// All data comes through WalletUI C++ or the configured backend URL
-// No hardcoded API URLs — use backendURL.value from settings
+// All wallet data comes through WalletUI C++ via message passing
+// ORDFS_BASE is only used for ordinal thumbnail images
 
 function formatSatoshis(sats) {
     return `${Number(sats).toLocaleString()} sat`;
@@ -168,49 +168,40 @@ window.addEventListener("hashchange", () => navigateToView(location.hash));
 
 // ── Ordinals fetching ─────────────────────────────────────────────
 
-async function fetchOrdinals() {
+function fetchOrdinals() {
     fetchState.ordinals.loading = true;
     ordinalsEmpty.classList.add("hidden");
     ordinalsError.classList.add("hidden");
     ordinalsGrid.innerHTML = "";
     ordinalsSkeleton.classList.remove("hidden");
 
-    try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10_000);
+    // Request ordinals via WalletUI C++ (BRC-100 listOutputs on background thread)
+    ladybird.sendMessage("listOrdinals");
+    return; // Response handled via WebUIMessage "ordinalsList"
+}
 
-        const resp = await fetch(`${backendURL.value}/1sat/ordlock/listings?limit=20&sort=recent`, {
-            signal: controller.signal,
-        });
-        clearTimeout(timeoutId);
+// Legacy fetch removed — ordinals come from wallet's listOutputs via C++
+function handleOrdinalsResponse(data) {
+    ordinalsSkeleton.classList.add("hidden");
+    fetchState.ordinals.loading = false;
 
-        if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
-
-        const data = await resp.json();
-        const items = parseMarketItems(data);
-
-        ordinalsSkeleton.classList.add("hidden");
-
-        if (items.length === 0) {
-            ordinalsEmpty.classList.remove("hidden");
-            return;
-        }
-
-        for (const item of items) {
-            ordinalsGrid.appendChild(createOrdinalCard(item));
-        }
-
-        fetchState.ordinals.loaded = true;
-    } catch (err) {
-        ordinalsSkeleton.classList.add("hidden");
-        const isAbort = err instanceof DOMException && err.name === "AbortError";
-        ordinalsError.textContent = isAbort
-            ? "Request timed out. Check your connection."
-            : (err.message || "Failed to load ordinals.");
+    if (data.error) {
+        ordinalsError.textContent = data.error;
         ordinalsError.classList.remove("hidden");
-    } finally {
-        fetchState.ordinals.loading = false;
+        return;
     }
+
+    const items = data.ordinals || [];
+    if (items.length === 0) {
+        ordinalsEmpty.classList.remove("hidden");
+        fetchState.ordinals.loaded = true;
+        return;
+    }
+
+    for (const item of items) {
+        ordinalsGrid.appendChild(createOrdinalCard(item));
+    }
+    fetchState.ordinals.loaded = true;
 }
 
 function createOrdinalCard(item) {
@@ -253,65 +244,44 @@ function createOrdinalCard(item) {
 
 // ── Tokens fetching ───────────────────────────────────────────────
 
-async function fetchTokens() {
+function fetchTokens() {
     fetchState.tokens.loading = true;
     tokensEmpty.classList.add("hidden");
     tokensError.classList.add("hidden");
     tokensList.innerHTML = "";
     tokensLoading.classList.remove("hidden");
 
-    try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10_000);
-
-        const resp = await fetch(`${backendURL.value}/1sat/bsv21?limit=20&sort=height&dir=desc`, {
-            signal: controller.signal,
-        });
-        clearTimeout(timeoutId);
-
-        if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
-
-        const data = await resp.json();
-        const tokens = parseTokenItems(data);
-
-        tokensLoading.classList.add("hidden");
-
-        if (tokens.length === 0) {
-            tokensEmpty.classList.remove("hidden");
-            return;
-        }
-
-        for (const token of tokens) {
-            tokensList.appendChild(createTokenRow(token));
-        }
-
-        fetchState.tokens.loaded = true;
-    } catch (err) {
-        tokensLoading.classList.add("hidden");
-        const isAbort = err instanceof DOMException && err.name === "AbortError";
-        tokensError.textContent = isAbort
-            ? "Request timed out. Check your connection."
-            : (err.message || "Failed to load tokens.");
-        tokensError.classList.remove("hidden");
-    } finally {
-        fetchState.tokens.loading = false;
-    }
+    // Request tokens via WalletUI C++ (BRC-100 listOutputs on background thread)
+    ladybird.sendMessage("listTokens");
+    return; // Response handled via WebUIMessage "tokensList"
 }
 
-function parseTokenItems(data) {
-    const items = Array.isArray(data) ? data : (data?.results || data?.tokens || []);
-    return items.map((item, index) => {
-        const id = item.id || item.txid || item.outpoint || `token-${index}`;
-        const sym = item.sym || item.symbol || item.tick || id.slice(0, 8);
-        const name = item.name || sym;
-        const supply = item.supply || item.amt || item.totalSupply || "0";
-        const dec = item.dec ?? item.decimals ?? 0;
-        const icon = item.icon || null;
-        return { id, sym, name, supply, dec, icon };
-    });
+function handleTokensResponse(data) {
+    tokensLoading.classList.add("hidden");
+    fetchState.tokens.loading = false;
+
+    if (data.error) {
+        tokensError.textContent = data.error;
+        tokensError.classList.remove("hidden");
+        return;
+    }
+
+    const items = data.tokens || [];
+    if (items.length === 0) {
+        tokensEmpty.classList.remove("hidden");
+        if (data.note) tokensEmpty.querySelector("h3").textContent = data.note;
+        fetchState.tokens.loaded = true;
+        return;
+    }
+
+    for (const token of items) {
+        tokensList.appendChild(createTokenRow(token));
+    }
+    fetchState.tokens.loaded = true;
 }
 
 function createTokenRow(token) {
+    const sym = token.symbol || token.sym || "?";
     const row = document.createElement("div");
     row.className = "token-row";
 
@@ -320,22 +290,22 @@ function createTokenRow(token) {
     if (token.icon) {
         const img = document.createElement("img");
         img.src = `${ORDFS_BASE}/${token.icon}`;
-        img.alt = token.sym;
+        img.alt = sym;
         img.loading = "lazy";
         img.addEventListener("error", () => {
             img.remove();
-            icon.textContent = token.sym.charAt(0).toUpperCase();
+            icon.textContent = sym.charAt(0).toUpperCase();
         });
         icon.appendChild(img);
     } else {
-        icon.textContent = token.sym.charAt(0).toUpperCase();
+        icon.textContent = sym.charAt(0).toUpperCase();
     }
 
     const info = document.createElement("div");
     info.className = "token-info";
     const symEl = document.createElement("div");
     symEl.className = "token-symbol";
-    symEl.textContent = token.sym;
+    symEl.textContent = sym;
     const idEl = document.createElement("div");
     idEl.className = "token-id";
     idEl.textContent = truncateOutpoint(token.id);
@@ -345,8 +315,7 @@ function createTokenRow(token) {
 
     const balanceEl = document.createElement("div");
     balanceEl.className = "token-balance";
-    const supplyNum = Number(token.supply) / (10 ** token.dec);
-    balanceEl.textContent = supplyNum.toLocaleString(undefined, { maximumFractionDigits: token.dec });
+    balanceEl.textContent = Number(token.balance || 0).toLocaleString();
 
     row.appendChild(icon);
     row.appendChild(info);
@@ -356,77 +325,17 @@ function createTokenRow(token) {
 
 // ── Market fetching ───────────────────────────────────────────────
 
-async function fetchMarketListings(force) {
-    if (force) {
-        fetchState.market.loaded = false;
-    }
-    fetchState.market.loading = true;
-    marketEmpty.classList.add("hidden");
-    marketError.classList.add("hidden");
+function fetchMarketListings() {
+    // Market listings require a local 1sat-stack — not available via the wallet API
+    fetchState.market.loading = false;
+    fetchState.market.loaded = true;
+    marketSkeleton.classList.add("hidden");
     marketGrid.innerHTML = "";
-    marketSkeleton.classList.remove("hidden");
-    if (marketRefresh) marketRefresh.classList.add("spinning");
-
-    try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10_000);
-
-        const resp = await fetch(`${backendURL.value}/1sat/ordlock/listings?limit=20&sort=recent`, {
-            signal: controller.signal,
-        });
-        clearTimeout(timeoutId);
-
-        if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
-
-        const data = await resp.json();
-        const items = parseMarketItems(data);
-
-        fetchState.market.data = items;
-        marketSkeleton.classList.add("hidden");
-
-        renderMarketGrid(items);
-        fetchState.market.loaded = true;
-    } catch (err) {
-        marketSkeleton.classList.add("hidden");
-        const isAbort = err instanceof DOMException && err.name === "AbortError";
-        marketError.textContent = isAbort
-            ? "Request timed out. Check your connection."
-            : (err.message || "Failed to load marketplace.");
-        marketError.classList.remove("hidden");
-    } finally {
-        fetchState.market.loading = false;
-        if (marketRefresh) marketRefresh.classList.remove("spinning");
-    }
-}
-
-function parseMarketItems(raw) {
-    const items = Array.isArray(raw)
-        ? raw
-        : (raw?.listings || raw?.data || raw?.results || []);
-
-    return items.map((r, index) => {
-        const outpoint = r.outpoint
-            || (r.txid && typeof r.vout === "number" ? `${r.txid}_${r.vout}` : null)
-            || r.origin?.outpoint
-            || `unknown_${index}`;
-
-        const priceSats = r.price ?? r.priceSats ?? r.satoshis ?? 0;
-
-        const seller = r.owner || r.seller || r.address || "unknown";
-
-        const name = r.name
-            || r.metadata?.name
-            || r.origin?.data?.map?.name
-            || truncateOutpoint(outpoint);
-
-        return {
-            id: outpoint,
-            outpoint,
-            name,
-            priceSats: Number(priceSats),
-            seller,
-        };
-    });
+    marketEmpty.classList.remove("hidden");
+    const heading = marketEmpty.querySelector("h3");
+    if (heading) heading.textContent = "Market listings require a 1sat-stack connection.";
+    const desc = marketEmpty.querySelector("p");
+    if (desc) desc.textContent = "Set your backend URL to a running 1sat-stack instance.";
 }
 
 function renderMarketGrid(items) {
@@ -520,7 +429,7 @@ if (marketSort) {
 if (marketRefresh) {
     marketRefresh.addEventListener("click", () => {
         if (!fetchState.market.loading) {
-            fetchMarketListings(true);
+            fetchMarketListings();
         }
     });
 }
@@ -840,6 +749,10 @@ document.addEventListener("WebUIMessage", event => {
         if (data.bapId && identityBapIdView) {
             identityBapIdView.textContent = data.bapId;
         }
+    } else if (name === "ordinalsList") {
+        handleOrdinalsResponse(data);
+    } else if (name === "tokensList") {
+        handleTokensResponse(data);
     } else if (name === "paymentResult") {
         if (data.error) {
             showSendMessage(data.error, true);

@@ -46,6 +46,12 @@ void WalletUI::register_interfaces()
     register_interface("importBackupFile"sv, [this](auto const& data) {
         import_backup_file(data);
     });
+    register_interface("listOrdinals"sv, [this](auto const&) {
+        list_ordinals();
+    });
+    register_interface("listTokens"sv, [this](auto const&) {
+        list_tokens();
+    });
 }
 
 void WalletUI::load_wallet_status()
@@ -318,6 +324,88 @@ void WalletUI::confirm_wallet_creation()
     m_pending_mnemonic = {};
 
     load_wallet_status();
+}
+
+void WalletUI::list_ordinals()
+{
+    auto& wallet = Wallet::WalletManager::the();
+    auto const& settings = WebView::Application::settings();
+
+    if (!wallet.is_initialized() || !settings.wallet_enabled()) {
+        JsonObject result;
+        result.set("ordinals"sv, JsonArray {});
+        result.set("note"sv, "Wallet not initialized or disabled"sv);
+        async_send_message("ordinalsList"sv, move(result));
+        return;
+    }
+
+    auto backend_url = settings.wallet_backend_url().serialize();
+
+    (void)Threading::BackgroundAction<String>::construct(
+        [backend_url = move(backend_url)](auto&) -> ErrorOr<String> {
+            return Wallet::WalletManager::the().fetch_ordinals(backend_url);
+        },
+        [this](String response) {
+            auto response_json = JsonValue::from_string(response);
+
+            if (!response_json.is_error() && response_json.value().is_object()) {
+                async_send_message("ordinalsList"sv, response_json.value().as_object());
+            } else {
+                dbgln("WalletUI: Failed to parse ordinals JSON: {}", response);
+                JsonObject result;
+                result.set("ordinals"sv, JsonArray {});
+                result.set("error"sv, "Failed to parse ordinals response"sv);
+                async_send_message("ordinalsList"sv, move(result));
+            }
+        },
+        [this](Error error) {
+            dbgln("WalletUI: Ordinals fetch error: {}", error);
+            JsonObject result;
+            result.set("ordinals"sv, JsonArray {});
+            result.set("error"sv, MUST(String::formatted("{}", error)));
+            async_send_message("ordinalsList"sv, move(result));
+        });
+}
+
+void WalletUI::list_tokens()
+{
+    auto& wallet = Wallet::WalletManager::the();
+    auto const& settings = WebView::Application::settings();
+
+    if (!wallet.is_initialized() || !settings.wallet_enabled()) {
+        JsonObject result;
+        result.set("tokens"sv, JsonArray {});
+        result.set("note"sv, "Wallet not initialized or disabled"sv);
+        async_send_message("tokensList"sv, move(result));
+        return;
+    }
+
+    auto backend_url = settings.wallet_backend_url().serialize();
+
+    (void)Threading::BackgroundAction<String>::construct(
+        [backend_url = move(backend_url)](auto&) -> ErrorOr<String> {
+            return Wallet::WalletManager::the().fetch_tokens(backend_url);
+        },
+        [this](String response) {
+            auto response_json = JsonValue::from_string(response);
+
+            if (!response_json.is_error() && response_json.value().is_object()) {
+                async_send_message("tokensList"sv, response_json.value().as_object());
+            } else {
+                dbgln("WalletUI: Failed to parse tokens JSON: {}", response);
+                JsonObject result;
+                result.set("tokens"sv, JsonArray {});
+                result.set("error"sv, "Failed to parse tokens response"sv);
+                async_send_message("tokensList"sv, move(result));
+            }
+        },
+        [this](Error error) {
+            dbgln("WalletUI: Tokens fetch error: {}", error);
+            JsonObject result;
+            result.set("tokens"sv, JsonArray {});
+            result.set("error"sv, MUST(String::formatted("{}", error)));
+            async_send_message("tokensList"sv, move(result));
+        });
 }
 
 }
