@@ -83,16 +83,32 @@ const profileAvatar = document.querySelector("#profile-avatar");
 const btnSaveProfile = document.querySelector("#btn-save-profile");
 const profileMessage = document.querySelector("#profile-message");
 
-// Chat / Publish elements
+// Chat elements
 const btnOpenBitchat = document.querySelector("#btn-open-bitchat");
-const btnInscribeFile = document.querySelector("#btn-inscribe-file");
-const inscribeFileName = document.querySelector("#inscribe-file-name");
-const inscribeTypeDisplay = document.querySelector("#inscribe-type-display");
-const inscribeContentType = document.querySelector("#inscribe-content-type");
-const inscribePreview = document.querySelector("#inscribe-preview");
-const inscribePreviewArea = document.querySelector("#inscribe-preview-area");
-const btnInscribe = document.querySelector("#btn-inscribe");
-const inscribeMessage = document.querySelector("#inscribe-message");
+
+// Publish wizard elements
+const publishFileInput = document.querySelector("#publish-file-input");
+const publishFileNameEl = document.querySelector("#publish-file-name");
+const publishFileMetaEl = document.querySelector("#publish-file-meta");
+const publishImagePreview = document.querySelector("#publish-image-preview");
+const publishAppNameInput = document.querySelector("#publish-app-name");
+const publishDescriptionInput = document.querySelector("#publish-description");
+const publishBackToPicker = document.querySelector("#publish-back-to-picker");
+const publishNextToPublish = document.querySelector("#publish-next-to-publish");
+const publishBackToConfigure = document.querySelector("#publish-back-to-configure");
+const publishInscribeBtn = document.querySelector("#publish-inscribe-btn");
+const publishInscribeMessage = document.querySelector("#publish-inscribe-message");
+const publishReviewFilename = document.querySelector("#publish-review-filename");
+const publishReviewType = document.querySelector("#publish-review-type");
+const publishReviewSize = document.querySelector("#publish-review-size");
+const publishReviewName = document.querySelector("#publish-review-name");
+const publishReviewNameField = document.querySelector("#publish-review-name-field");
+const publishReviewDesc = document.querySelector("#publish-review-desc");
+const publishReviewDescField = document.querySelector("#publish-review-desc-field");
+const publishReviewBalance = document.querySelector("#publish-review-balance");
+const publishSuccessOutpoint = document.querySelector("#publish-success-outpoint");
+const publishSuccessOrdfsLink = document.querySelector("#publish-success-ordfs-link");
+const publishNewInscription = document.querySelector("#publish-new-inscription");
 
 // Receive copy button
 const btnCopyAddress = document.querySelector("#btn-copy-address");
@@ -1173,33 +1189,182 @@ if (btnOpenBitchat) {
     });
 }
 
-// ── Inscription file picker ────────────────────────────────────────
+// ── Publish wizard ────────────────────────────────────────────────
 
-if (btnInscribeFile) {
-    btnInscribeFile.addEventListener("click", () => {
-        const input = document.createElement("input");
-        input.type = "file";
-        input.addEventListener("change", () => {
-            const file = input.files[0];
-            if (!file) return;
+let publishWizardStep = "picker"; // "picker" | "configure" | "publish" | "success"
+let publishFile = null;
+let publishFileDataUrl = null;
 
-            if (inscribeFileName) inscribeFileName.textContent = file.name;
-            if (inscribeContentType) inscribeContentType.textContent = file.type || "application/octet-stream";
-            if (inscribeTypeDisplay) inscribeTypeDisplay.classList.remove("hidden");
+function formatFileSize(bytes) {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+}
 
-            // Show preview for images
-            if (inscribePreview && inscribePreviewArea && file.type.startsWith("image/")) {
-                inscribePreviewArea.innerHTML = "";
-                const img = document.createElement("img");
-                img.src = URL.createObjectURL(file);
-                img.style.width = "100%";
-                img.style.display = "block";
-                inscribePreviewArea.appendChild(img);
-                inscribePreview.classList.remove("hidden");
-            } else if (inscribePreview) {
-                inscribePreview.classList.add("hidden");
+function setPublishWizardStep(step) {
+    publishWizardStep = step;
+    const steps = ["picker", "configure", "publish", "success"];
+    for (const s of steps) {
+        const el = document.querySelector("#publish-" + s);
+        if (el) el.classList.toggle("hidden", s !== step);
+    }
+    // Hide the review section when showing success, show it otherwise within publish step
+    if (step === "success") {
+        const review = document.querySelector("#publish-review");
+        if (review) review.classList.add("hidden");
+        const success = document.querySelector("#publish-success");
+        if (success) success.classList.remove("hidden");
+    } else if (step === "publish") {
+        const review = document.querySelector("#publish-review");
+        if (review) review.classList.remove("hidden");
+        const success = document.querySelector("#publish-success");
+        if (success) success.classList.add("hidden");
+    }
+    updatePublishStepIndicator();
+}
+
+function updatePublishStepIndicator() {
+    const stepOrder = ["picker", "configure", "publish"];
+    const currentIdx = publishWizardStep === "success" ? 2 : stepOrder.indexOf(publishWizardStep);
+    document.querySelectorAll(".wizard-step").forEach((el, idx) => {
+        el.classList.remove("active", "complete");
+        if (idx < currentIdx) el.classList.add("complete");
+        else if (idx === currentIdx) el.classList.add("active");
+    });
+}
+
+function resetPublishWizard() {
+    publishFile = null;
+    publishFileDataUrl = null;
+    if (publishAppNameInput) publishAppNameInput.value = "";
+    if (publishDescriptionInput) publishDescriptionInput.value = "";
+    if (publishImagePreview) {
+        publishImagePreview.innerHTML = "";
+        publishImagePreview.classList.add("hidden");
+    }
+    if (publishInscribeMessage) publishInscribeMessage.className = "hidden";
+    setPublishWizardStep("picker");
+}
+
+// Accept filters per content type
+const PUBLISH_ACCEPT_FILTERS = {
+    image: "image/*",
+    video: "video/*",
+    document: "text/*,application/json,application/pdf,.html,.htm,.txt,.md",
+};
+
+// Content type card click handlers
+document.querySelectorAll(".ct-card[data-publish-type]").forEach(card => {
+    card.addEventListener("click", () => {
+        const type = card.dataset.publishType;
+        if (type === "html-app") return; // disabled
+        const accept = PUBLISH_ACCEPT_FILTERS[type];
+        if (!accept || !publishFileInput) return;
+        publishFileInput.accept = accept;
+        publishFileInput.value = "";
+        publishFileInput.click();
+    });
+});
+
+// File input change handler
+if (publishFileInput) {
+    publishFileInput.addEventListener("change", () => {
+        const file = publishFileInput.files[0];
+        if (!file) return;
+        publishFile = file;
+
+        // Populate file info
+        if (publishFileNameEl) publishFileNameEl.textContent = file.name;
+        if (publishFileMetaEl) publishFileMetaEl.textContent = `${formatFileSize(file.size)} \u00B7 ${file.type || "application/octet-stream"}`;
+
+        // Image preview
+        if (publishImagePreview) {
+            publishImagePreview.innerHTML = "";
+            if (file.type.startsWith("image/")) {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    publishFileDataUrl = reader.result;
+                    const img = document.createElement("img");
+                    img.src = reader.result;
+                    publishImagePreview.appendChild(img);
+                    publishImagePreview.classList.remove("hidden");
+                };
+                reader.readAsDataURL(file);
+            } else {
+                publishFileDataUrl = null;
+                publishImagePreview.classList.add("hidden");
             }
-        });
-        input.click();
+        }
+
+        setPublishWizardStep("configure");
+    });
+}
+
+// Back to picker
+if (publishBackToPicker) {
+    publishBackToPicker.addEventListener("click", () => {
+        setPublishWizardStep("picker");
+    });
+}
+
+// Next to publish (review)
+if (publishNextToPublish) {
+    publishNextToPublish.addEventListener("click", () => {
+        if (!publishFile) return;
+
+        // Populate review
+        if (publishReviewFilename) publishReviewFilename.textContent = publishFile.name;
+        if (publishReviewType) publishReviewType.textContent = publishFile.type || "application/octet-stream";
+        if (publishReviewSize) publishReviewSize.textContent = formatFileSize(publishFile.size);
+
+        const appName = publishAppNameInput ? publishAppNameInput.value.trim() : "";
+        const desc = publishDescriptionInput ? publishDescriptionInput.value.trim() : "";
+
+        if (appName && publishReviewName && publishReviewNameField) {
+            publishReviewName.textContent = appName;
+            publishReviewNameField.classList.remove("hidden");
+        } else if (publishReviewNameField) {
+            publishReviewNameField.classList.add("hidden");
+        }
+
+        if (desc && publishReviewDesc && publishReviewDescField) {
+            publishReviewDesc.textContent = desc;
+            publishReviewDescField.classList.remove("hidden");
+        } else if (publishReviewDescField) {
+            publishReviewDescField.classList.add("hidden");
+        }
+
+        // Show balance from dashboard
+        if (publishReviewBalance && balanceConfirmed) {
+            publishReviewBalance.textContent = balanceConfirmed.textContent;
+        }
+
+        if (publishInscribeMessage) publishInscribeMessage.className = "hidden";
+
+        setPublishWizardStep("publish");
+    });
+}
+
+// Back to configure
+if (publishBackToConfigure) {
+    publishBackToConfigure.addEventListener("click", () => {
+        setPublishWizardStep("configure");
+    });
+}
+
+// Inscribe button
+if (publishInscribeBtn) {
+    publishInscribeBtn.addEventListener("click", () => {
+        if (publishInscribeMessage) {
+            publishInscribeMessage.textContent = "Inscription requires a connected wallet backend. This feature is coming soon.";
+            publishInscribeMessage.className = "message error";
+        }
+    });
+}
+
+// New inscription (reset wizard)
+if (publishNewInscription) {
+    publishNewInscription.addEventListener("click", () => {
+        resetPublishWizard();
     });
 }
