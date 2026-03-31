@@ -68,13 +68,13 @@
     <body class="flex flex-col items-center justify-center min-h-screen py-10 px-5 gap-8">
         <!-- Branding -->
         <div class="flex flex-col items-center gap-2.5">
-            <div class="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-violet-500 shrink-0"></div>
+            <div class="w-14 h-14 rounded-full bg-gradient-to-br from-chart-1 to-chart-2 shrink-0"></div>
             <span class="text-lg font-medium text-muted-foreground">Bottlebird</span>
         </div>
 
         <!-- Search bar -->
         <div class="w-full max-w-[560px]">
-            <div class="flex items-center gap-3 bg-card border border-border rounded-lg px-4 py-3.5 transition-colors focus-within:border-blue-500 focus-within:shadow-md focus-within:shadow-black/20">
+            <div class="flex items-center gap-3 bg-card border border-input rounded-lg px-4 py-3.5 transition-colors focus-within:border-ring focus-within:ring-1 focus-within:ring-ring">
                 <svg class="shrink-0 w-4 h-4 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="11" cy="11" r="8"></circle>
                     <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
@@ -86,35 +86,35 @@
         <!-- Shortcut grid -->
         <div class="grid grid-cols-4 gap-4 justify-center" style="grid-template-columns: repeat(4, 80px);">
             <a class="flex flex-col items-center gap-2 py-4 px-2 bg-secondary rounded-xl cursor-pointer no-underline text-inherit text-xs hover:bg-accent transition-colors" href="about:wallet">
-                <div class="w-10 h-10 rounded-[10px] flex items-center justify-center text-lg text-white font-semibold bg-blue-500">W</div>
+                <div class="w-10 h-10 rounded-[10px] flex items-center justify-center text-lg text-primary-foreground font-semibold bg-chart-1">W</div>
                 <span class="text-center leading-tight">Wallet</span>
             </a>
             <a class="flex flex-col items-center gap-2 py-4 px-2 bg-secondary rounded-xl cursor-pointer no-underline text-inherit text-xs hover:bg-accent transition-colors" href="about:wallet#ordinals">
-                <div class="w-10 h-10 rounded-[10px] flex items-center justify-center text-lg text-white font-semibold bg-violet-500">O</div>
+                <div class="w-10 h-10 rounded-[10px] flex items-center justify-center text-lg text-primary-foreground font-semibold bg-chart-2">O</div>
                 <span class="text-center leading-tight">Ordinals</span>
             </a>
             <a class="flex flex-col items-center gap-2 py-4 px-2 bg-secondary rounded-xl cursor-pointer no-underline text-inherit text-xs hover:bg-accent transition-colors" href="about:wallet#tokens">
-                <div class="w-10 h-10 rounded-[10px] flex items-center justify-center text-lg text-white font-semibold bg-yellow-500">T</div>
+                <div class="w-10 h-10 rounded-[10px] flex items-center justify-center text-lg text-primary-foreground font-semibold bg-chart-3">T</div>
                 <span class="text-center leading-tight">Tokens</span>
             </a>
             <a class="flex flex-col items-center gap-2 py-4 px-2 bg-secondary rounded-xl cursor-pointer no-underline text-inherit text-xs hover:bg-accent transition-colors" href="about:wallet#market">
-                <div class="w-10 h-10 rounded-[10px] flex items-center justify-center text-lg text-white font-semibold bg-green-500">M</div>
+                <div class="w-10 h-10 rounded-[10px] flex items-center justify-center text-lg text-primary-foreground font-semibold bg-chart-4">M</div>
                 <span class="text-center leading-tight">Market</span>
             </a>
             <a class="flex flex-col items-center gap-2 py-4 px-2 bg-secondary rounded-xl cursor-pointer no-underline text-inherit text-xs hover:bg-accent transition-colors" href="about:wallet#identity">
-                <div class="w-10 h-10 rounded-[10px] flex items-center justify-center text-lg text-white font-semibold bg-pink-500">I</div>
+                <div class="w-10 h-10 rounded-[10px] flex items-center justify-center text-lg text-primary-foreground font-semibold bg-chart-5">I</div>
                 <span class="text-center leading-tight">Identity</span>
             </a>
             <a class="flex flex-col items-center gap-2 py-4 px-2 bg-secondary rounded-xl cursor-pointer no-underline text-inherit text-xs hover:bg-accent transition-colors" href="about:settings">
-                <div class="w-10 h-10 rounded-[10px] flex items-center justify-center text-lg text-white font-semibold bg-gray-500">S</div>
+                <div class="w-10 h-10 rounded-[10px] flex items-center justify-center text-lg text-primary-foreground font-semibold bg-muted">S</div>
                 <span class="text-center leading-tight">Settings</span>
             </a>
             <a class="flex flex-col items-center gap-2 py-4 px-2 bg-secondary rounded-xl cursor-pointer no-underline text-inherit text-xs hover:bg-accent transition-colors" href="about:wallet#chat">
-                <div class="w-10 h-10 rounded-[10px] flex items-center justify-center text-lg text-white font-semibold bg-emerald-500">C</div>
+                <div class="w-10 h-10 rounded-[10px] flex items-center justify-center text-lg text-primary-foreground font-semibold bg-chart-1">C</div>
                 <span class="text-center leading-tight">BitChat</span>
             </a>
             <a class="flex flex-col items-center gap-2 py-4 px-2 bg-secondary rounded-xl cursor-pointer no-underline text-inherit text-xs hover:bg-accent transition-colors" href="about:wallet#publish">
-                <div class="w-10 h-10 rounded-[10px] flex items-center justify-center text-lg text-white font-semibold bg-rose-500">P</div>
+                <div class="w-10 h-10 rounded-[10px] flex items-center justify-center text-lg text-primary-foreground font-semibold bg-chart-3">P</div>
                 <span class="text-center leading-tight">Publish</span>
             </a>
         </div>
