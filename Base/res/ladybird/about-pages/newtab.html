@@ -3,12 +3,7 @@
     <head>
         <title>New Tab</title>
         <link rel="stylesheet" type="text/css" href="resource://ladybird/ladybird.css" />
-        <script src="resource://ladybird/about-pages/wallet/tailwind.js"></script>
-        <style type="text/tailwindcss">
-@import "tailwindcss";
-
-@custom-variant dark (&:is(.dark *));
-
+        <style>
 :root {
   --background: oklch(1 0 0);
   --foreground: oklch(0.1450 0 0);
@@ -23,12 +18,13 @@
   --border: oklch(0.9220 0 0);
   --input: oklch(0.9220 0 0);
   --ring: oklch(0.7080 0 0);
-  --chart-1: oklch(0.6460 0.2220 41.1160);
-  --chart-2: oklch(0.6000 0.2100 262.8480);
-  --chart-3: oklch(0.3980 0.0700 227.3920);
-  --chart-4: oklch(0.8280 0.1890 84.4290);
-  --chart-5: oklch(0.7690 0.1880 70.0800);
+  --chart-1: oklch(0.8100 0.1000 252);
+  --chart-2: oklch(0.6200 0.1900 260);
+  --chart-3: oklch(0.5500 0.2200 263);
+  --chart-4: oklch(0.4900 0.2200 264);
+  --chart-5: oklch(0.4200 0.1800 266);
   --radius: 0.625rem;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
 }
 
 .dark {
@@ -52,108 +48,199 @@
   --chart-5: oklch(0.4200 0.1800 266);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --radius-lg: var(--radius);
+/* ── Base ─────────────────────────────────────────────────── */
+* { box-sizing: border-box; }
+body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 1.5rem 1.25rem;
+    gap: 1.5rem;
+    margin: 0;
 }
 
-@layer base {
-  * { @apply border-border outline-ring/50; }
-  body { @apply bg-background text-foreground; }
+/* ── Branding ─────────────────────────────────────────────── */
+.branding {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.625rem;
+}
+.branding-icon {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--chart-1), var(--chart-2));
+    flex-shrink: 0;
+}
+.branding-name {
+    font-size: 1.125rem;
+    font-weight: 500;
+    color: var(--muted-foreground);
+}
+
+/* ── Search bar ───────────────────────────────────────────── */
+.search-wrap {
+    width: 100%;
+    max-width: 560px;
+}
+.search-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    height: 2.5rem;
+    width: 100%;
+    border-radius: calc(var(--radius) - 2px);
+    border: 1px solid var(--input);
+    background: var(--background);
+    padding: 0 0.75rem;
+}
+.search-bar svg {
+    width: 1rem;
+    height: 1rem;
+    color: var(--muted-foreground);
+    flex-shrink: 0;
+}
+.search-bar input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 0.875rem;
+    color: var(--foreground);
+    text-align: left;
+}
+.search-bar input::placeholder {
+    color: var(--muted-foreground);
+    text-align: left;
+}
+.search-bar:focus-within {
+    box-shadow: 0 0 0 2px var(--ring);
+}
+
+/* ── Shortcut grid ────────────────────────────────────────── */
+.shortcut-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    width: 100%;
+    max-width: 32rem;
+}
+.shortcut-card {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--card);
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.15s;
+}
+.shortcut-card:hover { border-color: var(--ring); }
+.shortcut-thumb {
+    aspect-ratio: 1 / 1;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: var(--primary-foreground);
+    font-weight: 600;
+}
+.shortcut-label { padding: 0.75rem; }
+.shortcut-label-title {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--card-foreground);
+}
+.shortcut-label-sub {
+    font-size: 0.75rem;
+    color: var(--muted-foreground);
 }
         </style>
     </head>
-    <body class="flex flex-col items-center justify-center min-h-screen py-6 px-5 gap-6">
+    <body>
         <!-- Branding -->
-        <div class="flex flex-col items-center gap-2.5">
-            <div class="w-14 h-14 rounded-full bg-gradient-to-br from-chart-1 to-chart-2 shrink-0"></div>
-            <span class="text-lg font-medium text-muted-foreground">Bottlebird</span>
+        <div class="branding">
+            <div class="branding-icon"></div>
+            <span class="branding-name">Bottlebird</span>
         </div>
 
         <!-- Search bar -->
-        <div class="w-full max-w-[560px]">
-            <div class="relative">
-                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <div class="search-wrap">
+            <div class="search-bar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="11" cy="11" r="8"></circle>
                     <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
-                <input id="search-input" class="flex h-10 w-full rounded-md border border-input bg-background pl-10 pr-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" type="text" placeholder="Search or enter URL..." autofocus />
+                <input id="search-input" type="text" placeholder="Search or enter URL..." autofocus />
             </div>
         </div>
 
-        <!-- Shortcut grid — shadcn Item component pattern -->
-        <div class="grid grid-cols-4 gap-4 w-full max-w-lg">
-            <a class="group flex flex-col border border-border rounded-lg overflow-hidden bg-card no-underline text-inherit hover:border-ring transition-colors" href="about:wallet">
-                <div class="aspect-square w-full bg-chart-1 flex items-center justify-center text-2xl text-primary-foreground font-semibold">W</div>
-                <div class="px-3 py-2.5">
-                    <div class="text-sm font-medium text-card-foreground">Wallet</div>
-                    <div class="text-xs text-muted-foreground">Dashboard</div>
+        <!-- Shortcut grid -->
+        <div class="shortcut-grid">
+            <a class="shortcut-card" href="about:wallet">
+                <div class="shortcut-thumb" style="background:var(--chart-1)">W</div>
+                <div class="shortcut-label">
+                    <div class="shortcut-label-title">Wallet</div>
+                    <div class="shortcut-label-sub">Dashboard</div>
                 </div>
             </a>
-            <a class="group flex flex-col border border-border rounded-lg overflow-hidden bg-card no-underline text-inherit hover:border-ring transition-colors" href="about:wallet#ordinals">
-                <div class="aspect-square w-full bg-chart-2 flex items-center justify-center text-2xl text-primary-foreground font-semibold">O</div>
-                <div class="px-3 py-2.5">
-                    <div class="text-sm font-medium text-card-foreground">Ordinals</div>
-                    <div class="text-xs text-muted-foreground">Your NFTs</div>
+            <a class="shortcut-card" href="about:wallet#ordinals">
+                <div class="shortcut-thumb" style="background:var(--chart-2)">O</div>
+                <div class="shortcut-label">
+                    <div class="shortcut-label-title">Ordinals</div>
+                    <div class="shortcut-label-sub">Your NFTs</div>
                 </div>
             </a>
-            <a class="group flex flex-col border border-border rounded-lg overflow-hidden bg-card no-underline text-inherit hover:border-ring transition-colors" href="about:wallet#tokens">
-                <div class="aspect-square w-full bg-chart-3 flex items-center justify-center text-2xl text-primary-foreground font-semibold">T</div>
-                <div class="px-3 py-2.5">
-                    <div class="text-sm font-medium text-card-foreground">Tokens</div>
-                    <div class="text-xs text-muted-foreground">BSV21</div>
+            <a class="shortcut-card" href="about:wallet#tokens">
+                <div class="shortcut-thumb" style="background:var(--chart-3)">T</div>
+                <div class="shortcut-label">
+                    <div class="shortcut-label-title">Tokens</div>
+                    <div class="shortcut-label-sub">BSV21</div>
                 </div>
             </a>
-            <a class="group flex flex-col border border-border rounded-lg overflow-hidden bg-card no-underline text-inherit hover:border-ring transition-colors" href="about:wallet#market">
-                <div class="aspect-square w-full bg-chart-4 flex items-center justify-center text-2xl text-primary-foreground font-semibold">M</div>
-                <div class="px-3 py-2.5">
-                    <div class="text-sm font-medium text-card-foreground">Market</div>
-                    <div class="text-xs text-muted-foreground">Browse</div>
+            <a class="shortcut-card" href="about:wallet#market">
+                <div class="shortcut-thumb" style="background:var(--chart-4)">M</div>
+                <div class="shortcut-label">
+                    <div class="shortcut-label-title">Market</div>
+                    <div class="shortcut-label-sub">Browse</div>
                 </div>
             </a>
-            <a class="group flex flex-col border border-border rounded-lg overflow-hidden bg-card no-underline text-inherit hover:border-ring transition-colors" href="about:wallet#identity">
-                <div class="aspect-square w-full bg-chart-5 flex items-center justify-center text-2xl text-primary-foreground font-semibold">I</div>
-                <div class="px-3 py-2.5">
-                    <div class="text-sm font-medium text-card-foreground">Identity</div>
-                    <div class="text-xs text-muted-foreground">BAP Profile</div>
+            <a class="shortcut-card" href="about:wallet#identity">
+                <div class="shortcut-thumb" style="background:var(--chart-5)">I</div>
+                <div class="shortcut-label">
+                    <div class="shortcut-label-title">Identity</div>
+                    <div class="shortcut-label-sub">BAP Profile</div>
                 </div>
             </a>
-            <a class="group flex flex-col border border-border rounded-lg overflow-hidden bg-card no-underline text-inherit hover:border-ring transition-colors" href="about:settings">
-                <div class="aspect-square w-full bg-muted flex items-center justify-center text-2xl text-muted-foreground font-semibold">S</div>
-                <div class="px-3 py-2.5">
-                    <div class="text-sm font-medium text-card-foreground">Settings</div>
-                    <div class="text-xs text-muted-foreground">Configure</div>
+            <a class="shortcut-card" href="about:settings">
+                <div class="shortcut-thumb" style="background:var(--muted)">
+                    <span style="color:var(--muted-foreground)">S</span>
+                </div>
+                <div class="shortcut-label">
+                    <div class="shortcut-label-title">Settings</div>
+                    <div class="shortcut-label-sub">Configure</div>
                 </div>
             </a>
-            <a class="group flex flex-col border border-border rounded-lg overflow-hidden bg-card no-underline text-inherit hover:border-ring transition-colors" href="about:wallet#chat">
-                <div class="aspect-square w-full bg-chart-1 flex items-center justify-center text-2xl text-primary-foreground font-semibold">C</div>
-                <div class="px-3 py-2.5">
-                    <div class="text-sm font-medium text-card-foreground">BitChat</div>
-                    <div class="text-xs text-muted-foreground">Messages</div>
+            <a class="shortcut-card" href="about:wallet#chat">
+                <div class="shortcut-thumb" style="background:var(--chart-1)">C</div>
+                <div class="shortcut-label">
+                    <div class="shortcut-label-title">BitChat</div>
+                    <div class="shortcut-label-sub">Messages</div>
                 </div>
             </a>
-            <a class="group flex flex-col border border-border rounded-lg overflow-hidden bg-card no-underline text-inherit hover:border-ring transition-colors" href="about:wallet#publish">
-                <div class="aspect-square w-full bg-chart-3 flex items-center justify-center text-2xl text-primary-foreground font-semibold">P</div>
-                <div class="px-3 py-2.5">
-                    <div class="text-sm font-medium text-card-foreground">Publish</div>
-                    <div class="text-xs text-muted-foreground">Inscribe</div>
+            <a class="shortcut-card" href="about:wallet#publish">
+                <div class="shortcut-thumb" style="background:var(--chart-3)">P</div>
+                <div class="shortcut-label">
+                    <div class="shortcut-label-title">Publish</div>
+                    <div class="shortcut-label-sub">Inscribe</div>
                 </div>
             </a>
         </div>
