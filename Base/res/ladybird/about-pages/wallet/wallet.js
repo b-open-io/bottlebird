@@ -76,6 +76,27 @@ const marketSearch = document.querySelector("#market-search");
 const marketSort = document.querySelector("#market-sort");
 const marketRefresh = document.querySelector("#market-refresh");
 
+// Profile elements
+const profileName = document.querySelector("#profile-name");
+const profileDescription = document.querySelector("#profile-description");
+const profileAvatar = document.querySelector("#profile-avatar");
+const btnSaveProfile = document.querySelector("#btn-save-profile");
+const profileMessage = document.querySelector("#profile-message");
+
+// Chat / Publish elements
+const btnOpenBitchat = document.querySelector("#btn-open-bitchat");
+const btnInscribeFile = document.querySelector("#btn-inscribe-file");
+const inscribeFileName = document.querySelector("#inscribe-file-name");
+const inscribeTypeDisplay = document.querySelector("#inscribe-type-display");
+const inscribeContentType = document.querySelector("#inscribe-content-type");
+const inscribePreview = document.querySelector("#inscribe-preview");
+const inscribePreviewArea = document.querySelector("#inscribe-preview-area");
+const btnInscribe = document.querySelector("#btn-inscribe");
+const inscribeMessage = document.querySelector("#inscribe-message");
+
+// Receive copy button
+const btnCopyAddress = document.querySelector("#btn-copy-address");
+
 let walletEnabled = false;
 let previousView = "onboarding";
 let pendingFileData = null;
@@ -468,6 +489,7 @@ if (marketRefresh) {
 function refreshWallet() {
     ladybird.sendMessage("loadWalletStatus");
     ladybird.sendMessage("getReceiveAddress");
+    ladybird.sendMessage("loadProfile");
 }
 
 let currentAddress = null;
@@ -790,5 +812,84 @@ document.addEventListener("WebUIMessage", event => {
             sendRecipient.value = "";
             sendAmount.value = "";
         }
+    } else if (name === "profileLoaded") {
+        if (profileName && data.name) profileName.value = data.name;
+        if (profileDescription && data.description) profileDescription.value = data.description;
+        if (profileAvatar && data.avatar) profileAvatar.value = data.avatar;
+    } else if (name === "profileSaved") {
+        if (profileMessage) {
+            if (data.error) {
+                profileMessage.textContent = data.error;
+                profileMessage.className = "message error";
+            } else {
+                profileMessage.textContent = "Profile saved.";
+                profileMessage.className = "message success";
+                setTimeout(() => { profileMessage.className = "hidden"; }, 3000);
+            }
+        }
     }
 });
+
+// ── Profile ────────────────────────────────────────────────────────
+
+if (btnSaveProfile) {
+    btnSaveProfile.addEventListener("click", () => {
+        const name = profileName ? profileName.value.trim() : "";
+        const description = profileDescription ? profileDescription.value.trim() : "";
+        const avatar = profileAvatar ? profileAvatar.value.trim() : "";
+        ladybird.sendMessage("saveProfile", { name, description, avatar });
+    });
+}
+
+// ── Copy address button ────────────────────────────────────────────
+
+if (btnCopyAddress) {
+    btnCopyAddress.addEventListener("click", () => {
+        if (currentAddress) {
+            navigator.clipboard.writeText(currentAddress);
+            btnCopyAddress.textContent = "Copied!";
+            setTimeout(() => {
+                btnCopyAddress.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> Copy Address';
+            }, 2000);
+        }
+    });
+}
+
+// ── BitChat ────────────────────────────────────────────────────────
+
+if (btnOpenBitchat) {
+    btnOpenBitchat.addEventListener("click", () => {
+        window.open("https://bitchat.dev", "_blank");
+    });
+}
+
+// ── Inscription file picker ────────────────────────────────────────
+
+if (btnInscribeFile) {
+    btnInscribeFile.addEventListener("click", () => {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.addEventListener("change", () => {
+            const file = input.files[0];
+            if (!file) return;
+
+            if (inscribeFileName) inscribeFileName.textContent = file.name;
+            if (inscribeContentType) inscribeContentType.textContent = file.type || "application/octet-stream";
+            if (inscribeTypeDisplay) inscribeTypeDisplay.classList.remove("hidden");
+
+            // Show preview for images
+            if (inscribePreview && inscribePreviewArea && file.type.startsWith("image/")) {
+                inscribePreviewArea.innerHTML = "";
+                const img = document.createElement("img");
+                img.src = URL.createObjectURL(file);
+                img.style.width = "100%";
+                img.style.display = "block";
+                inscribePreviewArea.appendChild(img);
+                inscribePreview.classList.remove("hidden");
+            } else if (inscribePreview) {
+                inscribePreview.classList.add("hidden");
+            }
+        });
+        input.click();
+    });
+}

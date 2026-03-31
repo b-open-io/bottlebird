@@ -28,6 +28,8 @@ private:
     void confirm_wallet_creation();
     void list_ordinals();
     void list_tokens();
+    void save_profile(JsonValue const&);
+    void load_profile();
 
     String m_pending_mnemonic;
 };

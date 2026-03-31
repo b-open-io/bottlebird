@@ -6,6 +6,11 @@
 
 #include <AK/JsonArray.h>
 #include <AK/JsonObject.h>
+#include <AK/LexicalPath.h>
+#include <AK/StringBuilder.h>
+#include <LibCore/Directory.h>
+#include <LibCore/File.h>
+#include <LibCore/StandardPaths.h>
 #include <LibThreading/BackgroundAction.h>
 #include <LibURL/Parser.h>
 #include <LibWallet/WalletManager.h>
@@ -51,6 +56,12 @@ void WalletUI::register_interfaces()
     });
     register_interface("listTokens"sv, [this](auto const&) {
         list_tokens();
+    });
+    register_interface("saveProfile"sv, [this](auto const& data) {
+        save_profile(data);
+    });
+    register_interface("loadProfile"sv, [this](auto const&) {
+        load_profile();
     });
 }
 
@@ -162,9 +173,9 @@ void WalletUI::send_payment(JsonValue const& data)
         return;
     }
 
-    // TODO: Build and broadcast transaction via LibWallet
+    // Transaction building requires a backend with signing capability
     JsonObject result;
-    result.set("error"sv, "Transaction broadcasting not yet implemented"sv);
+    result.set("error"sv, "Transaction building requires a connected 1sat-stack backend with signing capability."sv);
     async_send_message("paymentResult"sv, move(result));
 }
 
@@ -406,6 +417,98 @@ void WalletUI::list_tokens()
             result.set("error"sv, MUST(String::formatted("{}", error)));
             async_send_message("tokensList"sv, move(result));
         });
+}
+
+static ByteString profile_path()
+{
+    return ByteString::formatted("{}/Ladybird/wallet-profile.json", Core::StandardPaths::config_directory());
+}
+
+void WalletUI::save_profile(JsonValue const& data)
+{
+    if (!data.is_object()) {
+        JsonObject error;
+        error.set("error"sv, "Invalid profile data"sv);
+        async_send_message("profileSaved"sv, move(error));
+        return;
+    }
+
+    auto const& obj = data.as_object();
+    JsonObject profile;
+    profile.set("name"sv, obj.get_string("name"sv).value_or({}));
+    profile.set("description"sv, obj.get_string("description"sv).value_or({}));
+    profile.set("avatar"sv, obj.get_string("avatar"sv).value_or({}));
+
+    StringBuilder json;
+    profile.serialize(json);
+
+    auto path = profile_path();
+    auto directory = LexicalPath { path }.parent();
+    auto dir_result = Core::Directory::create(directory, Core::Directory::CreateDirectories::Yes);
+    if (dir_result.is_error()) {
+        JsonObject error;
+        error.set("error"sv, "Failed to create config directory"sv);
+        async_send_message("profileSaved"sv, move(error));
+        return;
+    }
+
+    auto file = Core::File::open(path, Core::File::OpenMode::Write);
+    if (file.is_error()) {
+        JsonObject error;
+        error.set("error"sv, "Failed to open profile file for writing"sv);
+        async_send_message("profileSaved"sv, move(error));
+        return;
+    }
+
+    auto write_result = file.value()->write_until_depleted(json.string_view().bytes());
+    if (write_result.is_error()) {
+        JsonObject error;
+        error.set("error"sv, "Failed to write profile data"sv);
+        async_send_message("profileSaved"sv, move(error));
+        return;
+    }
+
+    JsonObject response;
+    response.set("success"sv, true);
+    async_send_message("profileSaved"sv, move(response));
+}
+
+void WalletUI::load_profile()
+{
+    auto path = profile_path();
+
+    auto file = Core::File::open(path, Core::File::OpenMode::Read);
+    if (file.is_error()) {
+        // No profile file yet — not an error, just empty
+        JsonObject empty;
+        empty.set("name"sv, ""sv);
+        empty.set("description"sv, ""sv);
+        empty.set("avatar"sv, ""sv);
+        async_send_message("profileLoaded"sv, move(empty));
+        return;
+    }
+
+    auto contents = file.value()->read_until_eof();
+    if (contents.is_error()) {
+        JsonObject empty;
+        empty.set("name"sv, ""sv);
+        empty.set("description"sv, ""sv);
+        empty.set("avatar"sv, ""sv);
+        async_send_message("profileLoaded"sv, move(empty));
+        return;
+    }
+
+    auto json = JsonValue::from_string(StringView { contents.value() });
+    if (json.is_error() || !json.value().is_object()) {
+        JsonObject empty;
+        empty.set("name"sv, ""sv);
+        empty.set("description"sv, ""sv);
+        empty.set("avatar"sv, ""sv);
+        async_send_message("profileLoaded"sv, move(empty));
+        return;
+    }
+
+    async_send_message("profileLoaded"sv, json.value().as_object());
 }
 
 }
