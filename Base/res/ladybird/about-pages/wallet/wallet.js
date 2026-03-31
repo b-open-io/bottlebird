@@ -577,26 +577,40 @@ function parseOverlayApps(answer) {
     if (!answer || answer.type !== "output-list" || !Array.isArray(answer.outputs)) return [];
     const apps = [];
 
+    // The overlay returns BEEF binary with PushDrop tokens.
+    // The app metadata JSON is embedded literally in the BEEF bytes.
+    // Extract it by searching for the JSON pattern.
+    const VERSION_MARKER = [123, 34, 118, 101, 114, 115, 105, 111, 110, 34, 58]; // {"version":
+
     for (const output of answer.outputs) {
         try {
-            // The overlay may return pre-parsed JSON with metadata fields,
-            // or raw BEEF. For the JSON lookup response:
-            if (output.fields) {
-                // PushDrop decoded fields in the lookup response
-                const jsonStr = typeof output.fields[0] === "string"
-                    ? output.fields[0]
-                    : new TextDecoder().decode(new Uint8Array(output.fields[0]));
-                const metadata = JSON.parse(jsonStr);
-                apps.push({ metadata, txid: output.txid, outputIndex: output.outputIndex });
-            } else if (output.customInstructions) {
-                // Some overlay services return the decoded token data directly
-                const metadata = typeof output.customInstructions === "string"
-                    ? JSON.parse(output.customInstructions)
-                    : output.customInstructions;
-                apps.push({ metadata, txid: output.txid, outputIndex: output.outputIndex });
-            } else if (output.type === "raw-json" && output.metadata) {
-                apps.push({ metadata: output.metadata, txid: output.txid, outputIndex: output.outputIndex });
+            if (!output.beef || !Array.isArray(output.beef)) continue;
+            const beef = output.beef;
+
+            // Find {"version": in the byte array
+            let jsonStart = -1;
+            for (let i = 0; i < beef.length - VERSION_MARKER.length; i++) {
+                let match = true;
+                for (let j = 0; j < VERSION_MARKER.length; j++) {
+                    if (beef[i + j] !== VERSION_MARKER[j]) { match = false; break; }
+                }
+                if (match) { jsonStart = i; break; }
             }
+            if (jsonStart === -1) continue;
+
+            // Find the end of the JSON object by counting braces
+            let depth = 0;
+            let jsonEnd = jsonStart;
+            for (let i = jsonStart; i < beef.length; i++) {
+                if (beef[i] === 123) depth++; // {
+                else if (beef[i] === 125) depth--; // }
+                if (depth === 0) { jsonEnd = i + 1; break; }
+            }
+
+            const jsonBytes = beef.slice(jsonStart, jsonEnd);
+            const jsonStr = new TextDecoder().decode(new Uint8Array(jsonBytes));
+            const metadata = JSON.parse(jsonStr);
+            apps.push({ metadata, outputIndex: output.outputIndex });
         } catch {
             // Skip malformed records
         }
