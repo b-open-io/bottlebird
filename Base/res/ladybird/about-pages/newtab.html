@@ -23,6 +23,11 @@
   --border: oklch(0.9220 0 0);
   --input: oklch(0.9220 0 0);
   --ring: oklch(0.7080 0 0);
+  --chart-1: oklch(0.6460 0.2220 41.1160);
+  --chart-2: oklch(0.6000 0.2100 262.8480);
+  --chart-3: oklch(0.3980 0.0700 227.3920);
+  --chart-4: oklch(0.8280 0.1890 84.4290);
+  --chart-5: oklch(0.7690 0.1880 70.0800);
   --radius: 0.625rem;
 }
 
@@ -40,6 +45,11 @@
   --border: oklch(0.2750 0 0);
   --input: oklch(0.3250 0 0);
   --ring: oklch(0.5560 0 0);
+  --chart-1: oklch(0.8100 0.1000 252);
+  --chart-2: oklch(0.6200 0.1900 260);
+  --chart-3: oklch(0.5500 0.2200 263);
+  --chart-4: oklch(0.4900 0.2200 264);
+  --chart-5: oklch(0.4200 0.1800 266);
 }
 
 @theme inline {
@@ -56,6 +66,11 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
   --radius-lg: var(--radius);
 }
 
@@ -65,7 +80,7 @@
 }
         </style>
     </head>
-    <body class="flex flex-col items-center justify-center min-h-screen py-10 px-5 gap-8">
+    <body class="flex flex-col items-center justify-center min-h-screen py-6 px-5 gap-6">
         <!-- Branding -->
         <div class="flex flex-col items-center gap-2.5">
             <div class="w-14 h-14 rounded-full bg-gradient-to-br from-chart-1 to-chart-2 shrink-0"></div>

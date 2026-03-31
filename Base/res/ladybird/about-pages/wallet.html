@@ -136,39 +136,39 @@
     @apply inline-block w-2.5 h-2.5 rounded-full mr-2;
 }
 .status-indicator.connected {
-    @apply bg-green-500;
+    @apply bg-success;
 }
 .status-indicator.disconnected {
-    @apply bg-zinc-500;
+    @apply bg-muted-foreground;
 }
 
 .address-display {
-    @apply font-mono text-xs bg-zinc-950 border border-zinc-800 rounded px-3 py-3 break-all select-all cursor-pointer;
+    @apply font-mono text-xs bg-background border border-border rounded px-3 py-3 break-all select-all cursor-pointer;
 }
 
 .address-placeholder {
-    @apply text-sm text-zinc-500 italic;
+    @apply text-sm text-muted-foreground italic;
 }
 
 .message {
     @apply text-sm p-2.5 rounded mt-2.5;
 }
 .message.error {
-    @apply bg-red-500/15 text-red-400;
+    @apply bg-destructive/15 text-destructive;
 }
 .message.success {
-    @apply bg-green-500/15 text-green-400;
+    @apply bg-success/15 text-success;
 }
 
 /* JS-created element classes */
 .ordinal-card {
-    @apply bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden cursor-pointer transition-colors;
+    @apply bg-card border border-border rounded-lg overflow-hidden cursor-pointer transition-colors;
 }
 .ordinal-card:hover {
-    @apply border-blue-500;
+    @apply border-ring;
 }
 .ordinal-card .thumb {
-    @apply w-full aspect-square bg-zinc-950 flex items-center justify-center text-3xl opacity-30;
+    @apply w-full aspect-square bg-background flex items-center justify-center text-3xl opacity-30;
 }
 .ordinal-card .thumb img {
     @apply w-full h-full object-cover;
@@ -183,14 +183,14 @@
     @apply font-medium whitespace-nowrap overflow-hidden text-ellipsis;
 }
 .ordinal-card .meta .outpoint {
-    @apply font-mono text-[10px] text-zinc-500 mt-0.5;
+    @apply font-mono text-[10px] text-muted-foreground mt-0.5;
 }
 
 .token-row {
-    @apply flex items-center gap-3.5 px-5 py-3.5 border-b border-zinc-800 last:border-b-0;
+    @apply flex items-center gap-3.5 px-5 py-3.5 border-b border-border last:border-b-0;
 }
 .token-icon {
-    @apply w-8 h-8 rounded-md bg-zinc-950 flex items-center justify-center text-sm font-semibold text-blue-500 shrink-0;
+    @apply w-8 h-8 rounded-md bg-background flex items-center justify-center text-sm font-semibold text-chart-1 shrink-0;
 }
 .token-icon img {
     @apply w-full h-full object-cover rounded-md;
@@ -202,20 +202,20 @@
     @apply text-[13px] font-semibold;
 }
 .token-id {
-    @apply font-mono text-[10px] text-zinc-500 whitespace-nowrap overflow-hidden text-ellipsis;
+    @apply font-mono text-[10px] text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis;
 }
 .token-balance {
     @apply font-mono text-sm font-medium text-right;
 }
 
 .listing-card {
-    @apply bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden cursor-pointer transition-colors;
+    @apply bg-card border border-border rounded-lg overflow-hidden cursor-pointer transition-colors;
 }
 .listing-card:hover {
-    @apply border-blue-500;
+    @apply border-ring;
 }
 .listing-card .thumb {
-    @apply w-full aspect-square bg-zinc-950 flex items-center justify-center text-3xl opacity-30;
+    @apply w-full aspect-square bg-background flex items-center justify-center text-3xl opacity-30;
 }
 .listing-card .thumb img {
     @apply w-full h-full object-cover;
@@ -240,7 +240,7 @@
 }
 
 .skeleton {
-    background: linear-gradient(90deg, #161618 25%, #2c2c2e 50%, #161618 75%);
+    background: linear-gradient(90deg, oklch(0.16 0 0) 25%, oklch(0.25 0 0) 50%, oklch(0.16 0 0) 75%);
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
     @apply rounded;
@@ -252,14 +252,14 @@
 }
         </style>
     </head>
-    <body class="max-w-3xl mx-auto p-5 min-h-screen">
-        <header class="flex items-center mb-8">
+    <body class="max-w-3xl mx-auto px-6 py-8 min-h-screen">
+        <header class="flex items-center gap-3 mb-6">
             <picture>
                 <source
                     srcset="resource://icons/128x128/app-browser.png"
                     media="(prefers-color-scheme: dark)"
                 />
-                <img class="h-12 mr-2.5 float-left" src="resource://icons/128x128/app-browser-dark.png" />
+                <img class="h-12 shrink-0" src="resource://icons/128x128/app-browser-dark.png" />
             </picture>
             <h1 class="text-xl font-semibold">Bottlebird Wallet</h1>
         </header>
@@ -268,24 +268,24 @@
         <div id="onboarding-view" class="hidden">
             <div class="text-center py-16 px-5">
                 <h2 class="text-2xl font-semibold mb-2">Get Started with BSV</h2>
-                <p class="text-[15px] text-zinc-500 mb-8">Create a new wallet or import an existing one to begin.</p>
+                <p class="text-[15px] text-muted-foreground mb-8">Create a new wallet or import an existing one to begin.</p>
                 <div class="flex flex-col items-center gap-3">
-                    <button id="btn-create-wallet" class="bg-blue-600 hover:bg-blue-700 text-white border-none rounded-lg px-8 py-3 text-sm font-medium cursor-pointer min-w-60">Create New Wallet</button>
-                    <button id="btn-import-wallet" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 rounded-lg px-8 py-3 text-sm cursor-pointer min-w-60">Import from Backup</button>
+                    <button id="btn-create-wallet" class="inline-flex items-center justify-center rounded-md bg-primary px-8 py-3 text-sm font-medium text-primary-foreground shadow-xs hover:bg-primary/90 cursor-pointer min-w-60">Create New Wallet</button>
+                    <button id="btn-import-wallet" class="inline-flex items-center justify-center rounded-md border border-input bg-background px-8 py-3 text-sm font-medium shadow-xs hover:bg-accent hover:text-accent-foreground cursor-pointer min-w-60">Import from Backup</button>
                 </div>
             </div>
         </div>
 
         <!-- Onboarding: show new mnemonic -->
         <div id="mnemonic-show-view" class="hidden">
-            <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
-                <div class="bg-zinc-950 border-b border-zinc-800 px-5 py-3.5 text-sm font-medium">Your Recovery Phrase</div>
-                <div class="p-5">
-                    <p class="mb-2.5 text-sm text-zinc-500">Write down these 12 words in order and keep them safe. This is the only way to recover your wallet.</p>
+            <div class="border border-border rounded-lg overflow-hidden bg-card">
+                <div class="bg-secondary px-4 py-3 text-sm font-medium border-b border-border">Your Recovery Phrase</div>
+                <div class="p-4">
+                    <p class="mb-2.5 text-sm text-muted-foreground">Write down these 12 words in order and keep them safe. This is the only way to recover your wallet.</p>
                     <div id="mnemonic-display" class="address-display leading-8 text-[15px] text-center"></div>
                     <div class="flex justify-end gap-2.5 mt-4">
-                        <button id="btn-mnemonic-back" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 rounded-lg px-6 py-2.5 text-sm cursor-pointer">Back</button>
-                        <button id="btn-mnemonic-confirm" class="bg-blue-600 hover:bg-blue-700 text-white border-none rounded-lg px-6 py-2.5 text-sm font-medium cursor-pointer">I've Saved It</button>
+                        <button id="btn-mnemonic-back" class="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium shadow-xs hover:bg-accent hover:text-accent-foreground cursor-pointer">Back</button>
+                        <button id="btn-mnemonic-confirm" class="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-xs hover:bg-primary/90 cursor-pointer">I've Saved It</button>
                     </div>
                 </div>
             </div>
@@ -293,16 +293,16 @@
 
         <!-- Import: choose method -->
         <div id="import-view" class="hidden">
-            <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
-                <div class="bg-zinc-950 border-b border-zinc-800 px-5 py-3.5 text-sm font-medium">Import Wallet</div>
-                <div class="p-5">
-                    <p class="mb-2.5 text-sm text-zinc-500">Choose how to import your wallet.</p>
+            <div class="border border-border rounded-lg overflow-hidden bg-card">
+                <div class="bg-secondary px-4 py-3 text-sm font-medium border-b border-border">Import Wallet</div>
+                <div class="p-4">
+                    <p class="mb-2.5 text-sm text-muted-foreground">Choose how to import your wallet.</p>
                     <div class="flex flex-col items-center gap-3 py-5">
-                        <button id="btn-import-mnemonic" class="bg-blue-600 hover:bg-blue-700 text-white border-none rounded-lg px-8 py-3 text-sm font-medium cursor-pointer min-w-60">Enter Recovery Phrase</button>
-                        <button id="btn-import-file" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 rounded-lg px-8 py-3 text-sm cursor-pointer min-w-60">Import from Backup File</button>
+                        <button id="btn-import-mnemonic" class="inline-flex items-center justify-center rounded-md bg-primary px-8 py-3 text-sm font-medium text-primary-foreground shadow-xs hover:bg-primary/90 cursor-pointer min-w-60">Enter Recovery Phrase</button>
+                        <button id="btn-import-file" class="inline-flex items-center justify-center rounded-md border border-input bg-background px-8 py-3 text-sm font-medium shadow-xs hover:bg-accent hover:text-accent-foreground cursor-pointer min-w-60">Import from Backup File</button>
                     </div>
                     <div class="flex justify-end gap-2.5 mt-2">
-                        <button id="btn-import-back" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 rounded-lg px-6 py-2.5 text-sm cursor-pointer">Back</button>
+                        <button id="btn-import-back" class="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium shadow-xs hover:bg-accent hover:text-accent-foreground cursor-pointer">Back</button>
                     </div>
                 </div>
             </div>
@@ -310,17 +310,17 @@
 
         <!-- Import: mnemonic entry -->
         <div id="import-mnemonic-view" class="hidden">
-            <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
-                <div class="bg-zinc-950 border-b border-zinc-800 px-5 py-3.5 text-sm font-medium">Recovery Phrase</div>
-                <div class="p-5">
+            <div class="border border-border rounded-lg overflow-hidden bg-card">
+                <div class="bg-secondary px-4 py-3 text-sm font-medium border-b border-border">Recovery Phrase</div>
+                <div class="p-4">
                     <div class="mb-5">
-                        <label class="block mb-2 text-sm text-zinc-400" for="import-mnemonic">Enter your 12 or 24 word seed phrase</label>
-                        <textarea id="import-mnemonic" rows="4" class="bg-zinc-950 w-full border border-zinc-800 rounded-md px-3 py-3 text-[15px] font-mono resize-y text-inherit" placeholder="abandon ability able about above absent absorb abstract absurd abuse access accident"></textarea>
+                        <label class="text-sm font-medium block mb-2" for="import-mnemonic">Enter your 12 or 24 word seed phrase</label>
+                        <textarea id="import-mnemonic" rows="4" class="flex w-full rounded-md border border-input bg-background px-3 py-3 text-[15px] font-mono resize-y shadow-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" placeholder="abandon ability able about above absent absorb abstract absurd abuse access accident"></textarea>
                     </div>
                     <div id="import-mnemonic-error" class="hidden"></div>
                     <div class="flex justify-end gap-2.5">
-                        <button id="btn-mnemonic-import-back" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 rounded-lg px-6 py-2.5 text-sm cursor-pointer">Back</button>
-                        <button id="btn-mnemonic-import-confirm" class="bg-blue-600 hover:bg-blue-700 text-white border-none rounded-lg px-6 py-2.5 text-sm font-medium cursor-pointer">Import</button>
+                        <button id="btn-mnemonic-import-back" class="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium shadow-xs hover:bg-accent hover:text-accent-foreground cursor-pointer">Back</button>
+                        <button id="btn-mnemonic-import-confirm" class="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-xs hover:bg-primary/90 cursor-pointer">Import</button>
                     </div>
                 </div>
             </div>
@@ -328,26 +328,26 @@
 
         <!-- Import: backup file + password -->
         <div id="import-file-view" class="hidden">
-            <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
-                <div class="bg-zinc-950 border-b border-zinc-800 px-5 py-3.5 text-sm font-medium">Import from Backup File</div>
-                <div class="p-5">
+            <div class="border border-border rounded-lg overflow-hidden bg-card">
+                <div class="bg-secondary px-4 py-3 text-sm font-medium border-b border-border">Import from Backup File</div>
+                <div class="p-4">
                     <div class="mb-5">
-                        <label class="block mb-2 text-sm text-zinc-400">Backup File (.bep)</label>
-                        <p class="mb-2.5 text-sm text-zinc-500">Select an encrypted backup file created by bitcoin-backup.</p>
+                        <label class="text-sm font-medium block mb-2">Backup File (.bep)</label>
+                        <p class="mb-2.5 text-sm text-muted-foreground">Select an encrypted backup file created by bitcoin-backup.</p>
                         <div class="flex justify-start gap-2.5">
-                            <button id="btn-pick-file" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 rounded-lg px-6 py-2.5 text-sm cursor-pointer">Choose File...</button>
-                            <span id="file-name" class="text-sm text-zinc-500 self-center">No file selected</span>
+                            <button id="btn-pick-file" class="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium shadow-xs hover:bg-accent hover:text-accent-foreground cursor-pointer">Choose File...</button>
+                            <span id="file-name" class="text-sm text-muted-foreground self-center">No file selected</span>
                         </div>
                     </div>
                     <div id="file-password-group" class="mb-5 hidden">
-                        <label class="block mb-2 text-sm text-zinc-400" for="file-password">Backup Password</label>
-                        <p class="mb-2.5 text-sm text-zinc-500">Enter the password used to encrypt this backup.</p>
-                        <input id="file-password" type="password" class="bg-zinc-950 w-full border border-zinc-800 rounded-md px-3 py-2 text-sm" placeholder="Password" />
+                        <label class="text-sm font-medium block mb-2" for="file-password">Backup Password</label>
+                        <p class="mb-2.5 text-sm text-muted-foreground">Enter the password used to encrypt this backup.</p>
+                        <input id="file-password" type="password" class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" placeholder="Password" />
                     </div>
                     <div id="import-file-error" class="hidden"></div>
                     <div class="flex justify-end gap-2.5">
-                        <button id="btn-file-import-back" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 rounded-lg px-6 py-2.5 text-sm cursor-pointer">Back</button>
-                        <button id="btn-file-import-confirm" class="bg-blue-600 hover:bg-blue-700 text-white border-none rounded-lg px-6 py-2.5 text-sm font-medium cursor-pointer hidden">Decrypt & Import</button>
+                        <button id="btn-file-import-back" class="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium shadow-xs hover:bg-accent hover:text-accent-foreground cursor-pointer">Back</button>
+                        <button id="btn-file-import-confirm" class="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-xs hover:bg-primary/90 cursor-pointer hidden">Decrypt & Import</button>
                     </div>
                 </div>
             </div>
@@ -356,42 +356,42 @@
         <!-- Main wallet view (shown when wallet is configured) -->
         <div id="wallet-view" class="hidden">
             <!-- Navigation bar -->
-            <nav class="flex gap-1 bg-zinc-900 border border-zinc-800 rounded-lg p-1 mb-5 overflow-x-auto">
-                <a class="nav-tab px-3.5 py-2 rounded-md text-sm font-medium cursor-pointer no-underline bg-blue-600 text-white" href="#dashboard" data-view="dashboard">Dashboard</a>
-                <a class="nav-tab px-3.5 py-2 rounded-md text-sm font-medium cursor-pointer no-underline text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200" href="#ordinals" data-view="ordinals">Ordinals</a>
-                <a class="nav-tab px-3.5 py-2 rounded-md text-sm font-medium cursor-pointer no-underline text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200" href="#tokens" data-view="tokens">Tokens</a>
-                <a class="nav-tab px-3.5 py-2 rounded-md text-sm font-medium cursor-pointer no-underline text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200" href="#market" data-view="market">Market</a>
-                <a class="nav-tab px-3.5 py-2 rounded-md text-sm font-medium cursor-pointer no-underline text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200" href="#identity" data-view="identity">Identity</a>
-                <a class="nav-tab px-3.5 py-2 rounded-md text-sm font-medium cursor-pointer no-underline text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200" href="#send" data-view="send">Send</a>
-                <a class="nav-tab px-3.5 py-2 rounded-md text-sm font-medium cursor-pointer no-underline text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200" href="#receive" data-view="receive">Receive</a>
+            <nav class="flex gap-1 bg-secondary rounded-lg p-1 mb-5 overflow-x-auto">
+                <a class="nav-tab px-3 py-1.5 rounded-md text-sm font-medium cursor-pointer no-underline transition-colors bg-primary text-primary-foreground" href="#dashboard" data-view="dashboard">Dashboard</a>
+                <a class="nav-tab px-3 py-1.5 rounded-md text-sm font-medium cursor-pointer no-underline transition-colors text-muted-foreground hover:text-foreground hover:bg-accent" href="#ordinals" data-view="ordinals">Ordinals</a>
+                <a class="nav-tab px-3 py-1.5 rounded-md text-sm font-medium cursor-pointer no-underline transition-colors text-muted-foreground hover:text-foreground hover:bg-accent" href="#tokens" data-view="tokens">Tokens</a>
+                <a class="nav-tab px-3 py-1.5 rounded-md text-sm font-medium cursor-pointer no-underline transition-colors text-muted-foreground hover:text-foreground hover:bg-accent" href="#market" data-view="market">Market</a>
+                <a class="nav-tab px-3 py-1.5 rounded-md text-sm font-medium cursor-pointer no-underline transition-colors text-muted-foreground hover:text-foreground hover:bg-accent" href="#identity" data-view="identity">Identity</a>
+                <a class="nav-tab px-3 py-1.5 rounded-md text-sm font-medium cursor-pointer no-underline transition-colors text-muted-foreground hover:text-foreground hover:bg-accent" href="#send" data-view="send">Send</a>
+                <a class="nav-tab px-3 py-1.5 rounded-md text-sm font-medium cursor-pointer no-underline transition-colors text-muted-foreground hover:text-foreground hover:bg-accent" href="#receive" data-view="receive">Receive</a>
             </nav>
 
             <!-- VIEW: Dashboard -->
             <div id="view-dashboard" class="view-section">
                 <!-- Quick shortcuts -->
                 <div class="grid grid-cols-4 gap-3 mb-6">
-                    <a class="flex flex-col items-center gap-2 py-4 px-2 bg-zinc-800 rounded-xl cursor-pointer no-underline text-inherit text-[13px] hover:bg-zinc-700 transition-colors" href="#ordinals">
-                        <div class="w-9 h-9 rounded-[10px] flex items-center justify-center text-lg text-white font-semibold" style="background: #8b5cf6;">O</div>
+                    <a class="flex flex-col items-center gap-2 py-4 px-2 bg-secondary rounded-xl cursor-pointer no-underline text-inherit text-[13px] hover:bg-accent transition-colors" href="#ordinals">
+                        <div class="w-9 h-9 rounded-[10px] flex items-center justify-center text-lg text-primary-foreground font-semibold bg-chart-2">O</div>
                         <span>Ordinals</span>
                     </a>
-                    <a class="flex flex-col items-center gap-2 py-4 px-2 bg-zinc-800 rounded-xl cursor-pointer no-underline text-inherit text-[13px] hover:bg-zinc-700 transition-colors" href="#tokens">
-                        <div class="w-9 h-9 rounded-[10px] flex items-center justify-center text-lg text-white font-semibold" style="background: #eab308;">T</div>
+                    <a class="flex flex-col items-center gap-2 py-4 px-2 bg-secondary rounded-xl cursor-pointer no-underline text-inherit text-[13px] hover:bg-accent transition-colors" href="#tokens">
+                        <div class="w-9 h-9 rounded-[10px] flex items-center justify-center text-lg text-primary-foreground font-semibold bg-chart-3">T</div>
                         <span>Tokens</span>
                     </a>
-                    <a class="flex flex-col items-center gap-2 py-4 px-2 bg-zinc-800 rounded-xl cursor-pointer no-underline text-inherit text-[13px] hover:bg-zinc-700 transition-colors" href="#market">
-                        <div class="w-9 h-9 rounded-[10px] flex items-center justify-center text-lg text-white font-semibold" style="background: #22c55e;">M</div>
+                    <a class="flex flex-col items-center gap-2 py-4 px-2 bg-secondary rounded-xl cursor-pointer no-underline text-inherit text-[13px] hover:bg-accent transition-colors" href="#market">
+                        <div class="w-9 h-9 rounded-[10px] flex items-center justify-center text-lg text-primary-foreground font-semibold bg-chart-4">M</div>
                         <span>Market</span>
                     </a>
-                    <a id="btn-add-account" class="flex flex-col items-center gap-2 py-4 px-2 bg-zinc-800 rounded-xl cursor-pointer no-underline text-inherit text-[13px] hover:bg-zinc-700 transition-colors" href="javascript:void(0)">
-                        <div class="w-9 h-9 rounded-[10px] flex items-center justify-center text-lg text-white font-semibold" style="background: #6366f1;">+</div>
+                    <a id="btn-add-account" class="flex flex-col items-center gap-2 py-4 px-2 bg-secondary rounded-xl cursor-pointer no-underline text-inherit text-[13px] hover:bg-accent transition-colors" href="javascript:void(0)">
+                        <div class="w-9 h-9 rounded-[10px] flex items-center justify-center text-lg text-primary-foreground font-semibold bg-chart-5">+</div>
                         <span>Add Account</span>
                     </a>
                 </div>
 
                 <!-- Status + Config -->
-                <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden mb-5">
-                    <div class="bg-zinc-950 border-b border-zinc-800 px-5 py-3.5 text-sm font-medium">Status</div>
-                    <div class="p-5">
+                <div class="border border-border rounded-lg overflow-hidden bg-card mb-5">
+                    <div class="bg-secondary px-4 py-3 text-sm font-medium border-b border-border">Status</div>
+                    <div class="p-4">
                         <div class="flex items-center justify-between gap-2.5 mb-5">
                             <span>
                                 <span id="status-indicator" class="status-indicator disconnected"></span>
@@ -402,52 +402,52 @@
                                 <input id="wallet-enabled-toggle" type="checkbox" switch />
                             </label>
                         </div>
-                        <hr class="h-px bg-zinc-800 border-none mx-2 mb-4" />
+                        <hr class="h-px bg-border border-none mx-2 mb-4" />
                         <div class="mb-5 last:mb-0">
-                            <label class="block mb-2 text-sm text-zinc-400" for="backend-url">Backend URL</label>
-                            <p class="mb-2.5 text-sm text-zinc-500">Ordinals API for wallet operations and content resolution.</p>
-                            <input id="backend-url" type="url" class="bg-zinc-950 w-full border border-zinc-800 rounded-md px-3 py-2 text-sm" value="https://api.1sat.app" />
+                            <label class="text-sm font-medium block mb-2" for="backend-url">Backend URL</label>
+                            <p class="mb-2.5 text-sm text-muted-foreground">Ordinals API for wallet operations and content resolution.</p>
+                            <input id="backend-url" type="url" class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" value="https://api.1sat.app" />
                         </div>
                     </div>
                 </div>
 
                 <!-- Balance -->
-                <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden mb-5">
-                    <div class="bg-zinc-950 border-b border-zinc-800 px-5 py-3.5 text-sm font-medium">Balance</div>
-                    <div class="p-5">
+                <div class="border border-border rounded-lg overflow-hidden bg-card mb-5">
+                    <div class="bg-secondary px-4 py-3 text-sm font-medium border-b border-border">Balance</div>
+                    <div class="p-4">
                         <div id="balance-confirmed" class="text-3xl font-semibold mb-1">0 sat</div>
-                        <div id="balance-unconfirmed" class="text-sm text-zinc-500">0 sat unconfirmed</div>
+                        <div id="balance-unconfirmed" class="text-sm text-muted-foreground">0 sat unconfirmed</div>
                     </div>
                 </div>
             </div>
 
             <!-- VIEW: Ordinals -->
             <div id="view-ordinals" class="view-section hidden">
-                <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
-                    <div class="bg-zinc-950 border-b border-zinc-800 px-5 py-3.5 text-sm font-medium">Your Ordinals</div>
-                    <div class="p-5">
-                        <div id="ordinals-loading" class="text-center py-12 px-5 text-zinc-500 hidden">
-                            <div class="inline-block w-6 h-6 border-3 border-zinc-800 border-t-blue-500 rounded-full animate-spin"></div>
+                <div class="border border-border rounded-lg overflow-hidden bg-card">
+                    <div class="bg-secondary px-4 py-3 text-sm font-medium border-b border-border">Your Ordinals</div>
+                    <div class="p-4">
+                        <div id="ordinals-loading" class="text-center py-12 px-5 text-muted-foreground hidden">
+                            <div class="inline-block w-6 h-6 border-3 border-border border-t-primary rounded-full animate-spin"></div>
                             <p class="text-sm mt-3">Loading ordinals...</p>
                         </div>
                         <div id="ordinals-skeleton" class="grid grid-cols-4 gap-3 hidden">
-                            <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
-                            <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
-                            <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
-                            <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
-                            <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
-                            <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
-                            <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
-                            <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
+                            <div class="bg-card border border-border rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
+                            <div class="bg-card border border-border rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
+                            <div class="bg-card border border-border rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
+                            <div class="bg-card border border-border rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
+                            <div class="bg-card border border-border rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
+                            <div class="bg-card border border-border rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
+                            <div class="bg-card border border-border rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
+                            <div class="bg-card border border-border rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
                         </div>
-                        <div id="ordinals-error" class="bg-red-500/10 border border-red-500/30 rounded-md px-3.5 py-2.5 text-[13px] text-red-400 mb-4 hidden"></div>
+                        <div id="ordinals-error" class="bg-destructive/10 border border-destructive/30 rounded-md px-3.5 py-2.5 text-[13px] text-destructive mb-4 hidden"></div>
                         <div id="ordinals-grid" class="grid grid-cols-4 gap-3 empty:hidden">
                             <!-- Populated dynamically -->
                         </div>
-                        <div id="ordinals-empty" class="text-center py-8 px-5 text-zinc-500">
+                        <div id="ordinals-empty" class="text-center py-10 text-muted-foreground">
                             <div class="text-4xl mb-3">&#9670;</div>
                             <h3 class="text-base font-semibold mb-1.5">No ordinals yet</h3>
-                            <p class="text-sm text-zinc-600">Ordinals appear here after you inscribe or receive one.</p>
+                            <p class="text-sm text-muted-foreground">Ordinals appear here after you inscribe or receive one.</p>
                         </div>
                     </div>
                 </div>
@@ -455,22 +455,22 @@
 
             <!-- VIEW: Tokens -->
             <div id="view-tokens" class="view-section hidden">
-                <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
-                    <div class="bg-zinc-950 border-b border-zinc-800 px-5 py-3.5 text-sm font-medium">BSV21 Tokens</div>
-                    <div class="p-5">
+                <div class="border border-border rounded-lg overflow-hidden bg-card">
+                    <div class="bg-secondary px-4 py-3 text-sm font-medium border-b border-border">BSV21 Tokens</div>
+                    <div class="p-4">
                         <div id="tokens-loading" class="hidden">
-                            <div class="flex items-center gap-3.5 px-5 py-3.5 border-b border-zinc-800"><div class="skeleton w-8 h-8 rounded-md shrink-0"></div><div class="flex-1 flex flex-col gap-1"><div class="skeleton h-3 rounded"></div><div class="skeleton h-2.5 w-[60%] rounded"></div></div></div>
-                            <div class="flex items-center gap-3.5 px-5 py-3.5 border-b border-zinc-800"><div class="skeleton w-8 h-8 rounded-md shrink-0"></div><div class="flex-1 flex flex-col gap-1"><div class="skeleton h-3 rounded"></div><div class="skeleton h-2.5 w-[60%] rounded"></div></div></div>
-                            <div class="flex items-center gap-3.5 px-5 py-3.5 border-b border-zinc-800"><div class="skeleton w-8 h-8 rounded-md shrink-0"></div><div class="flex-1 flex flex-col gap-1"><div class="skeleton h-3 rounded"></div><div class="skeleton h-2.5 w-[60%] rounded"></div></div></div>
+                            <div class="flex items-center gap-3.5 px-5 py-3.5 border-b border-border"><div class="skeleton w-8 h-8 rounded-md shrink-0"></div><div class="flex-1 flex flex-col gap-1"><div class="skeleton h-3 rounded"></div><div class="skeleton h-2.5 w-[60%] rounded"></div></div></div>
+                            <div class="flex items-center gap-3.5 px-5 py-3.5 border-b border-border"><div class="skeleton w-8 h-8 rounded-md shrink-0"></div><div class="flex-1 flex flex-col gap-1"><div class="skeleton h-3 rounded"></div><div class="skeleton h-2.5 w-[60%] rounded"></div></div></div>
+                            <div class="flex items-center gap-3.5 px-5 py-3.5 border-b border-border"><div class="skeleton w-8 h-8 rounded-md shrink-0"></div><div class="flex-1 flex flex-col gap-1"><div class="skeleton h-3 rounded"></div><div class="skeleton h-2.5 w-[60%] rounded"></div></div></div>
                         </div>
-                        <div id="tokens-error" class="bg-red-500/10 border border-red-500/30 rounded-md px-3.5 py-2.5 text-[13px] text-red-400 mb-4 hidden"></div>
+                        <div id="tokens-error" class="bg-destructive/10 border border-destructive/30 rounded-md px-3.5 py-2.5 text-[13px] text-destructive mb-4 hidden"></div>
                         <div id="tokens-list">
                             <!-- Populated dynamically -->
                         </div>
-                        <div id="tokens-empty" class="text-center py-8 px-5 text-zinc-500">
+                        <div id="tokens-empty" class="text-center py-10 text-muted-foreground">
                             <div class="text-4xl mb-3">&#9678;</div>
                             <h3 class="text-base font-semibold mb-1.5">No tokens yet</h3>
-                            <p class="text-sm text-zinc-600">BSV-21 tokens you own will appear here.</p>
+                            <p class="text-sm text-muted-foreground">BSV-21 tokens you own will appear here.</p>
                         </div>
                     </div>
                 </div>
@@ -478,39 +478,39 @@
 
             <!-- VIEW: Market -->
             <div id="view-market" class="view-section hidden">
-                <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
-                    <div class="bg-zinc-950 border-b border-zinc-800 px-5 py-3.5 text-sm font-medium">Marketplace</div>
-                    <div class="p-5">
+                <div class="border border-border rounded-lg overflow-hidden bg-card">
+                    <div class="bg-secondary px-4 py-3 text-sm font-medium border-b border-border">Marketplace</div>
+                    <div class="p-4">
                         <div class="flex items-center gap-3 mb-4">
-                            <div class="flex-1 max-w-[280px] flex items-center gap-2 bg-zinc-950 border border-zinc-800 rounded-md px-2.5 py-1.5">
-                                <span class="text-zinc-500">&#128269;</span>
-                                <input id="market-search" type="search" class="flex-1 bg-transparent border-none outline-none text-xs text-inherit" placeholder="Search listings..." />
+                            <div class="flex-1 max-w-[280px] flex items-center gap-2 bg-background border border-input rounded-md px-2.5 py-1.5">
+                                <span class="text-muted-foreground">&#128269;</span>
+                                <input id="market-search" type="search" class="flex-1 bg-transparent border-none outline-none text-xs text-inherit placeholder:text-muted-foreground" placeholder="Search listings..." />
                             </div>
-                            <select id="market-sort" class="bg-zinc-950 border border-zinc-800 rounded-md px-2.5 py-1.5 text-xs text-inherit">
+                            <select id="market-sort" class="bg-background border border-input rounded-md px-2.5 py-1.5 text-xs text-inherit">
                                 <option value="recent">Recent</option>
                                 <option value="price-asc">Price: Low to High</option>
                                 <option value="price-desc">Price: High to Low</option>
                             </select>
-                            <button id="market-refresh" class="w-8 h-8 flex items-center justify-center border border-zinc-800 bg-zinc-950 rounded-md cursor-pointer text-inherit text-sm transition-colors hover:border-blue-500 disabled:opacity-40 disabled:cursor-not-allowed" title="Refresh listings">&#8635;</button>
+                            <button id="market-refresh" class="w-8 h-8 flex items-center justify-center border border-input bg-background rounded-md cursor-pointer text-inherit text-sm transition-colors hover:border-ring disabled:opacity-40 disabled:cursor-not-allowed" title="Refresh listings">&#8635;</button>
                         </div>
                         <div id="market-skeleton" class="grid grid-cols-4 gap-3 hidden">
-                            <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
-                            <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
-                            <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
-                            <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
-                            <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
-                            <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
-                            <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
-                            <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
+                            <div class="bg-card border border-border rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
+                            <div class="bg-card border border-border rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
+                            <div class="bg-card border border-border rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
+                            <div class="bg-card border border-border rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
+                            <div class="bg-card border border-border rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
+                            <div class="bg-card border border-border rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
+                            <div class="bg-card border border-border rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
+                            <div class="bg-card border border-border rounded-lg overflow-hidden"><div class="skeleton w-full aspect-square"></div><div class="skeleton h-3 w-[70%] mx-2.5 mt-2"></div><div class="skeleton h-2.5 w-[50%] mx-2.5 mt-1 mb-2"></div></div>
                         </div>
-                        <div id="market-error" class="bg-red-500/10 border border-red-500/30 rounded-md px-3.5 py-2.5 text-[13px] text-red-400 mb-4 hidden"></div>
+                        <div id="market-error" class="bg-destructive/10 border border-destructive/30 rounded-md px-3.5 py-2.5 text-[13px] text-destructive mb-4 hidden"></div>
                         <div id="market-grid" class="grid grid-cols-4 gap-3 empty:hidden">
                             <!-- Populated dynamically -->
                         </div>
-                        <div id="market-empty" class="text-center py-8 px-5 text-zinc-500">
+                        <div id="market-empty" class="text-center py-10 text-muted-foreground">
                             <div class="text-4xl mb-3">&#9733;</div>
                             <h3 class="text-base font-semibold mb-1.5">No listings available</h3>
-                            <p class="text-sm text-zinc-600">Marketplace listings appear once items are listed for sale.</p>
+                            <p class="text-sm text-muted-foreground">Marketplace listings appear once items are listed for sale.</p>
                         </div>
                     </div>
                 </div>
@@ -518,40 +518,40 @@
 
             <!-- VIEW: Identity -->
             <div id="view-identity" class="view-section hidden">
-                <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
-                    <div class="bg-zinc-950 border-b border-zinc-800 px-5 py-3.5 text-sm font-medium">Identity</div>
-                    <div class="p-5">
+                <div class="border border-border rounded-lg overflow-hidden bg-card">
+                    <div class="bg-secondary px-4 py-3 text-sm font-medium border-b border-border">Identity</div>
+                    <div class="p-4">
                         <div class="mb-3.5">
-                            <label class="block mb-1 text-[11px] uppercase tracking-wide text-zinc-500">BAP ID</label>
-                            <div id="identity-bap-id" class="text-sm font-mono text-xs break-all cursor-pointer" title="Click to copy"></div>
+                            <label class="block mb-1 text-[11px] uppercase tracking-wide text-muted-foreground">BAP ID</label>
+                            <div id="identity-bap-id" class="font-mono text-xs break-all cursor-pointer" title="Click to copy"></div>
                         </div>
                         <div class="mb-3.5">
-                            <label class="block mb-1 text-[11px] uppercase tracking-wide text-zinc-500">Identity Key</label>
-                            <div id="identity-key" class="text-sm font-mono text-xs break-all cursor-pointer" title="Click to copy"></div>
+                            <label class="block mb-1 text-[11px] uppercase tracking-wide text-muted-foreground">Identity Key</label>
+                            <div id="identity-key" class="font-mono text-xs break-all cursor-pointer" title="Click to copy"></div>
                         </div>
-                        <hr class="h-px bg-zinc-800 border-none my-4" />
+                        <hr class="h-px bg-border border-none my-4" />
                         <div class="mb-3.5">
-                            <label class="block mb-1 text-[11px] uppercase tracking-wide text-zinc-500">Receive Address</label>
-                            <div id="identity-receive-address" class="font-mono text-xs bg-zinc-950 border border-zinc-800 rounded px-2.5 py-2.5 break-all select-all cursor-pointer" title="Click to copy">Loading...</div>
+                            <label class="block mb-1 text-[11px] uppercase tracking-wide text-muted-foreground">Receive Address</label>
+                            <div id="identity-receive-address" class="font-mono text-xs bg-background border border-border rounded px-2.5 py-2.5 break-all select-all cursor-pointer" title="Click to copy">Loading...</div>
                         </div>
-                        <hr class="h-px bg-zinc-800 border-none my-4" />
+                        <hr class="h-px bg-border border-none my-4" />
                         <div class="mb-3.5">
-                            <label class="block mb-2 text-sm text-zinc-400" for="profile-name">Display Name</label>
-                            <input id="profile-name" type="text" class="bg-zinc-950 w-full border border-zinc-800 rounded-md px-3 py-2 text-sm" placeholder="Your name" />
-                        </div>
-                        <div class="mb-3.5">
-                            <label class="block mb-2 text-sm text-zinc-400" for="profile-description">Description</label>
-                            <textarea id="profile-description" rows="3" class="bg-zinc-950 w-full border border-zinc-800 rounded-md px-3 py-2 text-sm font-sans resize-y text-inherit" placeholder="A short bio about yourself"></textarea>
+                            <label class="text-sm font-medium block mb-2" for="profile-name">Display Name</label>
+                            <input id="profile-name" type="text" class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" placeholder="Your name" />
                         </div>
                         <div class="mb-3.5">
-                            <label class="block mb-2 text-sm text-zinc-400" for="profile-avatar">Avatar URL</label>
-                            <input id="profile-avatar" type="url" class="bg-zinc-950 w-full border border-zinc-800 rounded-md px-3 py-2 text-sm" placeholder="https://ordfs.network/{origin}" />
+                            <label class="text-sm font-medium block mb-2" for="profile-description">Description</label>
+                            <textarea id="profile-description" rows="3" class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-sans resize-y shadow-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" placeholder="A short bio about yourself"></textarea>
                         </div>
-                        <p class="text-xs text-zinc-600 italic mt-2">Profile editing is not yet connected to on-chain publishing.</p>
-                        <div id="identity-empty" class="text-center py-8 px-5 text-zinc-500 hidden">
+                        <div class="mb-3.5">
+                            <label class="text-sm font-medium block mb-2" for="profile-avatar">Avatar URL</label>
+                            <input id="profile-avatar" type="url" class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" placeholder="https://ordfs.network/{origin}" />
+                        </div>
+                        <p class="text-xs text-muted-foreground italic mt-2">Profile editing is not yet connected to on-chain publishing.</p>
+                        <div id="identity-empty" class="text-center py-10 text-muted-foreground hidden">
                             <div class="text-4xl mb-3">&#128100;</div>
                             <h3 class="text-base font-semibold mb-1.5">No identity available</h3>
-                            <p class="text-sm text-zinc-600">Create or import a wallet to set up your identity.</p>
+                            <p class="text-sm text-muted-foreground">Create or import a wallet to set up your identity.</p>
                         </div>
                     </div>
                 </div>
@@ -559,20 +559,20 @@
 
             <!-- VIEW: Send -->
             <div id="view-send" class="view-section hidden">
-                <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
-                    <div class="bg-zinc-950 border-b border-zinc-800 px-5 py-3.5 text-sm font-medium">Send BSV</div>
-                    <div class="p-5">
+                <div class="border border-border rounded-lg overflow-hidden bg-card">
+                    <div class="bg-secondary px-4 py-3 text-sm font-medium border-b border-border">Send BSV</div>
+                    <div class="p-4">
                         <div class="flex flex-col gap-4">
-                            <div class="mb-5 last:mb-0">
-                                <label class="block mb-2 text-sm text-zinc-400" for="send-recipient">Recipient Address</label>
-                                <input id="send-recipient" type="text" class="bg-zinc-950 w-full border border-zinc-800 rounded-md px-3 py-2 text-sm" placeholder="Enter BSV address" />
+                            <div>
+                                <label class="text-sm font-medium block mb-2" for="send-recipient">Recipient Address</label>
+                                <input id="send-recipient" type="text" class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" placeholder="Enter BSV address" />
                             </div>
-                            <div class="mb-5 last:mb-0">
-                                <label class="block mb-2 text-sm text-zinc-400" for="send-amount">Amount (satoshis)</label>
-                                <input id="send-amount" type="number" min="1" class="bg-zinc-950 w-full border border-zinc-800 rounded-md px-3 py-2 text-sm" placeholder="0" />
+                            <div>
+                                <label class="text-sm font-medium block mb-2" for="send-amount">Amount (satoshis)</label>
+                                <input id="send-amount" type="number" min="1" class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" placeholder="0" />
                             </div>
                             <div class="flex justify-end gap-2.5">
-                                <button id="send-button" class="bg-blue-600 hover:bg-blue-700 text-white border-none rounded-lg px-6 py-2.5 text-sm font-medium cursor-pointer">Send</button>
+                                <button id="send-button" class="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-xs hover:bg-primary/90 cursor-pointer">Send</button>
                             </div>
                             <div id="send-message" class="hidden"></div>
                         </div>
@@ -582,27 +582,27 @@
 
             <!-- VIEW: Receive -->
             <div id="view-receive" class="view-section hidden">
-                <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
-                    <div class="bg-zinc-950 border-b border-zinc-800 px-5 py-3.5 text-sm font-medium">Receive BSV</div>
-                    <div class="p-5">
-                        <div class="mb-5 last:mb-0">
-                            <label class="block mb-2 text-sm text-zinc-400">Your Address</label>
+                <div class="border border-border rounded-lg overflow-hidden bg-card">
+                    <div class="bg-secondary px-4 py-3 text-sm font-medium border-b border-border">Receive BSV</div>
+                    <div class="p-4">
+                        <div class="mb-4">
+                            <label class="text-sm font-medium block mb-2">Your Address</label>
                             <div id="receive-address" class="address-placeholder">Enable wallet to see your address</div>
                         </div>
-                        <p class="text-[13px] text-zinc-500 text-center mt-3">Share this address to receive BSV</p>
+                        <p class="text-sm text-muted-foreground text-center mt-3">Share this address to receive BSV</p>
                     </div>
                 </div>
             </div>
 
             <!-- VIEW: Chat (placeholder) -->
             <div id="view-chat" class="view-section hidden">
-                <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
-                    <div class="bg-zinc-950 border-b border-zinc-800 px-5 py-3.5 text-sm font-medium">BitChat</div>
-                    <div class="p-5">
-                        <div class="text-center py-8 px-5 text-zinc-500">
+                <div class="border border-border rounded-lg overflow-hidden bg-card">
+                    <div class="bg-secondary px-4 py-3 text-sm font-medium border-b border-border">BitChat</div>
+                    <div class="p-4">
+                        <div class="text-center py-10 text-muted-foreground">
                             <div class="text-4xl mb-3">&#128172;</div>
                             <h3 class="text-base font-semibold mb-1.5">BitChat</h3>
-                            <p class="text-sm text-zinc-600">Decentralized messaging on the blockchain. Coming soon.</p>
+                            <p class="text-sm text-muted-foreground">Decentralized messaging on the blockchain. Coming soon.</p>
                         </div>
                     </div>
                 </div>
@@ -610,13 +610,13 @@
 
             <!-- VIEW: Publish (placeholder) -->
             <div id="view-publish" class="view-section hidden">
-                <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
-                    <div class="bg-zinc-950 border-b border-zinc-800 px-5 py-3.5 text-sm font-medium">Publish / Inscribe</div>
-                    <div class="p-5">
-                        <div class="text-center py-8 px-5 text-zinc-500">
+                <div class="border border-border rounded-lg overflow-hidden bg-card">
+                    <div class="bg-secondary px-4 py-3 text-sm font-medium border-b border-border">Publish / Inscribe</div>
+                    <div class="p-4">
+                        <div class="text-center py-10 text-muted-foreground">
                             <div class="text-4xl mb-3">&#9998;</div>
                             <h3 class="text-base font-semibold mb-1.5">Inscribe on-chain</h3>
-                            <p class="text-sm text-zinc-600">Publish content as ordinals on the BSV blockchain. Coming soon.</p>
+                            <p class="text-sm text-muted-foreground">Publish content as ordinals on the BSV blockchain. Coming soon.</p>
                         </div>
                     </div>
                 </div>

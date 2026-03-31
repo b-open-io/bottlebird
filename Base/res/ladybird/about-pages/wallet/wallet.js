@@ -150,11 +150,11 @@ function navigateToView(hash) {
     // Update nav active state
     document.querySelectorAll(".nav-tab").forEach(tab => {
         const isActive = tab.dataset.view === resolvedView;
-        tab.classList.toggle("bg-blue-600", isActive);
-        tab.classList.toggle("text-white", isActive);
-        tab.classList.toggle("text-zinc-400", !isActive);
-        tab.classList.toggle("hover:bg-zinc-800", !isActive);
-        tab.classList.toggle("hover:text-zinc-200", !isActive);
+        tab.classList.toggle("bg-primary", isActive);
+        tab.classList.toggle("text-primary-foreground", isActive);
+        tab.classList.toggle("text-muted-foreground", !isActive);
+        tab.classList.toggle("hover:bg-accent", !isActive);
+        tab.classList.toggle("hover:text-foreground", !isActive);
     });
 
     // Trigger data fetching for content views
