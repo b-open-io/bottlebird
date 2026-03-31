@@ -95,6 +95,7 @@ list(TRANSFORM ABOUT_NEWTAB_RESOURCES PREPEND "${LADYBIRD_SOURCE_DIR}/Base/res/l
 
 set(ABOUT_WALLET_RESOURCES
     wallet.js
+    tailwind.js
 )
 list(TRANSFORM ABOUT_WALLET_RESOURCES PREPEND "${LADYBIRD_SOURCE_DIR}/Base/res/ladybird/about-pages/wallet/")
 
