@@ -89,7 +89,8 @@ const fetchState = {
 };
 
 const ORDFS_BASE = "https://ordfs.network";
-const GORILLA_API = "https://ordinals.gorillapool.io/api";
+// All data comes through WalletUI C++ or the configured backend URL
+// No hardcoded API URLs — use backendURL.value from settings
 
 function formatSatoshis(sats) {
     return `${Number(sats).toLocaleString()} sat`;
@@ -178,7 +179,7 @@ async function fetchOrdinals() {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10_000);
 
-        const resp = await fetch(`${GORILLA_API}/market?limit=20&sort=recent`, {
+        const resp = await fetch(`${backendURL.value}/1sat/ordlock/listings?limit=20&sort=recent`, {
             signal: controller.signal,
         });
         clearTimeout(timeoutId);
@@ -263,7 +264,7 @@ async function fetchTokens() {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10_000);
 
-        const resp = await fetch(`${GORILLA_API}/bsv21?limit=20&sort=height&dir=desc`, {
+        const resp = await fetch(`${backendURL.value}/1sat/bsv21?limit=20&sort=height&dir=desc`, {
             signal: controller.signal,
         });
         clearTimeout(timeoutId);
@@ -370,7 +371,7 @@ async function fetchMarketListings(force) {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10_000);
 
-        const resp = await fetch(`${GORILLA_API}/market?limit=20&sort=recent`, {
+        const resp = await fetch(`${backendURL.value}/1sat/ordlock/listings?limit=20&sort=recent`, {
             signal: controller.signal,
         });
         clearTimeout(timeoutId);
