@@ -733,7 +733,7 @@ function createAppCard(app) {
         });
     }
 
-    // Icon
+    // Icon header (full width, square aspect ratio)
     const iconWrap = document.createElement("div");
     iconWrap.className = "app-icon";
     if (m.icon) {
@@ -743,37 +743,39 @@ function createAppCard(app) {
         img.loading = "lazy";
         img.addEventListener("error", () => {
             img.remove();
-            iconWrap.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>';
+            iconWrap.innerHTML = '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>';
         });
         iconWrap.appendChild(img);
     } else {
-        iconWrap.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>';
+        iconWrap.innerHTML = '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>';
     }
     card.appendChild(iconWrap);
 
-    // Name
+    // Content section (below icon)
+    const content = document.createElement("div");
+    content.className = "app-content";
+
     const nameEl = document.createElement("div");
     nameEl.className = "app-name";
     nameEl.textContent = m.name || "Unnamed";
     nameEl.title = m.name || "";
-    card.appendChild(nameEl);
+    content.appendChild(nameEl);
 
-    // Description
     if (m.description) {
         const descEl = document.createElement("div");
         descEl.className = "app-desc";
         descEl.textContent = m.description;
-        card.appendChild(descEl);
+        content.appendChild(descEl);
     }
 
-    // Category badge
     if (m.category) {
         const badge = document.createElement("span");
         badge.className = "app-badge";
         badge.textContent = m.category;
-        card.appendChild(badge);
+        content.appendChild(badge);
     }
 
+    card.appendChild(content);
     return card;
 }
 
