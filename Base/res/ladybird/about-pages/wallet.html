@@ -220,12 +220,12 @@ body {
 .border-border { border-color: var(--border); }
 .border-ring { border-color: var(--ring); }
 .border-none { border: none; }
-.rounded { border-radius: 0.25rem; }
+.rounded { border-radius: calc(var(--radius) - 4px); }
 .rounded-md { border-radius: calc(var(--radius) - 2px); }
 .rounded-lg { border-radius: var(--radius); }
-.rounded-xl { border-radius: 0.75rem; }
+.rounded-xl { border-radius: calc(var(--radius) + 2px); }
 .rounded-full { border-radius: 9999px; }
-.rounded-\[10px\] { border-radius: 10px; }
+.rounded-\[10px\] { border-radius: var(--radius); }
 .overflow-x-auto { overflow-x: auto; }
 
 /* ── Card component ───────────────────────────────────────── */
@@ -331,7 +331,7 @@ body {
     font-size: 0.75rem;
     background: var(--background);
     border: 1px solid var(--border);
-    border-radius: 0.25rem;
+    border-radius: calc(var(--radius) - 4px);
     padding: 0.75rem;
     word-break: break-all;
     user-select: all;
@@ -344,7 +344,7 @@ body {
 }
 
 /* ── Messages ─────────────────────────────────────────────── */
-.message { font-size: 0.875rem; padding: 0.625rem; border-radius: 0.25rem; margin-top: 0.625rem; }
+.message { font-size: 0.875rem; padding: 0.625rem; border-radius: calc(var(--radius) - 4px); margin-top: 0.625rem; }
 .message.error { background: oklch(0.7040 0.1910 22.2160 / 0.15); color: var(--destructive); }
 .message.success { background: oklch(0.6480 0.1700 142.50 / 0.15); color: var(--success); }
 
@@ -360,7 +360,7 @@ body {
     gap: 0.5rem;
     padding: 1rem 0.5rem;
     background: var(--secondary);
-    border-radius: 0.75rem;
+    border-radius: calc(var(--radius) + 2px);
     cursor: pointer;
     text-decoration: none;
     color: inherit;
@@ -371,7 +371,7 @@ body {
 .shortcut-icon {
     width: 2.25rem;
     height: 2.25rem;
-    border-radius: 10px;
+    border-radius: var(--radius);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -483,7 +483,7 @@ body {
     background: linear-gradient(90deg, oklch(0.16 0 0) 25%, oklch(0.25 0 0) 50%, oklch(0.16 0 0) 75%);
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
-    border-radius: 0.25rem;
+    border-radius: calc(var(--radius) - 4px);
 }
 
 /* ── Skeleton placeholder pieces ──────────────────────────── */
@@ -491,8 +491,8 @@ body {
 .skel-row { display: flex; align-items: center; gap: 0.875rem; padding: 0.875rem 1.25rem; border-bottom: 1px solid var(--border); }
 .skel-icon { width: 2rem; height: 2rem; border-radius: calc(var(--radius) - 2px); flex-shrink: 0; }
 .skel-lines { flex: 1; display: flex; flex-direction: column; gap: 0.25rem; }
-.skel-line { height: 0.75rem; border-radius: 0.25rem; }
-.skel-line-sm { height: 0.625rem; width: 60%; border-radius: 0.25rem; }
+.skel-line { height: 0.75rem; border-radius: calc(var(--radius) - 4px); }
+.skel-line-sm { height: 0.625rem; width: 60%; border-radius: calc(var(--radius) - 4px); }
 .skel-thumb { width: 100%; aspect-ratio: 1 / 1; }
 .skel-text { height: 0.75rem; width: 70%; margin: 0.5rem 0.625rem 0; }
 .skel-text-sm { height: 0.625rem; width: 50%; margin: 0.25rem 0.625rem 0.5rem; }
@@ -566,7 +566,7 @@ body {
     font-size: 0.75rem;
     background: var(--background);
     border: 1px solid var(--border);
-    border-radius: 0.25rem;
+    border-radius: calc(var(--radius) - 4px);
     padding: 0.625rem;
     word-break: break-all;
     user-select: all;
@@ -767,7 +767,7 @@ body {
                             <div class="skel-card"><div class="skeleton skel-thumb"></div><div class="skeleton skel-text"></div><div class="skeleton skel-text-sm"></div></div>
                         </div>
                         <div id="ordinals-error" class="error-banner hidden"></div>
-                        <div id="ordinals-grid" class="grid-4"></div>
+                        <div id="ordinals-grid" class="grid-4 hidden"></div>
                         <div id="ordinals-empty" class="empty-state">
                             <div class="icon">&#9670;</div>
                             <h3>No ordinals yet</h3>
@@ -826,7 +826,7 @@ body {
                             <div class="skel-card"><div class="skeleton skel-thumb"></div><div class="skeleton skel-text"></div><div class="skeleton skel-text-sm"></div></div>
                         </div>
                         <div id="market-error" class="error-banner hidden"></div>
-                        <div id="market-grid" class="grid-4"></div>
+                        <div id="market-grid" class="grid-4 hidden"></div>
                         <div id="market-empty" class="empty-state">
                             <div class="icon">&#9733;</div>
                             <h3>No listings available</h3>

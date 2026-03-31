@@ -199,6 +199,7 @@ function handleOrdinalsResponse(data) {
         return;
     }
 
+    ordinalsGrid.classList.remove("hidden");
     for (const item of items) {
         ordinalsGrid.appendChild(createOrdinalCard(item));
     }
@@ -367,6 +368,7 @@ function renderMarketGrid(items) {
     }
 
     marketEmpty.classList.add("hidden");
+    marketGrid.classList.remove("hidden");
     for (const item of filtered) {
         marketGrid.appendChild(createListingCard(item));
     }
