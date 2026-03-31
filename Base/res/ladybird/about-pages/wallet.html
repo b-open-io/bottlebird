@@ -350,7 +350,7 @@ body {
 
 /* ── Grid layouts ─────────────────────────────────────────── */
 .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; }
-.grid-4:empty { display: none; }
+.grid-4:empty, #tokens-list:empty { display: none; }
 
 /* ── Shortcut tile (dashboard) ────────────────────────────── */
 .shortcut-tile {
@@ -767,9 +767,7 @@ body {
                             <div class="skel-card"><div class="skeleton skel-thumb"></div><div class="skeleton skel-text"></div><div class="skeleton skel-text-sm"></div></div>
                         </div>
                         <div id="ordinals-error" class="error-banner hidden"></div>
-                        <div id="ordinals-grid" class="grid-4">
-                            <!-- Populated dynamically -->
-                        </div>
+                        <div id="ordinals-grid" class="grid-4"></div>
                         <div id="ordinals-empty" class="empty-state">
                             <div class="icon">&#9670;</div>
                             <h3>No ordinals yet</h3>
@@ -790,9 +788,7 @@ body {
                             <div class="skel-row"><div class="skeleton skel-icon"></div><div class="skel-lines"><div class="skeleton skel-line"></div><div class="skeleton skel-line-sm"></div></div></div>
                         </div>
                         <div id="tokens-error" class="error-banner hidden"></div>
-                        <div id="tokens-list">
-                            <!-- Populated dynamically -->
-                        </div>
+                        <div id="tokens-list"></div>
                         <div id="tokens-empty" class="empty-state">
                             <div class="icon">&#9678;</div>
                             <h3>No tokens yet</h3>
@@ -830,9 +826,7 @@ body {
                             <div class="skel-card"><div class="skeleton skel-thumb"></div><div class="skeleton skel-text"></div><div class="skeleton skel-text-sm"></div></div>
                         </div>
                         <div id="market-error" class="error-banner hidden"></div>
-                        <div id="market-grid" class="grid-4">
-                            <!-- Populated dynamically -->
-                        </div>
+                        <div id="market-grid" class="grid-4"></div>
                         <div id="market-empty" class="empty-state">
                             <div class="icon">&#9733;</div>
                             <h3>No listings available</h3>
