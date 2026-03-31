@@ -74,48 +74,72 @@
 
         <!-- Search bar -->
         <div class="w-full max-w-[560px]">
-            <div class="flex items-center gap-3 bg-card border border-input rounded-lg px-4 py-3.5 transition-colors focus-within:border-ring focus-within:ring-1 focus-within:ring-ring">
-                <svg class="shrink-0 w-4 h-4 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <div class="relative">
+                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="11" cy="11" r="8"></circle>
                     <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
-                <input id="search-input" class="flex-1 bg-transparent border-none outline-none text-sm text-foreground font-sans placeholder:text-muted-foreground" type="text" placeholder="Search or enter URL..." autofocus />
+                <input id="search-input" class="flex h-10 w-full rounded-md border border-input bg-background pl-10 pr-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" type="text" placeholder="Search or enter URL..." autofocus />
             </div>
         </div>
 
-        <!-- Shortcut grid -->
-        <div class="grid grid-cols-4 gap-4 justify-center" style="grid-template-columns: repeat(4, 80px);">
-            <a class="flex flex-col items-center gap-2 py-4 px-2 bg-secondary rounded-xl cursor-pointer no-underline text-inherit text-xs hover:bg-accent transition-colors" href="about:wallet">
-                <div class="w-10 h-10 rounded-[10px] flex items-center justify-center text-lg text-primary-foreground font-semibold bg-chart-1">W</div>
-                <span class="text-center leading-tight">Wallet</span>
+        <!-- Shortcut grid — shadcn Item component pattern -->
+        <div class="grid grid-cols-4 gap-4 w-full max-w-lg">
+            <a class="group flex flex-col border border-border rounded-lg overflow-hidden bg-card no-underline text-inherit hover:border-ring transition-colors" href="about:wallet">
+                <div class="aspect-square w-full bg-chart-1 flex items-center justify-center text-2xl text-primary-foreground font-semibold">W</div>
+                <div class="px-3 py-2.5">
+                    <div class="text-sm font-medium text-card-foreground">Wallet</div>
+                    <div class="text-xs text-muted-foreground">Dashboard</div>
+                </div>
             </a>
-            <a class="flex flex-col items-center gap-2 py-4 px-2 bg-secondary rounded-xl cursor-pointer no-underline text-inherit text-xs hover:bg-accent transition-colors" href="about:wallet#ordinals">
-                <div class="w-10 h-10 rounded-[10px] flex items-center justify-center text-lg text-primary-foreground font-semibold bg-chart-2">O</div>
-                <span class="text-center leading-tight">Ordinals</span>
+            <a class="group flex flex-col border border-border rounded-lg overflow-hidden bg-card no-underline text-inherit hover:border-ring transition-colors" href="about:wallet#ordinals">
+                <div class="aspect-square w-full bg-chart-2 flex items-center justify-center text-2xl text-primary-foreground font-semibold">O</div>
+                <div class="px-3 py-2.5">
+                    <div class="text-sm font-medium text-card-foreground">Ordinals</div>
+                    <div class="text-xs text-muted-foreground">Your NFTs</div>
+                </div>
             </a>
-            <a class="flex flex-col items-center gap-2 py-4 px-2 bg-secondary rounded-xl cursor-pointer no-underline text-inherit text-xs hover:bg-accent transition-colors" href="about:wallet#tokens">
-                <div class="w-10 h-10 rounded-[10px] flex items-center justify-center text-lg text-primary-foreground font-semibold bg-chart-3">T</div>
-                <span class="text-center leading-tight">Tokens</span>
+            <a class="group flex flex-col border border-border rounded-lg overflow-hidden bg-card no-underline text-inherit hover:border-ring transition-colors" href="about:wallet#tokens">
+                <div class="aspect-square w-full bg-chart-3 flex items-center justify-center text-2xl text-primary-foreground font-semibold">T</div>
+                <div class="px-3 py-2.5">
+                    <div class="text-sm font-medium text-card-foreground">Tokens</div>
+                    <div class="text-xs text-muted-foreground">BSV21</div>
+                </div>
             </a>
-            <a class="flex flex-col items-center gap-2 py-4 px-2 bg-secondary rounded-xl cursor-pointer no-underline text-inherit text-xs hover:bg-accent transition-colors" href="about:wallet#market">
-                <div class="w-10 h-10 rounded-[10px] flex items-center justify-center text-lg text-primary-foreground font-semibold bg-chart-4">M</div>
-                <span class="text-center leading-tight">Market</span>
+            <a class="group flex flex-col border border-border rounded-lg overflow-hidden bg-card no-underline text-inherit hover:border-ring transition-colors" href="about:wallet#market">
+                <div class="aspect-square w-full bg-chart-4 flex items-center justify-center text-2xl text-primary-foreground font-semibold">M</div>
+                <div class="px-3 py-2.5">
+                    <div class="text-sm font-medium text-card-foreground">Market</div>
+                    <div class="text-xs text-muted-foreground">Browse</div>
+                </div>
             </a>
-            <a class="flex flex-col items-center gap-2 py-4 px-2 bg-secondary rounded-xl cursor-pointer no-underline text-inherit text-xs hover:bg-accent transition-colors" href="about:wallet#identity">
-                <div class="w-10 h-10 rounded-[10px] flex items-center justify-center text-lg text-primary-foreground font-semibold bg-chart-5">I</div>
-                <span class="text-center leading-tight">Identity</span>
+            <a class="group flex flex-col border border-border rounded-lg overflow-hidden bg-card no-underline text-inherit hover:border-ring transition-colors" href="about:wallet#identity">
+                <div class="aspect-square w-full bg-chart-5 flex items-center justify-center text-2xl text-primary-foreground font-semibold">I</div>
+                <div class="px-3 py-2.5">
+                    <div class="text-sm font-medium text-card-foreground">Identity</div>
+                    <div class="text-xs text-muted-foreground">BAP Profile</div>
+                </div>
             </a>
-            <a class="flex flex-col items-center gap-2 py-4 px-2 bg-secondary rounded-xl cursor-pointer no-underline text-inherit text-xs hover:bg-accent transition-colors" href="about:settings">
-                <div class="w-10 h-10 rounded-[10px] flex items-center justify-center text-lg text-primary-foreground font-semibold bg-muted">S</div>
-                <span class="text-center leading-tight">Settings</span>
+            <a class="group flex flex-col border border-border rounded-lg overflow-hidden bg-card no-underline text-inherit hover:border-ring transition-colors" href="about:settings">
+                <div class="aspect-square w-full bg-muted flex items-center justify-center text-2xl text-muted-foreground font-semibold">S</div>
+                <div class="px-3 py-2.5">
+                    <div class="text-sm font-medium text-card-foreground">Settings</div>
+                    <div class="text-xs text-muted-foreground">Configure</div>
+                </div>
             </a>
-            <a class="flex flex-col items-center gap-2 py-4 px-2 bg-secondary rounded-xl cursor-pointer no-underline text-inherit text-xs hover:bg-accent transition-colors" href="about:wallet#chat">
-                <div class="w-10 h-10 rounded-[10px] flex items-center justify-center text-lg text-primary-foreground font-semibold bg-chart-1">C</div>
-                <span class="text-center leading-tight">BitChat</span>
+            <a class="group flex flex-col border border-border rounded-lg overflow-hidden bg-card no-underline text-inherit hover:border-ring transition-colors" href="about:wallet#chat">
+                <div class="aspect-square w-full bg-chart-1 flex items-center justify-center text-2xl text-primary-foreground font-semibold">C</div>
+                <div class="px-3 py-2.5">
+                    <div class="text-sm font-medium text-card-foreground">BitChat</div>
+                    <div class="text-xs text-muted-foreground">Messages</div>
+                </div>
             </a>
-            <a class="flex flex-col items-center gap-2 py-4 px-2 bg-secondary rounded-xl cursor-pointer no-underline text-inherit text-xs hover:bg-accent transition-colors" href="about:wallet#publish">
-                <div class="w-10 h-10 rounded-[10px] flex items-center justify-center text-lg text-primary-foreground font-semibold bg-chart-3">P</div>
-                <span class="text-center leading-tight">Publish</span>
+            <a class="group flex flex-col border border-border rounded-lg overflow-hidden bg-card no-underline text-inherit hover:border-ring transition-colors" href="about:wallet#publish">
+                <div class="aspect-square w-full bg-chart-3 flex items-center justify-center text-2xl text-primary-foreground font-semibold">P</div>
+                <div class="px-3 py-2.5">
+                    <div class="text-sm font-medium text-card-foreground">Publish</div>
+                    <div class="text-xs text-muted-foreground">Inscribe</div>
+                </div>
             </a>
         </div>
 
