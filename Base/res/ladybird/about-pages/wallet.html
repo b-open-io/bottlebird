@@ -199,6 +199,13 @@ h1, h2, h3, h4 { letter-spacing: -0.025em; line-height: 1.2; }
 .bg-chart-4 { background: var(--chart-4); }
 .bg-chart-5 { background: var(--chart-5); }
 
+/* ── Focus ────────────────────────────────────────────────── */
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible,
+.nav-tab:focus-visible, .app-card:focus-visible, .category-pill:focus-visible, .btn:focus-visible {
+    outline: 0.125rem solid var(--ring);
+    outline-offset: 0.125rem;
+}
+
 /* ── Sizing ───────────────────────────────────────────────── */
 .h-8 { height: 2rem; }
 .h-9 { height: 2.25rem; }
