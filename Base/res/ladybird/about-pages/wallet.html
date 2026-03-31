@@ -571,6 +571,21 @@ h1, h2, h3, h4 { letter-spacing: -0.025em; line-height: 1.2; }
 /* ── Misc overrides ───────────────────────────────────────── */
 .opacity-30 { opacity: 0.3; }
 .transition-colors { transition: color 0.15s, background-color 0.15s, border-color 0.15s; }
+
+/* ── App card (Apps catalog) ─────────────────────────────── */
+.app-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 1rem; cursor: pointer; transition: border-color 0.15s; text-align: center;
+}
+.app-card:hover { border-color: var(--ring); }
+.app-card .app-icon { width: 2.5rem; height: 2.5rem; border-radius: calc(var(--radius) - 2px); overflow: hidden; background: var(--muted); margin: 0 auto 0.5rem; display: flex; align-items: center; justify-content: center; }
+.app-card .app-icon img { width: 100%; height: 100%; object-fit: cover; }
+.app-card .app-name { font-size: 0.75rem; font-weight: 600; margin-bottom: 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.app-card .app-desc { font-size: 0.75rem; color: var(--muted-foreground); line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.app-card .app-badge { font-size: 0.625rem; color: var(--muted-foreground); background: var(--muted); padding: 0.125rem 0.5rem; border-radius: 9999px; display: inline-block; margin-top: 0.375rem; }
+.category-pill { padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.6875rem; font-weight: 500; cursor: pointer; border: 1px solid var(--border); background: var(--card); color: var(--muted-foreground); transition: all 0.15s; }
+.category-pill:hover { color: var(--foreground); border-color: var(--ring); }
+.category-pill.active { background: var(--primary); color: var(--primary-foreground); border-color: var(--primary); }
         </style>
     </head>
     <body>
@@ -682,6 +697,7 @@ h1, h2, h3, h4 { letter-spacing: -0.025em; line-height: 1.2; }
                 <a class="nav-tab" href="#ordinals" data-view="ordinals">Ordinals</a>
                 <a class="nav-tab" href="#tokens" data-view="tokens">Tokens</a>
                 <a class="nav-tab" href="#market" data-view="market">Market</a>
+                <a class="nav-tab" href="#apps" data-view="apps">Apps</a>
                 <a class="nav-tab" href="#identity" data-view="identity">Identity</a>
                 <a class="nav-tab" href="#send" data-view="send">Send</a>
                 <a class="nav-tab" href="#receive" data-view="receive">Receive</a>
@@ -856,6 +872,40 @@ h1, h2, h3, h4 { letter-spacing: -0.025em; line-height: 1.2; }
                             <div class="icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></div>
                             <h3>No listings available</h3>
                             <p>Market listings require a 1sat-stack connection.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: Apps -->
+            <div id="view-apps" class="view-section hidden">
+                <div class="card">
+                    <div class="card-header" style="display:flex;align-items:center;justify-content:space-between">
+                        <span>App Catalog</span>
+                        <button id="apps-refresh" class="btn btn-secondary" style="padding:0.25rem 0.5rem;font-size:0.75rem">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div style="display:flex;gap:0.5rem;margin-bottom:1rem;align-items:center">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--muted-foreground);flex-shrink:0"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                            <input id="apps-search" class="input" type="search" placeholder="Search apps..." style="flex:1" />
+                        </div>
+                        <div id="apps-categories" style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1rem"></div>
+                        <div id="apps-grid" class="grid-4 hidden"></div>
+                        <div id="apps-loading" class="empty-state">
+                            <div class="icon"><div class="spinner"></div></div>
+                            <p>Loading apps from blockchain...</p>
+                        </div>
+                        <div id="apps-error" class="empty-state hidden">
+                            <div class="icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+                            <h3 id="apps-error-text">Failed to load apps</h3>
+                            <p><a href="javascript:void(0)" id="apps-retry" style="color:var(--ring);text-decoration:none">Try again</a></p>
+                        </div>
+                        <div id="apps-empty" class="empty-state hidden">
+                            <div class="icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+                            <h3>No apps found</h3>
+                            <p>Decentralized apps appear here as they are published on-chain.</p>
                         </div>
                     </div>
                 </div>

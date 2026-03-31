@@ -96,6 +96,16 @@ const inscribeMessage = document.querySelector("#inscribe-message");
 
 // Receive copy button
 const btnCopyAddress = document.querySelector("#btn-copy-address");
+// Apps view elements
+const appsGrid = document.querySelector("#apps-grid");
+const appsLoading = document.querySelector("#apps-loading");
+const appsEmpty = document.querySelector("#apps-empty");
+const appsError = document.querySelector("#apps-error");
+const appsErrorText = document.querySelector("#apps-error-text");
+const appsRetry = document.querySelector("#apps-retry");
+const appsSearch = document.querySelector("#apps-search");
+const appsCategories = document.querySelector("#apps-categories");
+const appsRefresh = document.querySelector("#apps-refresh");
 
 let walletEnabled = false;
 let previousView = "onboarding";
@@ -107,6 +117,7 @@ const fetchState = {
     ordinals: { loaded: false, loading: false },
     tokens: { loaded: false, loading: false },
     market: { loaded: false, loading: false, data: [] },
+    apps: { loaded: false, loading: false, data: [], activeCategory: "All" },
 };
 
 const ORDFS_BASE = "https://ordfs.network";
@@ -147,7 +158,7 @@ function showView(name) {
 
 // ── Hash-based sub-view routing ────────────────────────────────────
 
-const SUB_VIEWS = ["dashboard", "ordinals", "tokens", "market", "identity", "send", "receive", "chat", "publish"];
+const SUB_VIEWS = ["dashboard", "ordinals", "tokens", "market", "apps", "identity", "send", "receive", "chat", "publish"];
 
 function navigateToView(hash) {
     const view = hash.replace("#", "") || "dashboard";
@@ -183,6 +194,9 @@ function navigateToView(hash) {
     }
     if (resolvedView === "market" && !fetchState.market.loaded && !fetchState.market.loading) {
         fetchMarketListings();
+    }
+    if (resolvedView === "apps" && !fetchState.apps.loaded && !fetchState.apps.loading) {
+        fetchApps();
     }
 }
 
@@ -482,6 +496,247 @@ if (marketRefresh) {
             fetchMarketListings();
         }
     });
+}
+
+// ── Apps fetching (overlay network) ──────────────────────────────
+
+// SLAP tracker hosts for mainnet overlay discovery
+const OVERLAY_HOSTS = [
+    "https://overlay-us-1.bsvb.tech",
+    "https://overlay-eu-1.bsvb.tech",
+    "https://overlay-ap-1.bsvb.tech",
+    "https://users.bapp.dev",
+];
+
+async function fetchApps(force = false) {
+    if (fetchState.apps.loading) return;
+    fetchState.apps.loading = true;
+
+    appsLoading.classList.remove("hidden");
+    appsGrid.classList.add("hidden");
+    appsEmpty.classList.add("hidden");
+    appsError.classList.add("hidden");
+    appsCategories.innerHTML = "";
+
+    if (force) {
+        fetchState.apps.loaded = false;
+        fetchState.apps.data = [];
+        fetchState.apps.activeCategory = "All";
+    }
+
+    // Try each overlay host until one succeeds
+    let data = null;
+    let lastErr = null;
+    for (const host of OVERLAY_HOSTS) {
+        try {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 8000);
+            const resp = await fetch(`${host}/lookup`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-Aggregation": "yes",
+                },
+                body: JSON.stringify({
+                    service: "ls_apps",
+                    query: { includeBeef: false },
+                }),
+                signal: controller.signal,
+            });
+            clearTimeout(timer);
+
+            if (!resp.ok) {
+                lastErr = new Error(`HTTP ${resp.status} from ${host}`);
+                continue;
+            }
+
+            data = await resp.json();
+            break;
+        } catch (err) {
+            lastErr = err;
+        }
+    }
+
+    appsLoading.classList.add("hidden");
+    fetchState.apps.loading = false;
+
+    if (!data) {
+        appsErrorText.textContent = lastErr?.message || "Failed to reach overlay network";
+        appsError.classList.remove("hidden");
+        return;
+    }
+
+    // Parse the overlay response: { type: "output-list", outputs: [...] }
+    const apps = parseOverlayApps(data);
+    fetchState.apps.data = apps;
+    fetchState.apps.loaded = true;
+
+    renderApps();
+}
+
+function parseOverlayApps(answer) {
+    if (!answer || answer.type !== "output-list" || !Array.isArray(answer.outputs)) return [];
+    const apps = [];
+
+    for (const output of answer.outputs) {
+        try {
+            // The overlay may return pre-parsed JSON with metadata fields,
+            // or raw BEEF. For the JSON lookup response:
+            if (output.fields) {
+                // PushDrop decoded fields in the lookup response
+                const jsonStr = typeof output.fields[0] === "string"
+                    ? output.fields[0]
+                    : new TextDecoder().decode(new Uint8Array(output.fields[0]));
+                const metadata = JSON.parse(jsonStr);
+                apps.push({ metadata, txid: output.txid, outputIndex: output.outputIndex });
+            } else if (output.customInstructions) {
+                // Some overlay services return the decoded token data directly
+                const metadata = typeof output.customInstructions === "string"
+                    ? JSON.parse(output.customInstructions)
+                    : output.customInstructions;
+                apps.push({ metadata, txid: output.txid, outputIndex: output.outputIndex });
+            } else if (output.type === "raw-json" && output.metadata) {
+                apps.push({ metadata: output.metadata, txid: output.txid, outputIndex: output.outputIndex });
+            }
+        } catch {
+            // Skip malformed records
+        }
+    }
+
+    return apps;
+}
+
+function renderApps() {
+    const apps = fetchState.apps.data;
+    const activeCategory = fetchState.apps.activeCategory;
+    const query = (appsSearch?.value || "").toLowerCase().trim();
+
+    // Build category list from actual data
+    const cats = new Set();
+    for (const app of apps) {
+        if (app.metadata?.category) cats.add(app.metadata.category);
+    }
+    const categories = ["All", ...Array.from(cats).sort()];
+
+    // Render category pills
+    appsCategories.innerHTML = "";
+    for (const cat of categories) {
+        const pill = document.createElement("button");
+        pill.className = `category-pill${cat === activeCategory ? " active" : ""}`;
+        pill.textContent = cat;
+        pill.addEventListener("click", () => {
+            fetchState.apps.activeCategory = cat;
+            renderApps();
+        });
+        appsCategories.appendChild(pill);
+    }
+
+    // Filter
+    const filtered = apps.filter(app => {
+        const m = app.metadata;
+        if (!m) return false;
+        const matchesCat = activeCategory === "All" || m.category === activeCategory;
+        if (!matchesCat) return false;
+        if (!query) return true;
+        return (
+            (m.name || "").toLowerCase().includes(query) ||
+            (m.description || "").toLowerCase().includes(query) ||
+            (m.domain || "").toLowerCase().includes(query) ||
+            (m.tags || []).some(t => t.toLowerCase().includes(query))
+        );
+    });
+
+    appsGrid.innerHTML = "";
+    appsEmpty.classList.add("hidden");
+
+    if (filtered.length === 0) {
+        appsGrid.classList.add("hidden");
+        if (apps.length === 0) {
+            appsEmpty.classList.remove("hidden");
+        } else {
+            // Search/filter yielded no results
+            appsEmpty.classList.remove("hidden");
+            appsEmpty.querySelector("h3").textContent = "No apps match your search";
+            appsEmpty.querySelector("p").textContent = "Try a different search term or category.";
+        }
+        return;
+    }
+
+    appsGrid.classList.remove("hidden");
+    for (const app of filtered) {
+        appsGrid.appendChild(createAppCard(app));
+    }
+}
+
+function createAppCard(app) {
+    const m = app.metadata;
+    const url = m.httpURL || (m.domain ? `https://${m.domain}` : null);
+
+    const card = document.createElement("div");
+    card.className = "app-card";
+    if (url) {
+        card.addEventListener("click", () => {
+            window.open(url, "_blank");
+        });
+    }
+
+    // Icon
+    const iconWrap = document.createElement("div");
+    iconWrap.className = "app-icon";
+    if (m.icon) {
+        const img = document.createElement("img");
+        img.src = m.icon;
+        img.alt = m.name || "";
+        img.loading = "lazy";
+        img.addEventListener("error", () => {
+            img.remove();
+            iconWrap.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>';
+        });
+        iconWrap.appendChild(img);
+    } else {
+        iconWrap.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>';
+    }
+    card.appendChild(iconWrap);
+
+    // Name
+    const nameEl = document.createElement("div");
+    nameEl.className = "app-name";
+    nameEl.textContent = m.name || "Unnamed";
+    nameEl.title = m.name || "";
+    card.appendChild(nameEl);
+
+    // Description
+    if (m.description) {
+        const descEl = document.createElement("div");
+        descEl.className = "app-desc";
+        descEl.textContent = m.description;
+        card.appendChild(descEl);
+    }
+
+    // Category badge
+    if (m.category) {
+        const badge = document.createElement("span");
+        badge.className = "app-badge";
+        badge.textContent = m.category;
+        card.appendChild(badge);
+    }
+
+    return card;
+}
+
+// Apps event handlers
+if (appsSearch) {
+    appsSearch.addEventListener("input", () => {
+        if (fetchState.apps.loaded) renderApps();
+    });
+}
+
+if (appsRefresh) {
+    appsRefresh.addEventListener("click", () => fetchApps(true));
+}
+
+if (appsRetry) {
+    appsRetry.addEventListener("click", () => fetchApps(true));
 }
 
 // ── Routing ────────────────────────────────────────────────────────
