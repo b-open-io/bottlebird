@@ -549,8 +549,40 @@ async function fetchApps(force = false) {
                 continue;
             }
 
+            // The overlay response is large (~300KB+ with BEEF binary data).
+            // Ladybird's JSON parser may fail on it. Instead, fetch as text
+            // and extract app metadata JSON objects directly from the raw bytes.
             const text = await resp.text();
-            data = JSON.parse(text);
+            const apps = [];
+            // Each app's metadata is a JSON object starting with {"version":"0.1.0"
+            const pattern = /\{"version":"0\.1\.0"[^}]*"name":"[^"]*"[^}]*\}/g;
+            // That simple regex won't work for nested objects. Use a smarter approach:
+            let searchFrom = 0;
+            const marker = '"version":"0.1.0"';
+            while (true) {
+                const idx = text.indexOf(marker, searchFrom);
+                if (idx === -1) break;
+                // Find the opening { before "version"
+                let start = idx - 1;
+                while (start > 0 && text[start] !== '{') start--;
+                if (text[start] !== '{') { searchFrom = idx + 1; continue; }
+                // Find matching closing }
+                let depth = 0;
+                let end = start;
+                for (let i = start; i < text.length; i++) {
+                    if (text[i] === '{') depth++;
+                    else if (text[i] === '}') depth--;
+                    if (depth === 0) { end = i + 1; break; }
+                }
+                try {
+                    const metadata = JSON.parse(text.substring(start, end));
+                    if (metadata.name && metadata.domain) {
+                        apps.push({ metadata });
+                    }
+                } catch { /* skip malformed */ }
+                searchFrom = end;
+            }
+            data = { type: "output-list", outputs: apps };
             break;
         } catch (err) {
             lastErr = err;
@@ -578,9 +610,16 @@ function parseOverlayApps(answer) {
     if (!answer || answer.type !== "output-list" || !Array.isArray(answer.outputs)) return [];
     const apps = [];
 
-    // The overlay returns BEEF binary with PushDrop tokens.
-    // The app metadata JSON is embedded literally in the BEEF bytes.
-    // Extract it by searching for the JSON pattern.
+    // Pre-parsed format: each output already has .metadata from text extraction
+    for (const output of answer.outputs) {
+        if (output.metadata) {
+            apps.push(output);
+            continue;
+        }
+    }
+    if (apps.length > 0) return apps;
+
+    // Fallback: BEEF binary format (if JSON.parse worked on the full response)
     const VERSION_MARKER = [123, 34, 118, 101, 114, 115, 105, 111, 110, 34, 58]; // {"version":
 
     for (const output of answer.outputs) {
