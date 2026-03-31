@@ -570,7 +570,48 @@ h1, h2, h3, h4 { letter-spacing: -0.025em; line-height: 1.2; }
 
 /* ── Misc overrides ───────────────────────────────────────── */
 .opacity-30 { opacity: 0.3; }
+.opacity-50 { opacity: 0.5; }
+.opacity-70 { opacity: 0.7; }
 .transition-colors { transition: color 0.15s, background-color 0.15s, border-color 0.15s; }
+
+/* ── Additional utilities ────────────────────────────────────── */
+.max-w-sm { max-width: 24rem; }
+.max-w-xs { max-width: 16rem; }
+.mx-auto { margin-left: auto; margin-right: auto; }
+.block { display: block; }
+.flex-wrap { flex-wrap: wrap; }
+.p-8 { padding: 2rem; }
+
+/* ── Link style ──────────────────────────────────────────────── */
+.link-muted { color: var(--ring); text-decoration: none; }
+
+/* ── Small button variant ────────────────────────────────────── */
+.btn-xs { padding: 0.25rem 0.5rem; font-size: 0.75rem; }
+
+/* ── QR placeholder ──────────────────────────────────────────── */
+.qr-placeholder {
+    width: 12rem;
+    height: 12rem;
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    background: var(--background);
+}
+.qr-icon { margin: 0 auto 0.5rem auto; display: block; opacity: 0.5; }
+
+/* ── Chat hero ───────────────────────────────────────────────── */
+.chat-hero { text-align: center; padding: 2rem 1.25rem; }
+
+/* ── Inscribe preview area ───────────────────────────────────── */
+.inscribe-preview-area {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--background);
+}
 
 /* ── App card (Apps catalog) ─────────────────────────────── */
 /* App card — shadcn Item pattern: image header + content below */
@@ -718,7 +759,7 @@ h1, h2, h3, h4 { letter-spacing: -0.025em; line-height: 1.2; }
                 <div class="mb-6">
                     <p class="label-upper">Total Balance</p>
                     <p id="balance-confirmed" class="text-3xl font-semibold font-mono">0 sat</p>
-                    <p id="balance-unconfirmed" class="text-sm" style="color:var(--muted-foreground)">0 sat unconfirmed</p>
+                    <p id="balance-unconfirmed" class="text-sm text-muted-foreground">0 sat unconfirmed</p>
                 </div>
 
                 <!-- Quick actions -->
@@ -740,33 +781,33 @@ h1, h2, h3, h4 { letter-spacing: -0.025em; line-height: 1.2; }
                 <!-- Assets grid -->
                 <div class="mb-6">
                     <div class="flex justify-between items-center mb-3">
-                        <span class="label-upper" style="margin-bottom:0">Assets</span>
-                        <a href="#ordinals" class="text-xs" style="color:var(--ring);text-decoration:none">View all &rarr;</a>
+                        <span class="label-upper mb-0">Assets</span>
+                        <a href="#ordinals" class="text-xs link-muted">View all &rarr;</a>
                     </div>
                     <div class="grid-3">
-                        <div class="card" style="cursor:pointer" onclick="location.hash='#ordinals'">
+                        <div class="card cursor-pointer" onclick="location.hash='#ordinals'">
                             <div class="card-body">
                                 <div class="flex items-center gap-2 mb-2">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 13L2 9z"/></svg>
-                                    <span class="label-upper" style="margin-bottom:0">Ordinals</span>
+                                    <span class="label-upper mb-0">Ordinals</span>
                                 </div>
                                 <p id="dashboard-ordinals-count" class="text-lg font-semibold font-mono">0</p>
                             </div>
                         </div>
-                        <div class="card" style="cursor:pointer" onclick="location.hash='#tokens'">
+                        <div class="card cursor-pointer" onclick="location.hash='#tokens'">
                             <div class="card-body">
                                 <div class="flex items-center gap-2 mb-2">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18"/><path d="M7 6h1v4"/><path d="m16.71 13.88.7.71-2.82 2.82"/></svg>
-                                    <span class="label-upper" style="margin-bottom:0">Tokens</span>
+                                    <span class="label-upper mb-0">Tokens</span>
                                 </div>
                                 <p id="dashboard-tokens-count" class="text-lg font-semibold font-mono">0</p>
                             </div>
                         </div>
-                        <div class="card" style="cursor:pointer" onclick="location.hash='#market'">
+                        <div class="card cursor-pointer" onclick="location.hash='#market'">
                             <div class="card-body">
                                 <div class="flex items-center gap-2 mb-2">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-                                    <span class="label-upper" style="margin-bottom:0">Market</span>
+                                    <span class="label-upper mb-0">Market</span>
                                 </div>
                                 <p id="dashboard-market-count" class="text-lg font-semibold font-mono">0</p>
                             </div>
@@ -830,7 +871,7 @@ h1, h2, h3, h4 { letter-spacing: -0.025em; line-height: 1.2; }
                         <div id="tokens-error" class="error-banner hidden"></div>
                         <div id="tokens-list"></div>
                         <!-- Loading state -->
-                        <div id="tokens-loading" class="hidden" style="text-align:center;padding:2rem">
+                        <div id="tokens-loading" class="hidden text-center p-8">
                             <div class="spinner"></div>
                             <p class="text-sm text-muted-foreground mt-3">Loading tokens...</p>
                         </div>
@@ -887,18 +928,18 @@ h1, h2, h3, h4 { letter-spacing: -0.025em; line-height: 1.2; }
             <!-- VIEW: Apps -->
             <div id="view-apps" class="view-section hidden">
                 <div class="card">
-                    <div class="card-header" style="display:flex;align-items:center;justify-content:space-between">
+                    <div class="card-header flex items-center justify-between">
                         <span>App Catalog</span>
-                        <button id="apps-refresh" class="btn btn-secondary" style="padding:0.25rem 0.5rem;font-size:0.75rem">
+                        <button id="apps-refresh" class="btn btn-secondary btn-xs">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
                         </button>
                     </div>
                     <div class="card-body">
-                        <div style="display:flex;gap:0.5rem;margin-bottom:1rem;align-items:center">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--muted-foreground);flex-shrink:0"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                            <input id="apps-search" class="input" type="search" placeholder="Search apps..." style="flex:1" />
+                        <div class="flex gap-2 mb-4 items-center">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-muted-foreground shrink-0"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                            <input id="apps-search" class="input flex-1" type="search" placeholder="Search apps..." />
                         </div>
-                        <div id="apps-categories" style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1rem"></div>
+                        <div id="apps-categories" class="flex gap-2 flex-wrap mb-4"></div>
                         <div id="apps-grid" class="grid-4 hidden"></div>
                         <div id="apps-loading" class="empty-state">
                             <div class="icon"><div class="spinner"></div></div>
@@ -907,7 +948,7 @@ h1, h2, h3, h4 { letter-spacing: -0.025em; line-height: 1.2; }
                         <div id="apps-error" class="empty-state hidden">
                             <div class="icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
                             <h3 id="apps-error-text">Failed to load apps</h3>
-                            <p><a href="javascript:void(0)" id="apps-retry" style="color:var(--ring);text-decoration:none">Try again</a></p>
+                            <p><a href="javascript:void(0)" id="apps-retry" class="link-muted">Try again</a></p>
                         </div>
                         <div id="apps-empty" class="empty-state hidden">
                             <div class="icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
@@ -991,11 +1032,11 @@ h1, h2, h3, h4 { letter-spacing: -0.025em; line-height: 1.2; }
                 <div class="card">
                     <div class="card-header">Receive BSV</div>
                     <div class="card-body">
-                        <div class="mb-4" style="display:flex;flex-direction:column;align-items:center">
+                        <div class="mb-4 flex flex-col items-center">
                             <!-- QR code placeholder -->
-                            <div id="qr-placeholder" style="width:12rem;height:12rem;border:2px dashed var(--border);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;margin-bottom:1rem;background:var(--background)">
-                                <div style="text-align:center;color:var(--muted-foreground)">
-                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 0.5rem auto;display:block;opacity:0.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3"/><path d="M20 14v3h-3"/><path d="M14 20h3"/><path d="M20 20h0"/></svg>
+                            <div id="qr-placeholder" class="qr-placeholder">
+                                <div class="text-center text-muted-foreground">
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="qr-icon"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3"/><path d="M20 14v3h-3"/><path d="M14 20h3"/><path d="M20 20h0"/></svg>
                                     <span class="text-xs">QR code generation coming soon</span>
                                 </div>
                             </div>
@@ -1020,12 +1061,12 @@ h1, h2, h3, h4 { letter-spacing: -0.025em; line-height: 1.2; }
                 <div class="card">
                     <div class="card-header">BitChat</div>
                     <div class="card-body">
-                        <div style="text-align:center;padding:2rem 1.25rem">
-                            <div style="margin-bottom:1rem;display:flex;justify-content:center">
-                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--muted-foreground);opacity:0.7"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z"/></svg>
+                        <div class="chat-hero">
+                            <div class="mb-4 flex justify-center">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-muted-foreground opacity-70"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z"/></svg>
                             </div>
                             <h3 class="text-lg font-semibold mb-2">BitChat</h3>
-                            <p class="text-sm text-muted-foreground mb-4" style="max-width:24rem;margin-left:auto;margin-right:auto">BitChat is a decentralized messaging protocol built on the BSV blockchain. Messages are signed with your identity key and stored on-chain, providing censorship-resistant communication without centralized servers.</p>
+                            <p class="text-sm text-muted-foreground mb-4 max-w-sm mx-auto">BitChat is a decentralized messaging protocol built on the BSV blockchain. Messages are signed with your identity key and stored on-chain, providing censorship-resistant communication without centralized servers.</p>
                         </div>
                     </div>
                 </div>
@@ -1048,14 +1089,14 @@ h1, h2, h3, h4 { letter-spacing: -0.025em; line-height: 1.2; }
                             <label class="label-upper">Content Type</label>
                             <div class="text-sm font-mono" id="inscribe-content-type"></div>
                         </div>
-                        <div id="inscribe-preview" class="mb-4 hidden" style="max-width:16rem">
+                        <div id="inscribe-preview" class="mb-4 hidden max-w-xs">
                             <label class="label-upper">Preview</label>
-                            <div id="inscribe-preview-area" style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--background)"></div>
+                            <div id="inscribe-preview-area" class="inscribe-preview-area"></div>
                         </div>
                         <div class="flex justify-end gap-3">
                             <button id="btn-inscribe" class="btn btn-primary" disabled>Inscribe on-chain</button>
                         </div>
-                        <p id="inscribe-note" class="text-xs text-muted-foreground mt-3" style="text-align:right">Requires connected wallet backend</p>
+                        <p id="inscribe-note" class="text-xs text-muted-foreground mt-3 text-right">Requires connected wallet backend</p>
                         <div id="inscribe-message" class="hidden"></div>
                     </div>
                 </div>
