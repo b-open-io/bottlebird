@@ -609,9 +609,6 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 }
 .qr-icon { margin: 0 auto 0.5rem auto; display: block; opacity: 0.5; }
 
-/* ── Chat hero ───────────────────────────────────────────────── */
-.chat-hero { text-align: center; padding: 2rem 1.25rem; }
-
 /* ── Inscribe preview area ───────────────────────────────────── */
 .inscribe-preview-area {
     border: 1px solid var(--border);
@@ -822,7 +819,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
                 <div class="mb-6">
                     <div class="flex justify-between items-center mb-3">
                         <span class="label-upper mb-0">Assets</span>
-                        <a href="#ordinals" class="text-xs link-muted">View all &rarr;</a>
+                        <a href="#ordinals" class="text-xs link-muted flex items-center gap-1">View all <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></a>
                     </div>
                     <div class="grid-3">
                         <div class="card cursor-pointer" onclick="location.hash='#ordinals'">
@@ -1101,12 +1098,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
                 <div class="card">
                     <div class="card-header">BitChat</div>
                     <div class="card-body">
-                        <div class="chat-hero">
-                            <div class="mb-4 flex justify-center">
-                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-muted-foreground opacity-70"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z"/></svg>
-                            </div>
-                            <h3 class="text-lg font-semibold mb-2">BitChat</h3>
-                            <p class="text-sm text-muted-foreground mb-4 max-w-sm mx-auto">BitChat is a decentralized messaging protocol built on the BSV blockchain. Messages are signed with your identity key and stored on-chain, providing censorship-resistant communication without centralized servers.</p>
+                        <div class="empty-state">
+                            <div class="icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z"/></svg></div>
+                            <h3>BitChat</h3>
+                            <p>Decentralized messaging on the BSV blockchain. Messages are signed with your identity key and stored on-chain.</p>
                         </div>
                     </div>
                 </div>
@@ -1272,8 +1267,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
                         <div id="publish-success" class="hidden">
                             <div class="text-center py-5">
-                                <div class="mb-3 flex justify-center">
-                                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+                                <div class="mb-3 flex justify-center text-success">
+                                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
                                 </div>
                                 <h3 class="text-lg font-semibold mb-2">Inscription Complete</h3>
                                 <div class="review-field">
