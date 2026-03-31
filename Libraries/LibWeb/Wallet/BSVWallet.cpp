@@ -135,6 +135,17 @@ GC::Ref<WebIDL::Promise> BSVWallet::get_public_key(WalletKeyOptions const& optio
 
 GC::Ref<WebIDL::Promise> BSVWallet::create_action(WalletActionOptions const& options)
 {
+    auto& realm = this->realm();
+    auto& window = as<HTML::Window>(realm.global_object());
+    auto& page = window.page();
+
+    auto message = MUST(String::formatted("This site wants to create a BSV transaction: {}", options.description));
+    if (!page.did_request_confirm(message)) {
+        auto promise = WebIDL::create_promise(realm);
+        WebIDL::reject_promise(realm, *promise, WebIDL::NotAllowedError::create(realm, "User denied the wallet transaction request"_utf16));
+        return promise;
+    }
+
     JsonObject params;
     params.set("description"sv, options.description);
     return send_wallet_operation("createAction"_string, params.serialized());
@@ -142,6 +153,17 @@ GC::Ref<WebIDL::Promise> BSVWallet::create_action(WalletActionOptions const& opt
 
 GC::Ref<WebIDL::Promise> BSVWallet::sign_action(WalletSignOptions const& options)
 {
+    auto& realm = this->realm();
+    auto& window = as<HTML::Window>(realm.global_object());
+    auto& page = window.page();
+
+    auto message = MUST(String::formatted("This site wants to sign a BSV transaction (ref: {})", options.reference));
+    if (!page.did_request_confirm(message)) {
+        auto promise = WebIDL::create_promise(realm);
+        WebIDL::reject_promise(realm, *promise, WebIDL::NotAllowedError::create(realm, "User denied the wallet signing request"_utf16));
+        return promise;
+    }
+
     JsonObject params;
     params.set("reference"sv, options.reference);
     return send_wallet_operation("signAction"_string, params.serialized());
