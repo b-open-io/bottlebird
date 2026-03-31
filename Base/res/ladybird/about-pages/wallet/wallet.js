@@ -538,7 +538,7 @@ async function fetchApps(force = false) {
                 },
                 body: JSON.stringify({
                     service: "ls_apps",
-                    query: { includeBeef: false },
+                    query: { limit: 20 },
                 }),
                 signal: controller.signal,
             });
@@ -549,7 +549,8 @@ async function fetchApps(force = false) {
                 continue;
             }
 
-            data = await resp.json();
+            const text = await resp.text();
+            data = JSON.parse(text);
             break;
         } catch (err) {
             lastErr = err;
