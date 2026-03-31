@@ -221,9 +221,19 @@ function createOrdinalCard(item) {
     img.loading = "lazy";
     img.addEventListener("error", () => {
         img.remove();
-        const fallback = document.createElement("span");
-        fallback.className = "thumb-error";
-        fallback.textContent = "\u25C6"; // diamond
+        const fallback = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        fallback.setAttribute("width", "24");
+        fallback.setAttribute("height", "24");
+        fallback.setAttribute("viewBox", "0 0 24 24");
+        fallback.setAttribute("fill", "none");
+        fallback.setAttribute("stroke", "currentColor");
+        fallback.setAttribute("stroke-width", "2");
+        fallback.setAttribute("stroke-linecap", "round");
+        fallback.setAttribute("stroke-linejoin", "round");
+        fallback.classList.add("thumb-error");
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", "M6 3h12l4 6-10 13L2 9z");
+        fallback.appendChild(path);
         thumb.appendChild(fallback);
     });
     thumb.appendChild(img);
@@ -389,9 +399,25 @@ function createListingCard(item) {
     img.loading = "lazy";
     img.addEventListener("error", () => {
         img.remove();
-        const fallback = document.createElement("span");
-        fallback.className = "thumb-error";
-        fallback.textContent = "\u2605"; // star
+        const fallback = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        fallback.setAttribute("width", "24");
+        fallback.setAttribute("height", "24");
+        fallback.setAttribute("viewBox", "0 0 24 24");
+        fallback.setAttribute("fill", "none");
+        fallback.setAttribute("stroke", "currentColor");
+        fallback.setAttribute("stroke-width", "2");
+        fallback.setAttribute("stroke-linecap", "round");
+        fallback.setAttribute("stroke-linejoin", "round");
+        fallback.classList.add("thumb-error");
+        const p1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        p1.setAttribute("d", "M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z");
+        const p2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        p2.setAttribute("d", "M3 6h18");
+        const p3 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        p3.setAttribute("d", "M16 10a4 4 0 0 1-8 0");
+        fallback.appendChild(p1);
+        fallback.appendChild(p2);
+        fallback.appendChild(p3);
         thumb.appendChild(fallback);
     });
     thumb.appendChild(img);

@@ -470,8 +470,9 @@ ErrorOr<String> WalletManager::fetch_ordinals(StringView backend_url)
     }
 
     JsonObject result;
+    bool is_empty = ordinals.is_empty();
     result.set("ordinals"sv, move(ordinals));
-    if (ordinals.size() == 0)
+    if (is_empty)
         result.set("note"sv, "No ordinals in this wallet"sv);
 
     StringBuilder json;
@@ -572,8 +573,9 @@ ErrorOr<String> WalletManager::fetch_tokens(StringView backend_url)
     }
 
     JsonObject result;
+    bool is_empty = tokens.is_empty();
     result.set("tokens"sv, move(tokens));
-    if (tokens.size() == 0)
+    if (is_empty)
         result.set("note"sv, "No tokens in this wallet"sv);
 
     StringBuilder json;
