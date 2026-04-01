@@ -19,6 +19,7 @@ class BookmarkStore;
 class CookieJar;
 class MCPServer;
 class Menu;
+class WalletServer;
 class OutOfProcessWebView;
 class ProcessManager;
 class Settings;

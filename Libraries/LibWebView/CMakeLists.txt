@@ -14,6 +14,7 @@ set(SOURCES
     HelperProcess.cpp
     MCPServer.cpp
     MCPTools.cpp
+    WalletServer.cpp
     Menu.cpp
     Mutation.cpp
     Plugins/ImageCodecPlugin.cpp

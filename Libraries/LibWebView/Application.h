@@ -41,6 +41,7 @@
 namespace WebView {
 
 class MCPServer;
+class WalletServer;
 struct ApplicationSettingsObserver;
 struct ApplicationBookmarkStoreObserver;
 
@@ -183,6 +184,7 @@ private:
     ErrorOr<void> launch_image_decoder_server();
     ErrorOr<void> launch_devtools_server();
     ErrorOr<void> launch_mcp_server();
+    ErrorOr<void> launch_wallet_server();
 
     void initialize_actions();
 
@@ -303,6 +305,7 @@ private:
 
     OwnPtr<DevTools::DevToolsServer> m_devtools;
     OwnPtr<MCPServer> m_mcp_server;
+    OwnPtr<WalletServer> m_wallet_server;
 
     mutable HashMap<u64, u64> m_navigation_listener_ids;
 };

@@ -19,6 +19,7 @@
 #include <LibWebView/Application.h>
 #include <LibWebView/CookieJar.h>
 #include <LibWebView/MCPServer.h>
+#include <LibWebView/WalletServer.h>
 #include <LibWebView/HeadlessWebView.h>
 #include <LibWebView/HelperProcess.h>
 #include <LibWebView/Menu.h>
@@ -139,6 +140,7 @@ ErrorOr<void> Application::initialize(Main::Arguments const& arguments)
     bool disable_sql_database = false;
     Optional<u16> devtools_port;
     Optional<u16> mcp_port;
+    Optional<u16> wallet_server_port;
     Optional<StringView> debug_process;
     Optional<StringView> profile_process;
     Optional<StringView> webdriver_endpoint;
@@ -257,6 +259,21 @@ ErrorOr<void> Application::initialize(Main::Arguments const& arguments)
     });
 
     args_parser.add_option(Core::ArgsParser::Option {
+        .argument_mode = Core::ArgsParser::OptionArgumentMode::Optional,
+        .help_string = "Enable the BRC-100 wallet HTTP server for dApp connectivity, with an optional port (default: 3321)",
+        .long_name = "wallet-server",
+        .value_name = "port",
+        .accept_value = [&](StringView value) {
+            if (value.is_empty())
+                wallet_server_port = default_wallet_server_port;
+            else
+                wallet_server_port = value.to_number<u16>();
+
+            return wallet_server_port.has_value();
+        },
+    });
+
+    args_parser.add_option(Core::ArgsParser::Option {
         .argument_mode = Core::ArgsParser::OptionArgumentMode::Required,
         .help_string = "Name of the User-Agent preset to use in place of the default User-Agent",
         .long_name = "user-agent-preset",
@@ -308,6 +325,7 @@ ErrorOr<void> Application::initialize(Main::Arguments const& arguments)
                 : OptionalNone()),
         .devtools_port = devtools_port,
         .mcp_port = mcp_port,
+        .wallet_server_port = wallet_server_port,
         .enable_content_filter = disable_content_filter ? EnableContentFilter::No : EnableContentFilter::Yes,
     };
 
@@ -483,6 +501,11 @@ ErrorOr<void> Application::launch_services()
     if (m_browser_options.mcp_port.has_value())
         TRY(launch_mcp_server());
 
+    // Auto-enable wallet server when wallet is enabled in settings, or when
+    // explicitly requested via --wallet-server command line option.
+    if (m_browser_options.wallet_server_port.has_value() || m_settings.wallet_enabled())
+        TRY(launch_wallet_server());
+
     return {};
 }
 
@@ -576,6 +599,18 @@ ErrorOr<void> Application::launch_mcp_server()
         m_browser_options.mcp_port = WebView::default_mcp_port;
 
     m_mcp_server = TRY(MCPServer::create(*m_browser_options.mcp_port));
+
+    return {};
+}
+
+ErrorOr<void> Application::launch_wallet_server()
+{
+    VERIFY(!m_wallet_server);
+
+    if (!m_browser_options.wallet_server_port.has_value())
+        m_browser_options.wallet_server_port = WebView::default_wallet_server_port;
+
+    m_wallet_server = TRY(WalletServer::create(*m_browser_options.wallet_server_port));
 
     return {};
 }

@@ -91,6 +91,7 @@ struct BrowserOptions {
     Optional<DNSSettings> dns_settings {};
     Optional<u16> devtools_port;
     Optional<u16> mcp_port;
+    Optional<u16> wallet_server_port;
     EnableContentFilter enable_content_filter { EnableContentFilter::Yes };
 };
 
