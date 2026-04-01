@@ -30,6 +30,7 @@ private:
     void list_tokens();
     void save_profile(JsonValue const&);
     void load_profile();
+    void inscribe_file(JsonValue const&);
 
     String m_pending_mnemonic;
 };

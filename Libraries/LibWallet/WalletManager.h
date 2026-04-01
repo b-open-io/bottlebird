@@ -39,6 +39,11 @@ public:
     ErrorOr<String> fetch_ordinals(StringView backend_url);
     ErrorOr<String> fetch_tokens(StringView backend_url);
 
+    // Transaction building via remote backend
+    ErrorOr<String> create_action(StringView backend_url, StringView args_json);
+    ErrorOr<String> sign_action(StringView backend_url, StringView args_json);
+    ErrorOr<String> inscribe_file(StringView backend_url, ReadonlyBytes content, StringView content_type, StringView app_name);
+
     // Persistence
     ErrorOr<void> save_to_disk();
     ErrorOr<void> load_from_disk();

@@ -1142,6 +1142,28 @@ document.addEventListener("WebUIMessage", event => {
         if (profileName && data.name) profileName.value = data.name;
         if (profileDescription && data.description) profileDescription.value = data.description;
         if (profileAvatar && data.avatar) profileAvatar.value = data.avatar;
+    } else if (name === "inscribeResult") {
+        if (publishInscribeBtn) publishInscribeBtn.disabled = false;
+        if (data.error) {
+            if (publishInscribeMessage) {
+                publishInscribeMessage.textContent = data.error;
+                publishInscribeMessage.className = "message error";
+            }
+        } else {
+            // Success - extract outpoint from response
+            const txid = data.txid || data.reference || "";
+            if (publishSuccessOutpoint) publishSuccessOutpoint.textContent = txid;
+            if (publishSuccessOrdfsLink) {
+                if (txid) {
+                    publishSuccessOrdfsLink.href = `https://ordfs.network/${txid}`;
+                    publishSuccessOrdfsLink.textContent = `ordfs.network/${txid.substring(0, 16)}...`;
+                } else {
+                    publishSuccessOrdfsLink.href = "#";
+                    publishSuccessOrdfsLink.textContent = "View on ORDFS";
+                }
+            }
+            setPublishWizardStep("success");
+        }
     } else if (name === "profileSaved") {
         if (profileMessage) {
             if (data.error) {
@@ -1355,10 +1377,39 @@ if (publishBackToConfigure) {
 // Inscribe button
 if (publishInscribeBtn) {
     publishInscribeBtn.addEventListener("click", () => {
-        if (publishInscribeMessage) {
-            publishInscribeMessage.textContent = "Inscription requires a connected wallet backend. This feature is coming soon.";
-            publishInscribeMessage.className = "message error";
+        if (!publishFile) {
+            if (publishInscribeMessage) {
+                publishInscribeMessage.textContent = "No file selected.";
+                publishInscribeMessage.className = "message error";
+            }
+            return;
         }
+
+        publishInscribeBtn.disabled = true;
+        if (publishInscribeMessage) {
+            publishInscribeMessage.textContent = "Inscribing...";
+            publishInscribeMessage.className = "message";
+        }
+
+        const reader = new FileReader();
+        reader.onload = () => {
+            // reader.result is a data URL like "data:type;base64,AAAA..."
+            // Extract the raw base64 portion
+            const dataUrl = reader.result;
+            const base64Content = dataUrl.includes(",") ? dataUrl.split(",")[1] : dataUrl;
+            const contentType = publishFile.type || "application/octet-stream";
+            const appName = publishAppNameInput ? publishAppNameInput.value.trim() : "";
+
+            ladybird.sendMessage("inscribeFile", { base64Content, contentType, appName });
+        };
+        reader.onerror = () => {
+            publishInscribeBtn.disabled = false;
+            if (publishInscribeMessage) {
+                publishInscribeMessage.textContent = "Failed to read file.";
+                publishInscribeMessage.className = "message error";
+            }
+        };
+        reader.readAsDataURL(publishFile);
     });
 }
 

@@ -452,6 +452,77 @@ ErrorOr<void> WalletManager::load_from_disk()
 
 WalletManager::~WalletManager() = default;
 
+ErrorOr<String> WalletManager::create_action(StringView backend_url, StringView args_json)
+{
+    if (!m_initialized)
+        return Error::from_string_literal("Wallet not initialized");
+
+    constexpr size_t buf_capacity = 65536;
+    auto response_buf = TRY(ByteBuffer::create_uninitialized(buf_capacity));
+    size_t body_len = buf_capacity;
+
+    int rc = bsvwallet_create_action_remote(
+        m_root_privkey, 0,
+        backend_url.characters_without_null_termination(), backend_url.length(),
+        args_json.characters_without_null_termination(), args_json.length(),
+        reinterpret_cast<char*>(response_buf.data()), &body_len);
+
+    if (rc != 0) {
+        dbgln("WalletManager: bsvwallet_create_action_remote failed with rc={}", rc);
+        return Error::from_string_literal("createAction failed");
+    }
+
+    return TRY(String::from_utf8({ reinterpret_cast<char const*>(response_buf.data()), body_len }));
+}
+
+ErrorOr<String> WalletManager::sign_action(StringView backend_url, StringView args_json)
+{
+    if (!m_initialized)
+        return Error::from_string_literal("Wallet not initialized");
+
+    constexpr size_t buf_capacity = 65536;
+    auto response_buf = TRY(ByteBuffer::create_uninitialized(buf_capacity));
+    size_t body_len = buf_capacity;
+
+    int rc = bsvwallet_sign_action_remote(
+        m_root_privkey, 0,
+        backend_url.characters_without_null_termination(), backend_url.length(),
+        args_json.characters_without_null_termination(), args_json.length(),
+        reinterpret_cast<char*>(response_buf.data()), &body_len);
+
+    if (rc != 0) {
+        dbgln("WalletManager: bsvwallet_sign_action_remote failed with rc={}", rc);
+        return Error::from_string_literal("signAction failed");
+    }
+
+    return TRY(String::from_utf8({ reinterpret_cast<char const*>(response_buf.data()), body_len }));
+}
+
+ErrorOr<String> WalletManager::inscribe_file(StringView backend_url, ReadonlyBytes content, StringView content_type, StringView app_name)
+{
+    if (!m_initialized)
+        return Error::from_string_literal("Wallet not initialized");
+
+    constexpr size_t buf_capacity = 65536;
+    auto response_buf = TRY(ByteBuffer::create_uninitialized(buf_capacity));
+    size_t body_len = buf_capacity;
+
+    int rc = bsvwallet_inscribe_remote(
+        m_root_privkey, 0,
+        backend_url.characters_without_null_termination(), backend_url.length(),
+        content.data(), content.size(),
+        content_type.characters_without_null_termination(), content_type.length(),
+        app_name.characters_without_null_termination(), app_name.length(),
+        reinterpret_cast<char*>(response_buf.data()), &body_len);
+
+    if (rc != 0) {
+        dbgln("WalletManager: bsvwallet_inscribe_remote failed with rc={}", rc);
+        return Error::from_string_literal("inscribe failed");
+    }
+
+    return TRY(String::from_utf8({ reinterpret_cast<char const*>(response_buf.data()), body_len }));
+}
+
 ErrorOr<String> WalletManager::fetch_balance(StringView backend_url)
 {
     if (!m_initialized)

@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
+#include <AK/Base64.h>
 #include <AK/JsonArray.h>
 #include <AK/JsonObject.h>
 #include <AK/LexicalPath.h>
@@ -62,6 +63,9 @@ void WalletUI::register_interfaces()
     });
     register_interface("loadProfile"sv, [this](auto const&) {
         load_profile();
+    });
+    register_interface("inscribeFile"sv, [this](auto const& data) {
+        inscribe_file(data);
     });
 }
 
@@ -509,6 +513,72 @@ void WalletUI::load_profile()
     }
 
     async_send_message("profileLoaded"sv, json.value().as_object());
+}
+
+void WalletUI::inscribe_file(JsonValue const& data)
+{
+    if (!data.is_object()) {
+        JsonObject error;
+        error.set("error"sv, "Invalid inscribe request"sv);
+        async_send_message("inscribeResult"sv, move(error));
+        return;
+    }
+
+    auto const& obj = data.as_object();
+    auto base64_content = obj.get_string("base64Content"sv);
+    auto content_type = obj.get_string("contentType"sv);
+    auto app_name = obj.get_string("appName"sv);
+
+    if (!base64_content.has_value() || !content_type.has_value()) {
+        JsonObject error;
+        error.set("error"sv, "Missing base64Content or contentType"sv);
+        async_send_message("inscribeResult"sv, move(error));
+        return;
+    }
+
+    auto& wallet = Wallet::WalletManager::the();
+    auto const& settings = WebView::Application::settings();
+
+    if (!wallet.is_initialized() || !settings.wallet_enabled()) {
+        JsonObject error;
+        error.set("error"sv, "Wallet not initialized or disabled"sv);
+        async_send_message("inscribeResult"sv, move(error));
+        return;
+    }
+
+    auto decoded = decode_base64(*base64_content);
+    if (decoded.is_error()) {
+        JsonObject error;
+        error.set("error"sv, "Failed to decode base64 content"sv);
+        async_send_message("inscribeResult"sv, move(error));
+        return;
+    }
+
+    auto backend_url = settings.wallet_backend_url().serialize();
+    auto content_bytes = decoded.release_value();
+    auto ct = String(*content_type);
+    auto name = app_name.has_value() ? String(*app_name) : String {};
+
+    (void)Threading::BackgroundAction<String>::construct(
+        [backend_url = move(backend_url), content_bytes = move(content_bytes), ct = move(ct), name = move(name)](auto&) -> ErrorOr<String> {
+            return Wallet::WalletManager::the().inscribe_file(backend_url, content_bytes.bytes(), ct, name);
+        },
+        [this](String response) {
+            auto response_json = JsonValue::from_string(response);
+            if (!response_json.is_error() && response_json.value().is_object()) {
+                async_send_message("inscribeResult"sv, response_json.value().as_object());
+            } else {
+                JsonObject result;
+                result.set("result"sv, response);
+                async_send_message("inscribeResult"sv, move(result));
+            }
+        },
+        [this](Error error) {
+            dbgln("WalletUI: Inscribe error: {}", error);
+            JsonObject result;
+            result.set("error"sv, MUST(String::formatted("{}", error)));
+            async_send_message("inscribeResult"sv, move(result));
+        });
 }
 
 }

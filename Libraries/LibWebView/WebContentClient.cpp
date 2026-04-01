@@ -7,6 +7,7 @@
 #include <AK/JsonObject.h>
 #include <LibHTTP/Cookie/ParsedCookie.h>
 #include <LibIPC/TransportHandle.h>
+#include <LibThreading/BackgroundAction.h>
 #include <LibWebView/Application.h>
 #include <LibWebView/CookieJar.h>
 #include <LibWebView/HelperProcess.h>
@@ -864,9 +865,23 @@ void WebContentClient::did_request_wallet_operation(u64 page_id, u64 request_id,
     } else if (operation == "listActions"sv) {
         async_did_complete_wallet_operation(page_id, request_id, "[]"_string);
     } else if (operation == "createAction"sv || operation == "signAction"sv) {
-        JsonObject error;
-        error.set("error"sv, "Transaction signing not yet implemented"sv);
-        async_did_complete_wallet_operation(page_id, request_id, error.serialized());
+        auto backend_url = Application::settings().wallet_backend_url().serialize();
+        (void)Threading::BackgroundAction<String>::construct(
+            [operation = String(operation), params = String(params), backend_url = move(backend_url)](auto&) -> ErrorOr<String> {
+                auto& w = Wallet::WalletManager::the();
+                if (operation == "createAction"sv)
+                    return w.create_action(backend_url, params);
+                else
+                    return w.sign_action(backend_url, params);
+            },
+            [page_id, request_id, this](String result) {
+                async_did_complete_wallet_operation(page_id, request_id, result);
+            },
+            [page_id, request_id, this](Error error) {
+                JsonObject err;
+                err.set("error"sv, MUST(String::formatted("{}", error)));
+                async_did_complete_wallet_operation(page_id, request_id, err.serialized());
+            });
     } else {
         JsonObject error;
         error.set("error"sv, MUST(String::formatted("Unknown wallet operation: {}", operation)));
